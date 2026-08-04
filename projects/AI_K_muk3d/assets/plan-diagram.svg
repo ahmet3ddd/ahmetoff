@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 120">
+  <!-- Plan onizleme: esit kenarli plan ucgeni (|P1-P2| = |P1-P3|).
+       Plan Z=0 duzlemindedir; pp1arka noktasi ve ona bagli yuzey burada cizilmez. -->
+  <polygon points="20,100 120,100 70,13.4"
+           fill="rgba(150,186,209,0.55)" stroke="#64c864" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- x olcusu: her iki kenar da esit -->
+  <line x1="20" y1="100" x2="120" y2="100" stroke="#d6a04a" stroke-width="2.5"/>
+  <line x1="20" y1="100" x2="70" y2="13.4" stroke="#d6a04a" stroke-width="2.5" opacity="0.55"/>
+  <text x="70" y="113" font-family="sans-serif" font-size="10" text-anchor="middle" fill="#d6a04a">x</text>
+  <text x="36" y="60" font-family="sans-serif" font-size="10" text-anchor="middle" fill="#d6a04a" opacity="0.75">x</text>
+
+  <circle cx="20" cy="100" r="4.5" fill="#e68c50" stroke="#1e1f22" stroke-width="1.2"/>
+  <circle cx="120" cy="100" r="3.5" fill="#b9bec6" stroke="#1e1f22" stroke-width="1.2"/>
+  <circle cx="70" cy="13.4" r="3.5" fill="#b9bec6" stroke="#1e1f22" stroke-width="1.2"/>
+
+  <text x="9" y="113" font-family="sans-serif" font-size="10" fill="#e68c50">P1</text>
+  <text x="126" y="113" font-family="sans-serif" font-size="10" fill="#b9bec6">P2</text>
+  <text x="70" y="9" font-family="sans-serif" font-size="10" text-anchor="middle" fill="#b9bec6">P3</text>
+</svg>

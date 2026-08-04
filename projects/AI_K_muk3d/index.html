@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Köşe Mukarnas - (web)</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <header class="topbar">
+        <h1>Köşe Mukarnas - (web)</h1>
+        <div class="topbar-actions">
+            <button id="btn-help" type="button" title="Nasıl Kullanılır">?</button>
+            <button id="btn-reset" type="button" title="Parametreleri sıfırla">Sıfırla</button>
+            <button id="btn-fit-camera" type="button" title="3D kamerayı nesneye oturt">Kamera</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-export-stl" type="button">STL</button>
+            <button id="btn-export-dxf" type="button">DXF</button>
+            <button id="btn-export-png" type="button">PNG</button>
+        </div>
+    </header>
+    <main class="layout">
+        <aside class="sidebar">
+            <section class="panel">
+                <h2>Plan Şablonu</h2>
+                <label class="radio"><input type="radio" name="plan-sablon" value="eskenar" checked /> Eşkenar üçgen</label>
+                <label class="radio"><input type="radio" name="plan-sablon" value="dik" /> Dik üçgen</label>
+                <label class="radio"><input type="radio" name="plan-sablon" value="ozel" /> Özel (koordinat)</label>
+                <div class="preview-img"><img id="plan-preview" src="assets/plan-diagram.svg" alt="Plan önizleme" /></div>
+            </section>
+            <section class="panel">
+                <h2>Plan Noktaları</h2>
+                <div class="field-row"><span class="pt-label">P1</span><input id="p1-x" type="number" step="0.1" value="0" /><input id="p1-y" type="number" step="0.1" value="0" /></div>
+                <div class="field-row"><span class="pt-label">P2</span><input id="p2-x" type="number" step="0.1" value="100" /><input id="p2-y" type="number" step="0.1" value="0" /></div>
+                <div class="field-row"><span class="pt-label">P3</span><input id="p3-x" type="number" step="0.1" value="50" /><input id="p3-y" type="number" step="0.1" value="86.6" /></div>
+                <div class="readout">P1–P2 mesafe: <span id="readout-p1p2">—</span><br />P1–P3 mesafe: <span id="readout-p1p3">—</span></div>
+                <label class="checkbox-field"><input id="chk-esit-kenar" type="checkbox" /> Kenarları eşit tut (|P1–P3| = |P1–P2|)</label>
+                <button id="btn-esitle" class="mini-btn" type="button">P3'ü şimdi eşitle</button>
+            </section>
+            <section class="panel">
+                <h2>Mukarnas Parametreleri</h2>
+                <div class="field"><label for="param-asaba-adet">Asaba adedi</label><input id="param-asaba-adet" type="number" value="1" min="1" max="50" step="1" /></div>
+                <div class="field"><label for="param-toplam-h">Toplam H</label><input id="param-toplam-h" type="number" value="0" min="0" step="0.1" /></div>
+                <div class="field"><label for="param-asaba-h">Asaba h</label><input id="param-asaba-h" type="number" value="0" min="0.1" step="0.1" /></div>
+                <div class="field"><label for="param-derinlik">Yanak derinlik</label><input id="param-derinlik" type="number" value="0" min="0" step="0.5" /></div>
+                <label class="checkbox-field"><input id="chk-x-manuel" type="checkbox" /> X ölçüsü plandan bağımsız</label>
+                <div class="field"><label for="param-x-mesafe">X ölçüsü (asa)</label><input id="param-x-mesafe" type="number" value="100" min="0.1" step="0.1" disabled /></div>
+                <div class="readout">x ölçüsü (hesap): <span id="readout-x-asa">—</span></div>
+            </section>
+            <section class="panel">
+                <h2>Durum</h2>
+                <p class="status-line"><strong>Yapılacak:</strong> <span id="not1">Planı düzenleyin; çizim otomatik güncellenir.</span></p>
+                <p class="status-line"><strong>Bitmiş:</strong> <span id="not2">—</span></p>
+                <p class="status-line"><span id="not3">X ölçüsü: —</span></p>
+            </section>
+            <section class="panel panel-footer"><p class="hint">Orijinal MaxScript: <code>docs/23-v1.ms</code></p></section>
+        </aside>
+        <section class="viewports">
+            <div class="viewport viewport-2d"><div class="viewport-title">2D Plan</div><div id="view2d" class="view2d-container"></div></div>
+            <div class="viewport viewport-3d"><div class="viewport-title">3D Görünüm</div><div id="view3d" class="view3d-container"></div></div>
+        </section>
+    </main>
+    <div id="help-overlay" class="help-overlay" hidden>
+        <div class="help-modal">
+            <div class="help-header"><h2>Nasıl Kullanılır</h2><button id="btn-help-close" type="button">&times;</button></div>
+            <div class="help-body">
+                <p><strong>Açılış:</strong> <code>web/index.html</code> dosyasına çift tıklayın.</p>
+                <h3>Plan</h3>
+                <p>P1–P3 üçgeni; asaba adedi 1: x=P1–P2; fazla: x=P1–P2/adet. tablo2 örneği: asaba adedi=3, H=3×asaba h.</p>
+                <p><strong>Eşit kenar:</strong> orijinal MaxScript eşit kenarlı köşe varsayar. |P1–P3| ≠ |P1–P2| ise asaba genişliği iki kenarda farklı olur ve uyarı çıkar. <em>P3'ü şimdi eşitle</em> tek seferlik düzeltir; <em>Kenarları eşit tut</em> işaretliyse P3 yönünü koruyup sürekli |P1–P2| uzunluğunda tutulur (P3'ü sürüklerken yalnız açı değişir).</p>
+                <h3>2D Plan katmanları</h3>
+                <ul>
+                    <li><strong>Yeşil üçgen (PLAN):</strong> sizin verdiğiniz plan; köşeler sürüklenebilir.</li>
+                    <li><strong>Mavi baklavalar (HUCRE):</strong> asabaların plandaki izi; her hücre bir asaba, köşegen pp2–pp3. Dolgu tonu kademeyi gösterir (açık = üst kademe). Taban sırası üçgendir: o sıradaki pp1arka yüzeyi grid düzlemine (Z=0) oturduğu için çizilmez.</li>
+                    <li><strong>Beyaz çizgi (KONTUR):</strong> kafesin dış sınırı; asa ölçüsü plana tam bölünüyorsa plan üçgeniyle çakışır.</li>
+                    <li><strong>Turuncu (BOLUM):</strong> birinci asabanın x ölçüsü.</li>
+                    <li><strong>Kesikli yeşil (YANAK):</strong> yanak panellerinin plandaki izi (derinlik &gt; 0 iken).</li>
+                </ul>
+                <p>Aynı katman adları DXF'e de yazılır.</p>
+                <h3>Export</h3>
+                <p>STL, DXF, PNG. <strong>DXF 3D'dir:</strong> mukarnas yüzeyleri 3DFACE olarak <code>MUKARNAS</code>, yanaklar <code>YANAK_3D</code> katmanına yazılır; plan çizgileri Z=0'da ayrı katmanlarda kalır (PLAN, BOLUM, HUCRE, KONTUR, YANAK). 3ds Max'e alırken <strong>Weld vertices</strong> işaretle.</p>
+                <p><strong>Eksenler:</strong> Hesaplama Max gibi (plan XY, yükseklik Z). 3D önizleme Three.js (Y yukarı). STL Max Z-yukarı kalır.</p>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/mukarnas-geometry.js"></script>
+    <script src="js/viewer-2d.js"></script>
+    <script src="js/viewer-3d.js"></script>
+    <script src="js/export-stl.js"></script>
+    <script src="js/export-dxf.js"></script>
+    <script src="js/export-png.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
