@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Püskül 3D - Web</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <header class="topbar">
+        <h1>Püskül 3D - Web</h1>
+        <div class="topbar-actions">
+            <button id="btn-help" type="button" title="Nasil Kullanilir">?</button>
+            <button id="btn-save" type="button" title="Tum ayarlari JSON olarak kaydet">Kaydet</button>
+            <button id="btn-load" type="button" title="Ayarlari JSON dosyasindan yukle">Yukle</button>
+            <button id="btn-gray-mode" type="button" title="Tek renk gri mod">Gri Mod</button>
+            <button id="btn-fit-camera" type="button" title="Kamerayi nesneye oturt">Kamera</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-export-stl" type="button">STL</button>
+            <button id="btn-export-dxf" type="button">DXF</button>
+        </div>
+    </header>
+
+    <main class="layout">
+        <aside class="sidebar">
+
+            <!-- ============================================ KATMAN YONETIMI -->
+            <section class="panel panel-layer">
+                <div class="panel-head">
+                    <h2>Katman Yonetimi</h2>
+                    <div style="display: flex; gap: 5px;">
+                        <button id="add-layer-btn" type="button" class="btn btn-sm" title="Yeni katman ekle">+ Ekle</button>
+                        <button id="remove-layer-btn" type="button" class="btn btn-sm btn-danger" title="Aktif katmani sil">Sil</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="layer-selector">Aktif Katman</label>
+                    <select id="layer-selector">
+                        <option value="1" selected>Katman 1 (En Ust)</option>
+                    </select>
+                </div>
+
+                <div class="readout-box" id="layer-info">
+                    <div class="readout"><span>Gen sayisi</span><span id="layer-info-sides">4</span></div>
+                    <div class="readout"><span>Yerlesim</span><span id="layer-info-placement">Kose</span></div>
+                    <div class="readout"><span>Ana hucre</span><span id="layer-info-main">BADEM</span></div>
+                    <div class="readout"><span>Ara hucre</span><span id="layer-info-inter">FITIL</span></div>
+                </div>
+
+                <div class="panel-sub" id="layer-visibility-group">
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="layer-visibility-toggle" checked />
+                        Katmani goster
+                    </label>
+                </div>
+
+                <div class="panel-sub" id="transition-surface-controls">
+                    <h3>Gecis Yuzeyi</h3>
+                    <div id="transition-height-control">
+                        <label class="checkbox-row">
+                            <input type="checkbox" id="lock-transition-height" />
+                            Tum katmanlar ayni yukseklik
+                        </label>
+                        <div class="control-group" style="margin-top: 8px;">
+                            <label for="transition-height-slider">Yukseklik: <span id="transition-height-label">20</span> birim</label>
+                            <input type="range" id="transition-height-slider" min="0" max="50" step="5" value="20" />
+                            <p class="hint">Outer boundary'den yukari dogru.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cascade-indicator" class="cascade-indicator" style="display: none;">
+                    <strong>Kaskad etkisi:</strong> Bu katmandaki degisiklikler alt katmani etkiler.
+                </div>
+            </section>
+
+            <!-- ======================================= PUSKUL SEKIL TASARIMI -->
+            <section class="panel" id="puskul-shape-controls">
+                <h2 id="puskul-shape-heading">Puskul Sekil Tasarimi</h2>
+
+                <div class="control-group" id="sides-control-group">
+                    <label for="sides-slider">Gen sayisi (4&ndash;8): <span id="sides-label">4</span></label>
+                    <input type="range" id="sides-slider" min="4" max="8" value="4" step="1" />
+                    <p class="hint">Puskul temel planindaki kenar sayisi.</p>
+                    <p class="hint hint-ok">Kenar uzunlugu: <span id="edge-length">0</span> birim</p>
+                </div>
+
+                <div class="control-group" id="outer-radius-control-group">
+                    <label for="outer-radius-slider">Dis ngon (outerRadius): <span id="outer-radius-label">300</span> birim</label>
+                    <input type="range" id="outer-radius-slider" min="100" max="500" value="300" step="10" />
+                    <p class="hint">Ana hucrelerin c1 noktalari bu ngonda.</p>
+                </div>
+
+                <div class="control-group">
+                    <label for="inner-radius-slider">Ic ngon (innerRadius): <span id="inner-radius-label">100</span> birim</label>
+                    <input type="range" id="inner-radius-slider" min="50" max="400" value="100" step="10" />
+                    <p class="hint">TUM hucrelerin a1 noktalari bu ngonda.</p>
+                </div>
+
+                <div class="control-group" id="placement-control-group">
+                    <label>Hucre yerlesimi</label>
+                    <div class="radio-row">
+                        <label class="radio"><input type="radio" name="placement" value="corner" checked /> Kose</label>
+                        <label class="radio"><input type="radio" name="placement" value="edge" /> Kenar</label>
+                    </div>
+                    <p class="hint">Kose: cokgen koselerinde | Kenar: kenar ortalarinda.</p>
+                </div>
+
+                <div class="control-group">
+                    <label for="main-cell-type">Ana hucre tipi</label>
+                    <select id="main-cell-type">
+                        <option value="BADEM" selected>Badem</option>
+                        <option value="YAPRAK">Yaprak</option>
+                    </select>
+                    <p class="hint">Kose yerlesimi: koselerde | Kenar yerlesimi: kenar ortalarinda.</p>
+                </div>
+
+                <div class="control-group">
+                    <label for="inter-cell-type">Ara hucre tipi</label>
+                    <select id="inter-cell-type">
+                        <option value="FITIL" selected>Fitil</option>
+                        <option value="KAZAYAGI">Kazayagi</option>
+                        <option value="YOK">--- YOK ---</option>
+                    </select>
+                    <p class="hint">Kose yerlesimi: kenar ortalarinda | Kenar yerlesimi: koselerde | YOK: sadece ana hucreler.</p>
+                </div>
+
+                <div class="control-group" id="multiplier-control-group">
+                    <label for="multiplier-slider">Hucre cesitliligi: <span id="multiplier-label">2</span>x</label>
+                    <input type="range" id="multiplier-slider" min="1" max="3" value="2" step="1" />
+                    <p class="hint">1x: sadece ana | 2x: ana + 1 ara | 3x: ana + 2 ara.</p>
+                </div>
+
+                <div class="control-group">
+                    <label for="height-slider">Yukseklik (H): <span id="h-label">100</span></label>
+                    <input type="range" id="height-slider" min="50" max="200" value="100" step="10" />
+                </div>
+
+                <div class="readout-box">
+                    <div class="readout"><span>Derinlik</span><span id="depth-value">100</span></div>
+                    <div class="readout"><span>Hucre</span><span id="cells-summary">0 (0 ana + 0 ara)</span></div>
+                </div>
+            </section>
+
+            <!-- ========================================= HUCRE TIPI ATAMA -->
+            <section class="panel">
+                <h2>Hucre Tipi Atama</h2>
+
+                <div class="control-group">
+                    <label>Atama modu</label>
+                    <div class="radio-row">
+                        <label class="radio"><input type="radio" name="assignment-mode" value="auto" checked /> Otomatik</label>
+                        <label class="radio"><input type="radio" name="assignment-mode" value="manual" /> Manuel</label>
+                    </div>
+                    <p class="hint">Otomatik: kurallara gore atar | Manuel: kendin sec.</p>
+                </div>
+
+                <div id="cell-assignment-panel" style="display: none;">
+                    <!-- Manuel mod dropdown'lari app.js tarafindan doldurulur -->
+                </div>
+            </section>
+
+            <!-- ============================================= YAN TUTUNMA -->
+            <section class="panel">
+                <h2>Yan Tutunma (Geometri Deformasyonu)</h2>
+
+                <div class="control-group">
+                    <label for="snap-threshold-slider">Deformasyon gucu: <span id="snap-threshold-label">5</span> / 20 (<span id="snap-percentage">25</span>%)</label>
+                    <input type="range" id="snap-threshold-slider" min="0" max="20" value="5" step="1" />
+                    <p class="hint">Sadece ara hucre YOK ise aktif. 0: deformasyon yok | 20: tam deformasyon.</p>
+                </div>
+            </section>
+
+            <!-- ================================== BADEM / YAPRAK RADYAL ORAN -->
+            <section class="panel">
+                <h2>Badem / Yaprak Radyal Oran</h2>
+
+                <div class="control-group">
+                    <label for="badem-radial-ratio-slider">Radyal oran (b1/d1): <span id="badem-radial-ratio-label">0.403</span> (<span id="badem-radial-ratio-percentage">40.3</span>%)</label>
+                    <input type="range" id="badem-radial-ratio-slider" min="-1.0" max="0.8" value="0.403" step="0.001" />
+                    <p class="hint">b1/d1 radyal konumu: innerRadius + (depth &times; oran).</p>
+                    <p class="hint hint-ok">-1.0: merkeze dogru | 0.0: innerRadius | 0.403: PNG default | 0.8: c1'e yakin.</p>
+                </div>
+            </section>
+
+            <!-- ===================================== BADEM / YAPRAK DARALMA -->
+            <section class="panel">
+                <h2>Badem / Yaprak Daralma</h2>
+
+                <div class="control-group">
+                    <label for="badem-narrow-factor-slider">Daralma: <span id="badem-narrow-factor-label">1.00</span> (<span id="badem-narrow-percentage">100</span>%, bosluk <span id="badem-gap-percentage">0</span>%)</label>
+                    <input type="range" id="badem-narrow-factor-slider" min="0.5" max="1.0" value="1.0" step="0.01" />
+                    <p id="badem-narrow-note" class="hint hint-warn" style="display: none;">Ara hucre aktif: bu ayar pasif (geometri deformasyonu ile kontrol ediliyor).</p>
+                    <p class="hint">Badem/Yaprak hucreleri arasinda bosluk olusturur.</p>
+                    <p class="hint hint-ok">1.0: yapisik | 0.8: %20 bosluk | 0.5: %50 bosluk.</p>
+                </div>
+            </section>
+
+            <section class="panel panel-footer">
+                <p class="hint">
+                    Kural dosyalari:
+                    <code>docs/PUSKUL_KURALLARI.md</code>,
+                    <code>docs/HUCRE_BAGLANTI_VE_KOPRU_YUZEY_RAPORU.md</code>,
+                    <code>docs/BADEM_POLAR_CONSTRAINT.md</code>
+                </p>
+            </section>
+        </aside>
+
+        <section class="viewports">
+            <div class="viewport">
+                <div class="viewport-title">3D Gorunum (Z yukari)</div>
+
+                <div id="canvas-container">
+                    <div id="loading">
+                        <h2>Puskul 3D yukleniyor...</h2>
+                        <p>Lutfen bekleyin</p>
+                    </div>
+
+                    <!-- Mini ortografik gorunum -->
+                    <div id="pip-container">
+                        <div id="pip-label">TOP VIEW (Ortografik)</div>
+                    </div>
+
+                    <!-- Hucre detay / duzenleme paneli -->
+                    <div id="cell-detail-panel" style="display: none;">
+                        <div class="detail-head">
+                            <h3>Hucre Duzenle</h3>
+                            <button id="close-detail-panel" type="button" title="Kapat">&times;</button>
+                        </div>
+
+                        <div class="readout"><span>Grup</span><span id="detail-group-name">&mdash;</span></div>
+
+                        <div class="control-group" style="margin-top: 10px;">
+                            <label for="detail-apply-scope">Uygulama kapsami</label>
+                            <select id="detail-apply-scope">
+                                <option value="single">Sadece bu hucre</option>
+                                <option value="group" selected>Tum grup (ayni tip + yerlesim)</option>
+                            </select>
+                        </div>
+
+                        <h4>Ratio ayarlari (0&ndash;1 normalize)</h4>
+
+                        <div class="control-group">
+                            <label for="detail-ratio1">Ratio 1 (b2, d2): <span id="detail-ratio1-label">0.090</span></label>
+                            <input type="range" id="detail-ratio1" min="0" max="1.0" step="0.001" value="0.09" />
+                            <p class="hint">b1&rarr;c1 arasi temel kayma (depth &times; ratio).</p>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="detail-ratio2">Ratio 2 (b4, d4 ekstra): <span id="detail-ratio2-label">0.096</span></label>
+                            <input type="range" id="detail-ratio2" min="0" max="1.0" step="0.001" value="0.096" />
+                            <p class="hint">Ratio 1'in uzerine eklenir (toplam: <span id="detail-ratio2-total">0.186</span>).</p>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="detail-ratio3">Ratio 3 (w5, z5): <span id="detail-ratio3-label">0.090</span></label>
+                            <input type="range" id="detail-ratio3" min="0" max="1.0" step="0.001" value="0.09" />
+                            <p class="hint">w5: b4&rarr;a2 uzerinde | z5: d4&rarr;a2 uzerinde (0 = b4/d4, 1 = a2).</p>
+                        </div>
+
+                        <h4>Z seviyeleri (H oranlari)</h4>
+
+                        <div class="control-group">
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="detail-z-all-layer" />
+                                Tum katmana uygula (tip bagimsiz)
+                            </label>
+                            <p class="hint">Tum hucrelere ayni Z seviyeleri uygulanir.</p>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="detail-z2">Level 2 (a2, b2, d2): <span id="detail-z2-label">5/91</span></label>
+                            <input type="range" id="detail-z2" min="0" max="30" step="1" value="5" />
+                        </div>
+                        <div class="control-group">
+                            <label for="detail-z3">Level 3 (b3, d3): <span id="detail-z3-label">30/91</span></label>
+                            <input type="range" id="detail-z3" min="0" max="40" step="1" value="30" />
+                        </div>
+                        <div class="control-group">
+                            <label for="detail-z4">Level 4 (b4, d4): <span id="detail-z4-label">35/91</span></label>
+                            <input type="range" id="detail-z4" min="0" max="70" step="1" value="35" />
+                        </div>
+                        <div class="control-group">
+                            <label for="detail-z5">Level 5 (b5, d5): <span id="detail-z5-label">65/91</span></label>
+                            <input type="range" id="detail-z5" min="0" max="85" step="1" value="65" />
+                        </div>
+                        <div class="control-group">
+                            <label for="detail-z6">Level 6 (c6): <span id="detail-z6-label">85/91</span></label>
+                            <input type="range" id="detail-z6" min="0" max="91" step="1" value="85" />
+                        </div>
+
+                        <button id="detail-apply" type="button" class="btn btn-primary btn-block">Uygula</button>
+                    </div>
+
+                    <!-- Alt orta gorunum anahtarlari -->
+                    <div class="viewport-toggles">
+                        <button id="show-wireframe" type="button" title="Tel kafes gosterimi">Wireframe</button>
+                        <button id="toggle-grid" type="button" title="Izgarayi ac/kapa">Grid</button>
+                        <button id="toggle-pip" type="button" title="Mini ortografik gorunum">PIP</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================================================== YARDIM MODALI -->
+    <div id="help-overlay" class="overlay" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Nasil Kullanilir</h2>
+                <button id="btn-help-close" type="button" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Acilis:</strong> <code>index.html</code> dosyasina cift tiklayin.
+                Three.js CDN uzerinden yuklenir; internet baglantisi gerekir.</p>
+
+                <h3>1. Katman Yonetimi</h3>
+                <ul>
+                    <li><strong>+ Ekle / Sil:</strong> Katman ekler veya aktif katmani siler (Katman 1 silinemez).</li>
+                    <li><strong>Aktif katman:</strong> Tum sekil parametreleri secili katmana uygulanir.</li>
+                    <li><strong>Kaskad:</strong> Bir katmanin ic ngonu, alt katmanin dis ngonu olur.</li>
+                    <li><strong>Gecis yuzeyi:</strong> Katmanin outer boundary'sinden yukari dogru duvar yuksekligi.</li>
+                </ul>
+
+                <h3>2. Puskul Sekil Tasarimi</h3>
+                <ul>
+                    <li><strong>Gen sayisi:</strong> Temel plan cokgeninin kenar sayisi (4&ndash;8). Yalniz Katman 1.</li>
+                    <li><strong>Dis / Ic ngon:</strong> Ana hucrelerin c1 ve tum hucrelerin a1 noktalarinin yaricaplari.</li>
+                    <li><strong>Yerlesim:</strong> Ana hucreler koselerde (<em>Kose</em>) veya kenar ortalarinda (<em>Kenar</em>).</li>
+                    <li><strong>Hucre tipleri:</strong> Ana &mdash; Badem / Yaprak, Ara &mdash; Fitil / Kazayagi / YOK.</li>
+                    <li><strong>Cesitlilik:</strong> 1x sadece ana, 2x ana + 1 ara, 3x ana + 2 ara.</li>
+                </ul>
+
+                <h3>3. Hucre Tipi Atama</h3>
+                <p><strong>Otomatik</strong> mod kurallara gore atar. <strong>Manuel</strong> modda her hucre
+                icin tip secebilir veya hucreye cift tiklayarak duzenleme paneline gecebilirsiniz.</p>
+
+                <h3>4. Hucre Duzenleme</h3>
+                <p>3D gorunumde bir hucreye <strong>cift tiklayin</strong>. Sag panelden ratio degerleri ve
+                Z seviyeleri ayarlanir; <em>Uygulama kapsami</em> ile tek hucreye veya tum gruba uygulanir.</p>
+
+                <h3>5. Gorunum</h3>
+                <p><em>Sol tus</em> orbit, <em>sag tus</em> pan, <em>tekerlek</em> zoom.
+                Alt ortadaki anahtarlar <strong>Wireframe</strong>, <strong>Grid</strong> ve
+                <strong>PIP</strong> (mini ortografik ust gorunum) kontrol eder.
+                PIP penceresi surukleyip yeniden boyutlandirilabilir.</p>
+
+                <h3>6. Kaydet / Yukle</h3>
+                <p><strong>Kaydet</strong> tum katman ve hucre ayarlarini JSON olarak indirir,
+                <strong>Yukle</strong> ayni dosyayi geri yukler.</p>
+
+                <h3>7. Export</h3>
+                <ul>
+                    <li><strong>STL:</strong> 3D mesh (tum katmanlar veya aktif katman).</li>
+                    <li><strong>DXF:</strong> 3DFACE + kenar cizgileri (tum katmanlar veya aktif katman).</li>
+                </ul>
+
+                <h3>8. Gri Mod</h3>
+                <p>Tum yuzeyleri tek renk gri yapar; form okunurlugu icin kullanislidir.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================== EXPORT MODALI -->
+    <div id="export-overlay" class="overlay" hidden>
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h2 id="export-title">Disa Aktar</h2>
+                <button id="btn-export-close" type="button" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-actions">
+                <button id="export-all" type="button" class="btn">Tum katmanlar</button>
+                <button id="export-layer" type="button" class="btn">Sadece aktif katman</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js CDN - r140 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/controls/OrbitControls.js"></script>
+
+    <!-- Puskul Geometry -->
+    <script src="js/puskul-geometry.js"></script>
+    <script src="js/puskul-sonu-geometry.js"></script>
+
+    <!-- Hucre geometrileri -->
+    <script src="js/cells/badem-geometry.js"></script>
+    <script src="js/cells/fitil-geometry.js"></script>
+    <script src="js/cells/yaprak-geometry.js"></script>
+    <script src="js/cells/kazayak-geometry.js"></script>
+
+    <!-- Loader / editor / katman -->
+    <script src="js/cell-loader.js"></script>
+    <script src="js/cell-editor.js"></script>
+    <script src="js/layer-transition.js"></script>
+
+    <!-- Modul yardimcilari -->
+    <script src="js/utils/render-utils.js"></script>
+    <script src="js/utils/polygon-guide.js"></script>
+    <script src="js/utils/view-utils.js"></script>
+    <script src="js/utils/scene-setup.js"></script>
+    <script src="js/utils/ui-utils.js"></script>
+    <script src="js/utils/config-utils.js"></script>
+    <script src="js/utils/export-utils.js"></script>
+
+    <!-- Katman yonetimi arayuz baglantilari + toast -->
+    <script src="js/layer-ui.js"></script>
+
+    <!-- Ana uygulama -->
+    <script src="js/app.js"></script>
+</body>
+</html>
