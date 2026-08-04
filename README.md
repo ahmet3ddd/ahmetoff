@@ -37,6 +37,13 @@ Mukarnas (sarkıt tavan süslemesi) tiplerini — Badem, Yaprak, Fitil, Kaz Aya�
 
 [▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d/) · [Kaynak](projects/AI_muk3d)
 
+### Köşe Mukarnas
+Köşe mukarnaslarını üçgen plan (P1-P2-P3) üzerinden kurgular. Eşkenar/dik üçgen veya özel koordinat şablonu, asaba sayısı ve kademelerle 3B form üretir; DXF, STL ve PNG dışa aktarır.
+
+<img src="assets/shot-kmuk3d.png" alt="Köşe Mukarnas" width="100%" />
+
+[▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_K_muk3d/) · [Kaynak](projects/AI_K_muk3d)
+
 ### Püskül 3D
 Mukarnas püskül (sarkıt) yapılarını çok katmanlı olarak parametrik 3B modeller. Katman yönetimi, hücre tipi atama (Badem, Yaprak, Fitil, Kaz Ayağı), geçiş yüzeyleri ve JSON kaydet/yükle desteği.
 
@@ -62,6 +69,7 @@ ahmetoff/
 ├── projects/       → Her bağımsız proje kendi klasöründe
 │   ├── AI_Kemer/
 │   ├── AI_muk3d/
+│   ├── AI_K_muk3d/
 │   ├── AI_Puskul/
 │   └── AI_7-8/
 └── LICENSE         → MIT
