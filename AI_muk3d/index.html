@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mukarnas 3D - Web</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <header class="topbar">
+        <h1>Mukarnas 3D - Web</h1>
+        <div class="topbar-actions">
+            <button id="btn-help" type="button" title="Nasil Kullanilir">?</button>
+            <button id="btn-undo" type="button" title="Geri al (Ctrl+Z)" disabled>Geri</button>
+            <button id="btn-redo" type="button" title="Yinele (Ctrl+Y)" disabled>Yinele</button>
+            <button id="btn-reset" type="button" title="Parametreleri sifirla">Sifirla</button>
+            <button id="btn-fit-camera" type="button" title="3D kamerayi nesneye oturt">Kamera</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-export-stl" type="button">STL</button>
+            <button id="btn-export-dxf" type="button">DXF</button>
+            <button id="btn-export-png" type="button">PNG</button>
+        </div>
+    </header>
+
+    <main class="layout">
+        <aside class="sidebar">
+            <section class="panel panel-mode">
+                <h2>Calisma Modu</h2>
+                <div class="mode-toggle">
+                    <button id="btn-mode-draw" type="button" class="mode-btn active">Cizim</button>
+                    <button id="btn-mode-modify" type="button" class="mode-btn">Duzenleme</button>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Mukarnas Tipi</h2>
+                <label class="radio">
+                    <input type="radio" name="muk-tipi" value="badem" checked />
+                    Badem
+                </label>
+                <label class="radio">
+                    <input type="radio" name="muk-tipi" value="yaprak" />
+                    Yaprak
+                </label>
+                <label class="radio">
+                    <input type="radio" name="muk-tipi" value="fitil" />
+                    Fitil
+                </label>
+                <label class="radio">
+                    <input type="radio" name="muk-tipi" value="kaz" />
+                    Kaz Ayagi
+                </label>
+            </section>
+
+            <section class="panel panel-draw">
+                <h2>Parca Modu</h2>
+                <label class="radio">
+                    <input type="radio" name="muk-variant" value="tam" checked />
+                    Tam (simetri)
+                </label>
+                <label class="radio">
+                    <input type="radio" name="muk-variant" value="tam-asym" />
+                    Tam (asimetrik)
+                </label>
+                <label class="radio">
+                    <input type="radio" name="muk-variant" value="sol" />
+                    Yarim - Sol
+                </label>
+                <label class="radio">
+                    <input type="radio" name="muk-variant" value="sag" />
+                    Yarim - Sag
+                </label>
+            </section>
+
+            <section class="panel panel-draw">
+                <h2>Parametreler</h2>
+
+                <div class="field">
+                    <label for="param-asaba">Asaba H</label>
+                    <input id="param-asaba" type="number" value="0" min="0" step="1" />
+                </div>
+                <label class="checkbox-row">
+                    <input id="param-auto-asaba" type="checkbox" checked />
+                    Otomatik Asaba (altin oran)
+                </label>
+
+                <div class="readout">
+                    Hesaplanan Asaba: <span id="readout-asaba">&mdash;</span>
+                </div>
+                <div class="readout">
+                    Kose / Yuz: <span id="readout-verts">&mdash;</span>
+                </div>
+            </section>
+
+            <section class="panel panel-draw panel-plan">
+                <h2 id="plan-panel-title">Plan Ucgeni (P1-P2-P3)</h2>
+                <div class="field">
+                    <label for="param-p1x">P1 X / Y</label>
+                    <input id="param-p1x" type="number" value="0" step="1" />
+                </div>
+                <div class="field">
+                    <label for="param-p1y">&nbsp;</label>
+                    <input id="param-p1y" type="number" value="0" step="1" />
+                </div>
+                <div class="field">
+                    <label for="param-p2x">P2 X / Y</label>
+                    <input id="param-p2x" type="number" value="100" step="1" />
+                </div>
+                <div class="field">
+                    <label for="param-p2y">&nbsp;</label>
+                    <input id="param-p2y" type="number" value="0" step="1" />
+                </div>
+                <div class="field">
+                    <label for="param-p3x">P3 X / Y</label>
+                    <input id="param-p3x" type="number" value="50" step="1" />
+                </div>
+                <div class="field">
+                    <label for="param-p3y">&nbsp;</label>
+                    <input id="param-p3y" type="number" value="80" step="1" />
+                </div>
+                <div id="panel-p4-fields" class="panel-p4-fields" hidden>
+                    <div class="field">
+                        <label for="param-p4x">P4 X / Y</label>
+                        <input id="param-p4x" type="number" value="50" step="1" />
+                    </div>
+                    <div class="field">
+                        <label for="param-p4y">&nbsp;</label>
+                        <input id="param-p4y" type="number" value="-80" step="1" />
+                    </div>
+                </div>
+
+                <div class="field field-ara">
+                    <label for="param-ara-mesafe">Ara mesafe (P1&ndash;pp2)</label>
+                    <input id="param-ara-mesafe" type="number" value="0" min="0.1" step="0.1" />
+                </div>
+                <label class="checkbox-row">
+                    <input id="param-auto-ara-mesafe" type="checkbox" checked />
+                    Otomatik (asaba / k)
+                </label>
+                <p class="field-hint">On profilde 1&ndash;12 ile 4&ndash;13 hatlari arasi plan acikligi. k: badem/yaprak 14, fitil 12.5, kaz 12.</p>
+                <div class="readout">
+                    Kesim ofseti (bbx): <span id="readout-bbx">&mdash;</span>
+                </div>
+
+                <div id="panel-ara-78" class="panel-ara-78">
+                    <div class="field field-ara">
+                        <label for="param-ara-mesafe78">Ara mesafe (7&ndash;8 / 16&ndash;17)</label>
+                        <input id="param-ara-mesafe78" type="number" value="0" min="0.1" step="0.1" />
+                    </div>
+                    <label class="checkbox-row">
+                        <input id="param-auto-ara-mesafe78" type="checkbox" checked />
+                        Otomatik (pp4&rarr;p2t / 4.5)
+                    </label>
+                    <p class="field-hint">v8 ve v17 (pp4, %80) sabit; v7 ve v16 pp5h plan mesafesi degisir. Badem icin.</p>
+                </div>
+            </section>
+
+            <section class="panel panel-modify" hidden>
+                <h2>Mukarnas Duzenleme</h2>
+                <p class="modify-hint">Segment degerlerini yazip Enter veya baska alana tiklayin. Ok tuslari 0.1 adimla degistirir.</p>
+
+                <div class="field field-seg">
+                    <span class="seg-chip" style="--seg:#e0b566">A</span>
+                    <input id="mod-mA" type="number" value="0" min="0" step="0.1" inputmode="decimal" aria-label="Segment A" />
+                </div>
+                <div class="field field-seg">
+                    <span class="seg-chip" style="--seg:#90c8e6">B</span>
+                    <input id="mod-mB" type="number" value="0" min="0" step="0.1" inputmode="decimal" aria-label="Segment B" />
+                </div>
+                <div class="field field-seg">
+                    <span class="seg-chip" style="--seg:#3aa05c">C</span>
+                    <input id="mod-mC" type="number" value="0" min="0" step="0.1" inputmode="decimal" aria-label="Segment C" />
+                </div>
+                <div class="field field-seg">
+                    <span class="seg-chip" style="--seg:#c0533a">D</span>
+                    <input id="mod-mD" type="number" value="0" min="0" step="0.1" inputmode="decimal" aria-label="Segment D" />
+                </div>
+                <div class="field field-seg">
+                    <span class="seg-chip" style="--seg:#5b8fd6">E</span>
+                    <input id="mod-mE" type="number" value="0" min="0" step="0.1" inputmode="decimal" aria-label="Segment E" />
+                </div>
+                <div class="field field-seg">
+                    <span class="seg-chip" style="--seg:#d6a04a">F</span>
+                    <input id="mod-mF" type="number" value="0" min="0" step="0.1" inputmode="decimal" aria-label="Segment F" />
+                </div>
+
+                <div class="field field-boy">
+                    <label for="mod-boy" id="mod-boy-label">BOY</label>
+                    <input id="mod-boy" type="number" value="0" min="0" step="0.1" inputmode="decimal" />
+                </div>
+                <label class="checkbox-row">
+                    <input id="mod-boy-height" type="checkbox" checked />
+                    BOY mutlak yukseklik
+                </label>
+
+                <div class="modify-actions">
+                    <button id="btn-mod-reset" type="button">Duzenlemeyi Sifirla</button>
+                </div>
+
+                <div class="readout">
+                    Toplam BOY: <span id="readout-mboy">&mdash;</span>
+                </div>
+                <pre class="modify-move-map" id="readout-move-map" aria-label="Segment tasinan koseler"></pre>
+            </section>
+
+            <section class="panel panel-footer">
+                <p class="hint">
+                    Orijinal MaxScript:
+                    <code>docs/mukarnas-ver-6-2.ms</code>,
+                    <code>BADEM-ciz-or.ms</code>,
+                    <code>YAPRAK-ciz.ms</code>,
+                    <code>FITIL-ciz.ms</code>,
+                    <code>BADEM-TAM modif.ms</code>,
+                    <code>mukarnas-modif-yaprak-tam.ms</code>
+                </p>
+            </section>
+        </aside>
+
+        <section class="viewports">
+            <div class="viewport viewport-2d">
+                <div class="viewport-title" id="view2d-title">2D Plan (P1-P2-P3 surukle)</div>
+                <div id="view2d" class="view2d-container"></div>
+            </div>
+            <div class="viewport viewport-3d">
+                <div class="viewport-title" id="view3d-title">3D Gorunum</div>
+                <div class="viewport-3d-toggles">
+                    <label class="viewport-toggle">
+                        <input id="view3d-vertex-numbers" type="checkbox" checked />
+                        Kose no.
+                    </label>
+                    <label class="viewport-toggle">
+                        <input id="view3d-segment-labels" type="checkbox" checked />
+                        A&ndash;F
+                    </label>
+                </div>
+                <div id="view3d" class="view3d-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="help-overlay" class="help-overlay" hidden>
+        <div class="help-modal">
+            <div class="help-header">
+                <h2>Nasil Kullanilir</h2>
+                <button id="btn-help-close" type="button">&times;</button>
+            </div>
+            <div class="help-body">
+                <p><strong>Acilis:</strong> <code>web/index.html</code> dosyasina cift tiklayin
+                veya tarayicida <code>file:///D:/AHMET/AI_muk3d/web/index.html</code> adresini acin.
+                Three.js CDN uzerinden yuklenir; internet baglantisi gerekir.</p>
+
+                <h3>1. Mukarnas Tipi</h3>
+                <p>Sol panelden <em>Badem</em>, <em>Yaprak</em>, <em>Fitil</em> veya <em>Kaz Ayagi</em> secin.
+                Orijinal 3ds Max scriptlerindeki <code>rdo7</code> secimine karsilik gelir.</p>
+
+                <h3>2. Parca Modu</h3>
+                <ul>
+                    <li><strong>Tam:</strong> Yarim hucre olusturulup p1-p2 eksenine gore ayna simetri uygulanir
+                        (<code>BADEM-ciz-or.ms</code> vb.).</li>
+                    <li><strong>Yarim:</strong> Simetri olmadan tek parca (<code>yrm-*.ms</code> scriptleri).</li>
+                </ul>
+
+                <h3>3. Parametreler</h3>
+                <ul>
+                    <li><strong>Asaba H:</strong> Hucre yuksekligi (MaxScript <code>asa</code> / <code>asaba</code>).</li>
+                    <li><strong>Otomatik Asaba:</strong> Plan ortalama kenar x 1.618 (altin oran).</li>
+                    <li><strong>P1-P2-P3:</strong> Plan ucgeni koseleri (shape knot noktalari).</li>
+                </ul>
+
+                <h3>4. Gorunumler</h3>
+                <p>Sol viewport <strong>2D plan</strong> (p1-p2 hatti dikey, 90 derece donuk).
+                <strong>P1, P2, P3</strong> noktalarini fareyle surukleyerek modeli canli revize edebilirsiniz.
+                Sag viewport <strong>3D</strong> (Z yukari).
+                3D'de fareyle: <em>sol tus</em> orbit, <em>orta tus</em> pan, <em>tekerlek</em> zoom.
+                PNG kaydi icin once ilgili viewport'a tiklayin (altin cerceve aktif olur).</p>
+
+                <h3>5. Geri / Yinele</h3>
+                <p><strong>Geri</strong> ve <strong>Yinele</strong> (veya <kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd>)
+                plan surukleme, parametre degisiklikleri, segment duzenleme ve mod gecislerini geri alir.</p>
+
+                <h3>6. Export</h3>
+                <ul>
+                    <li><strong>STL:</strong> 3D mesh (ASCII STL).</li>
+                    <li><strong>DXF:</strong> 3DFACE + kenar cizgileri + plan polylinesi.</li>
+                    <li><strong>PNG:</strong> Aktif viewport'un (2D veya 3D) goruntusu.</li>
+                </ul>
+                <h3>7. Duzenleme Modu</h3>
+                <p>Hucre olusturulduktan sonra <strong>Duzenleme</strong> moduna gecin.
+                On gorunus segmentleri <strong>A&ndash;F</strong> (renkli etiket + spinner) ve toplam <strong>BOY</strong> ayarlanir.</p>
+                <ul>
+                    <li>Segment spinner degisince ilgili koseler Z ekseninde kaydirilir.</li>
+                    <li><strong>BOY:</strong> Tum hucreyi P1 noktasindan Z olcegi (mutlak veya %).</li>
+                    <li>2D planda <strong>P1&ndash;P4</strong> suruklenebilir; plan paneli duzenleme modunda da aciktir.</li>
+                    <li>Plan degisince segment duzenlemeleri yeni geometriye gore sifirlanir.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/mukarnas-geometry.js"></script>
+    <script src="js/mukarnas-modify.js"></script>
+    <script src="js/viewer-2d.js"></script>
+    <script src="js/viewer-3d.js"></script>
+    <script src="js/export-stl.js"></script>
+    <script src="js/export-dxf.js"></script>
+    <script src="js/export-png.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
