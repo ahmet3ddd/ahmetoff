@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ahmetoff — Projeler</title>
+<meta name="description" content="ahmetoff — parametrik mimari ve geometrik tasarım araçları. Yedi-Sekiz, Kemerler 3D ve Mukarnas 3D." />
+<style>
+  :root{
+    --bg:#f4f1ec; --panel:#ffffff; --ink:#20242b; --muted:#6b7280;
+    --line:#e4ded4; --accent:#a2542e; --accent-ink:#ffffff; --chip:#efe9df;
+    --shadow:0 1px 2px rgba(20,20,20,.04),0 8px 24px rgba(20,20,20,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14161a; --panel:#1c1f25; --ink:#eceef2; --muted:#9aa2ad;
+      --line:#2a2e36; --accent:#d78a5c; --accent-ink:#1a1206; --chip:#262a31;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:0 20px}
+  header{
+    padding:64px 0 40px; border-bottom:1px solid var(--line);
+    background:
+      radial-gradient(circle at 12% 0%, rgba(162,84,46,.10), transparent 42%),
+      radial-gradient(circle at 100% 12%, rgba(162,84,46,.06), transparent 40%);
+  }
+  .eyebrow{
+    display:inline-block; font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent); font-weight:700; margin-bottom:14px;
+  }
+  h1{font-size:clamp(30px,6vw,46px); line-height:1.1; margin:0 0 14px; letter-spacing:-.02em}
+  .lead{font-size:18px; color:var(--muted); max-width:60ch; margin:0}
+  main{padding:44px 0 24px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:24px; box-shadow:var(--shadow); display:flex; flex-direction:column;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{transform:translateY(-3px); box-shadow:0 2px 4px rgba(20,20,20,.06),0 16px 40px rgba(20,20,20,.10)}
+  .card h2{font-size:20px; margin:0 0 6px; letter-spacing:-.01em}
+  .card p{margin:0 0 18px; color:var(--muted); font-size:15px; flex:1}
+  .tags{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 18px}
+  .tag{font-size:12px; color:var(--muted); background:var(--chip); border-radius:999px; padding:3px 10px}
+  .actions{display:flex; gap:10px; flex-wrap:wrap}
+  .btn{
+    display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+    font-size:14px; font-weight:600; padding:9px 15px; border-radius:10px; border:1px solid transparent;
+  }
+  .btn.primary{background:var(--accent); color:var(--accent-ink)}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+  .btn.ghost:hover{background:var(--chip)}
+  footer{
+    border-top:1px solid var(--line); margin-top:36px; padding:28px 0 56px;
+    color:var(--muted); font-size:14px; display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; justify-content:space-between;
+  }
+  footer a{color:var(--accent); text-decoration:none}
+  footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <span class="eyebrow">Parametrik Tasarım Araçları</span>
+      <h1>ahmetoff</h1>
+      <p class="lead">Tarayıcıda çalışan mimari ve geometrik tasarım araçları. Parametrelerle şekiller oluşturun, 2B/3B önizleyin ve DXF, STL veya PNG olarak dışa aktarın.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+
+      <article class="card">
+        <h2>Yedi-Sekiz (7-8)</h2>
+        <p>Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle oluşturan web aracı.</p>
+        <div class="tags">
+          <span class="tag">Geometrik desen</span>
+          <span class="tag">Parametrik</span>
+          <span class="tag">Web</span>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="projects/AI_7-8/index.html">Aç &rarr;</a>
+          <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_7-8">Kaynak</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Kemerler 3D</h2>
+        <p>Farklı kemer tiplerini parametrelerle 3B modelleyen; DXF, STL ve PNG dışa aktarımı destekleyen web aracı.</p>
+        <div class="tags">
+          <span class="tag">Mimari</span>
+          <span class="tag">3B görüntüleyici</span>
+          <span class="tag">DXF / STL / PNG</span>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="projects/AI_Kemer/index.html">Aç &rarr;</a>
+          <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_Kemer">Kaynak</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Mukarnas 3D</h2>
+        <p>Mukarnas (sarkıt tavan süslemesi) tiplerini parametrik olarak 3B modelleyen; dışa aktarım destekli web aracı.</p>
+        <div class="tags">
+          <span class="tag">Mukarnas</span>
+          <span class="tag">3B görüntüleyici</span>
+          <span class="tag">DXF / STL / PNG</span>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="projects/AI_muk3d/index.html">Aç &rarr;</a>
+          <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_muk3d">Kaynak</a>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <footer class="wrap">
+    <span>© 2026 ahmetoff · MIT Lisansı</span>
+    <span><a href="https://github.com/ahmet3ddd/ahmetoff">GitHub'da görüntüle</a></span>
+  </footer>
+</body>
+</html>
