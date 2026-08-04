@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yedi-Sekiz (7_8) - 3Ddizayn (web)</title>
+<style>
+:root {
+    --bg: #1e1f22;
+    --panel: #2a2c30;
+    --panel-2: #34373c;
+    --border: #3f4248;
+    --text: #e6e7e9;
+    --text-dim: #a8acb3;
+    --accent: #d6a04a;
+    --danger: #c05a3a;
+}
+* { box-sizing: border-box; }
+html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px; overflow: hidden;
+}
+body { display: flex; flex-direction: column; }
+
+.topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px; background: var(--panel);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.topbar h1 {
+    margin: 0; font-size: 15px; font-weight: 600;
+    color: var(--accent); letter-spacing: 0.2px;
+}
+.topbar-actions { display: flex; gap: 8px; }
+.topbar-actions button {
+    padding: 6px 14px; background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 4px; cursor: pointer;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.topbar-actions button:hover {
+    background: var(--accent); color: #1a1a1a; border-color: var(--accent);
+}
+#btn-help { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 14px; }
+
+.layout { display: flex; flex: 1 1 auto; min-height: 0; }
+.sidebar {
+    width: 250px; flex-shrink: 0; background: var(--panel);
+    border-right: 1px solid var(--border); padding: 12px;
+    overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+}
+.panel {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 12px;
+}
+.panel h2 {
+    margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-dim); font-weight: 600;
+}
+.radio {
+    display: flex; align-items: center; gap: 8px; padding: 4px 0;
+    cursor: pointer; user-select: none; font-size: 12.5px;
+}
+.radio input[type="radio"] { accent-color: var(--accent); }
+.preview-img {
+    margin-top: 8px; border: 1px solid var(--border); border-radius: 4px;
+    overflow: hidden; background: #000;
+}
+.preview-img img { width: 100%; display: block; }
+
+.field {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; gap: 8px;
+}
+.field:last-child { margin-bottom: 0; }
+.field label { font-size: 12px; color: var(--text-dim); flex: 1 1 auto; }
+.field input[type="number"] {
+    width: 88px; padding: 4px 6px; background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 3px;
+    font-size: 12px; font-family: inherit;
+}
+.field input[type="number"]:focus { outline: none; border-color: var(--accent); }
+.field.disabled { opacity: 0.45; }
+
+.readout {
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text-dim); display: flex;
+    flex-direction: column; gap: 3px;
+}
+.readout span {
+    color: var(--accent); font-weight: 600;
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+.panel-footer { margin-top: auto; }
+.panel-footer .hint { margin: 0; font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+.panel-footer code {
+    background: var(--bg); color: var(--accent);
+    padding: 1px 4px; border-radius: 2px; font-size: 10px;
+}
+
+.viewports {
+    flex: 1 1 auto; display: grid; grid-template-columns: 1fr 1fr;
+    min-width: 0; min-height: 0;
+}
+.viewport {
+    position: relative; border-right: 1px solid var(--border);
+    background: var(--bg); display: flex; flex-direction: column;
+    min-width: 0; min-height: 0;
+}
+.viewport:last-child { border-right: none; }
+.viewport-title {
+    position: absolute; top: 8px; left: 8px; padding: 3px 8px;
+    background: rgba(0, 0, 0, 0.5); color: var(--text-dim);
+    font-size: 11px; border-radius: 3px; z-index: 5;
+    pointer-events: none; letter-spacing: 0.3px;
+}
+.viewport.active { outline: 2px solid var(--accent); outline-offset: -2px; }
+.view2d-container, .view3d-container {
+    flex: 1 1 auto; width: 100%; height: 100%;
+    overflow: hidden; min-width: 0; min-height: 0;
+}
+.view2d-container svg { width: 100%; height: 100%; display: block; }
+.view3d-container canvas { display: block; width: 100% !important; height: 100% !important; }
+
+.toast {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #1a1a1a; padding: 8px 16px;
+    border-radius: 4px; font-size: 12px; font-weight: 600;
+    z-index: 100; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    animation: toast-in 0.2s ease-out;
+}
+.toast.error { background: var(--danger); color: #fff; }
+@keyframes toast-in {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.help-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; backdrop-filter: blur(2px);
+}
+.help-overlay[hidden] { display: none; }
+.help-modal {
+    width: min(640px, 92vw); max-height: 85vh; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 8px;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.help-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; background: var(--panel-2); border-bottom: 1px solid var(--border);
+}
+.help-header h2 { margin: 0; font-size: 15px; color: var(--accent); }
+#btn-help-close {
+    background: transparent; color: var(--text-dim); border: none;
+    font-size: 22px; line-height: 1; cursor: pointer; padding: 0 6px;
+}
+#btn-help-close:hover { color: var(--text); }
+.help-body { padding: 16px 22px 20px; overflow-y: auto; line-height: 1.6; }
+.help-body h3 {
+    margin: 16px 0 6px; font-size: 13px; color: var(--accent);
+    border-bottom: 1px solid var(--border); padding-bottom: 4px;
+}
+.help-body p, .help-body ul { margin: 6px 0; font-size: 12.5px; }
+.help-body ul { padding-left: 22px; }
+.help-body li { margin: 3px 0; }
+.help-body code {
+    background: var(--bg); color: var(--accent);
+    padding: 1px 6px; border-radius: 3px;
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 11.5px;
+}
+.help-body strong { color: var(--accent); }
+.help-body em { font-style: italic; color: var(--text-dim); }
+
+.fatal-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+    background: #5a1c14; color: #ffd6cb;
+    padding: 10px 16px; border-bottom: 1px solid #8a2a1c;
+    font-size: 12.5px; line-height: 1.55;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+.fatal-banner strong { color: #ffb398; }
+</style>
+</head>
+<body>
+<header class="topbar">
+    <h1>Yedi-Sekiz (7_8) - 3Ddizayn (web)</h1>
+    <div class="topbar-actions">
+        <button id="btn-help" type="button" title="Nas&#305;l Kullan&#305;l&#305;r">?</button>
+        <button id="btn-reset-params" type="button" title="Parametreleri s&#305;f&#305;rla">S&#305;f&#305;rla</button>
+        <button id="btn-fit-cam" type="button" title="Kamera g&#246;r&#252;n&#252;m&#252;n&#252; s&#305;f&#305;rla">Kamera</button>
+        <button id="btn-export-stl" type="button">STL</button>
+        <button id="btn-export-dxf" type="button">DXF</button>
+        <button id="btn-export-png" type="button">PNG</button>
+    </div>
+</header>
+
+<main class="layout">
+    <aside class="sidebar">
+        <section class="panel">
+            <h2>V8 Tipi</h2>
+            <label class="radio">
+                <input type="radio" name="v8-type" value="v8-1" checked />
+                V8 &#8230; 1 (yedisekiz1)
+            </label>
+            <label class="radio">
+                <input type="radio" name="v8-type" value="v8-2" />
+                V8 &#8230; 2 (yedisekiz2)
+            </label>
+            <div class="preview-img">
+                <img id="tip-preview" src="assets/v8_tip1.jpg" alt="V8 &#246;nizleme" />
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Parametreler</h2>
+            <div class="field">
+                <label for="param-length">Mesafe (&#199;izgi)</label>
+                <input id="param-length" type="number" value="200" min="1" step="1" />
+            </div>
+            <div class="field">
+                <label for="param-width">Geni&#351;lik</label>
+                <input id="param-width" type="number" value="50" min="1" step="1" />
+            </div>
+            <div class="field" id="row-height">
+                <label for="param-height">Y&#252;kseklik</label>
+                <input id="param-height" type="number" value="30" min="0" step="0.5" />
+            </div>
+            <div class="field">
+                <label for="param-a">A</label>
+                <input id="param-a" type="number" value="10" min="0" step="0.5" />
+            </div>
+            <div class="field">
+                <label for="param-b">B</label>
+                <input id="param-b" type="number" value="12" step="0.5" />
+            </div>
+            <div class="field">
+                <label for="param-c">C</label>
+                <input id="param-c" type="number" value="8" step="0.5" />
+            </div>
+            <div class="readout">
+                <div>Adet: <span id="readout-count">&mdash;</span></div>
+                <div>Birim Geni&#351;lik: <span id="readout-width">&mdash;</span></div>
+                <div>Tepe Y&#252;kseklik: <span id="readout-peak">&mdash;</span></div>
+            </div>
+        </section>
+
+        <section class="panel panel-footer">
+            <p class="hint">
+                Orijinal MaxScript: <code>7_8_1.ms</code>, <code>7_8_2.ms</code>
+            </p>
+        </section>
+    </aside>
+
+    <section class="viewports">
+        <div class="viewport viewport-2d">
+            <div class="viewport-title">2D &#214;n G&#246;r&#252;n&#252;m (XZ)</div>
+            <div id="view2d" class="view2d-container"></div>
+        </div>
+        <div class="viewport viewport-3d">
+            <div class="viewport-title">3D G&#246;r&#252;n&#252;m</div>
+            <div id="view3d" class="view3d-container"></div>
+        </div>
+    </section>
+</main>
+
+<div id="help-overlay" class="help-overlay" hidden>
+    <div class="help-modal">
+        <div class="help-header">
+            <h2>Nas&#305;l Kullan&#305;l&#305;r</h2>
+            <button id="btn-help-close" type="button">&times;</button>
+        </div>
+        <div class="help-body">
+            <p>Bu tek dosyal&#305; HTML &#231;ift t&#305;klan&#305;p taray&#305;c&#305;da do&#287;rudan a&#231;&#305;labilir. Three.js otomatik olarak internetten y&#252;klenir.</p>
+
+            <h3>1. V8 Tipi Se&#231;in</h3>
+            <p><strong>V8 &#8230; 1</strong> (orijinal <code>7_8_1.ms</code>): &#252;&#231;gen tepe formlu, 4 vertex / 3 face per yar&#305;m.<br>
+            <strong>V8 &#8230; 2</strong> (orijinal <code>7_8_2.ms</code>): 7-vertex y&#305;ld&#305;z form, aynal&#305; kopyas&#305;yla beraber tekrarlan&#305;r. Y&#252;kseklik <code>(W/2)/tan(30&deg;)</code> ile otomatik.</p>
+
+            <h3>2. Parametreler</h3>
+            <ul>
+                <li><strong>Mesafe:</strong> Orijinaldeki se&#231;ilen <em>line</em>&#39;&#305;n uzunlu&#287;u.</li>
+                <li><strong>Geni&#351;lik:</strong> Tek bir kal&#305;p geni&#351;li&#287;i (<code>asa</code>). Mesafeye s&#305;&#287;acak &#351;ekilde otomatik snap edilir.</li>
+                <li><strong>Y&#252;kseklik / A / B / C:</strong> Orijinal <code>spn32, spn24, spn28, spn13</code> spinner kar&#351;&#305;l&#305;klar&#305;.</li>
+            </ul>
+
+            <h3>3. G&#246;r&#252;n&#252;mler</h3>
+            <p>Sol viewport <strong>2D &#214;n G&#246;r&#252;n&#252;m</strong> (XZ d&#252;zlemi). Sa&#287; viewport <strong>3D Three.js</strong>: <em>sol tu&#351;</em> orbit, <em>orta tu&#351;</em> pan, <em>tekerlek</em> zoom.</p>
+
+            <h3>4. Export</h3>
+            <ul>
+                <li><strong>STL:</strong> 3D mesh, kapat&#305;c&#305; arka y&#252;zlerle birlikte.</li>
+                <li><strong>DXF:</strong> 2D &#246;n g&#246;r&#252;n&#252;m wireframe (R12 / AC1009).</li>
+                <li><strong>PNG:</strong> Aktif viewport&#39;un (2D veya 3D) g&#246;r&#252;nt&#252;s&#252;.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js classic (UMD, global window.THREE) - file:// uyumlu -->
+<script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// =====================================================================
+// Global error banner (shows any uncaught error visibly).
+// =====================================================================
+function showFatal(message) {
+    const existing = document.querySelector('.fatal-banner');
+    if (existing) existing.remove();
+    const banner = document.createElement('div');
+    banner.className = 'fatal-banner';
+    banner.innerHTML = '<strong>Hata:</strong> ' +
+        String(message).replace(/[<&]/g, c => c === '<' ? '&lt;' : '&amp;');
+    document.body.prepend(banner);
+}
+window.addEventListener('error', (e) => showFatal(e.message || 'Bilinmeyen hata'));
+window.addEventListener('unhandledrejection', (e) =>
+    showFatal((e.reason && e.reason.message) || e.reason || 'Promise hatas\u0131'));
+
+// =====================================================================
+// Pattern Geometry - port of 7_8_1.ms and 7_8_2.ms MaxScripts.
+// Coords: X = along the line, Y = depth (-Y is the ornament protrusion),
+// Z = height. Faces are 0-indexed triangles.
+// =====================================================================
+const DEG2RAD = Math.PI / 180;
+const TAN30 = Math.tan(30 * DEG2RAD);
+const ISO_FACTOR = 2 / Math.sqrt(3); // original script's 1.15469441012
+
+function translateMesh(mesh, dx, dy, dz) {
+    return {
+        vertices: mesh.vertices.map(v => [v[0] + dx, v[1] + dy, v[2] + dz]),
+        faces: mesh.faces.map(f => f.slice()),
+        backFaces: mesh.backFaces ? mesh.backFaces.map(f => f.slice()) : []
+    };
+}
+function reverseWinding(faces) {
+    return faces.map(f => [f[0], f[2], f[1]]);
+}
+function fitCount(length, w) {
+    const n = Math.max(1, Math.round(length / w));
+    return { count: n, width: length / n };
+}
+
+function buildV8Type1(W, H, A, B, C) {
+    const peakA = {
+        vertices: [
+            [0,     0,  0],
+            [W / 2, -C, B],
+            [W,     0,  0],
+            [W / 2, 0,  H]
+        ],
+        // MaxScript 1-indexed: [1,3,2],[2,3,4],[4,1,2]
+        faces: [[0,2,1],[1,2,3],[3,0,1]],
+        backFaces: [[0,3,2]]
+    };
+    const peakB = {
+        vertices: [
+            [W,          -C, A],
+            [W / 2,       0, H],
+            [W + W / 2,   0, H],
+            [W,           0, 0]
+        ],
+        // MaxScript 1-indexed: [1,3,2],[4,1,2],[4,3,1]
+        faces: [[0,2,1],[3,0,1],[3,2,0]],
+        backFaces: [[3,1,2]]
+    };
+    return [peakA, peakB];
+}
+
+function buildV8Type2(W, A, B, C) {
+    const peakZ = (W / 2) / TAN30;
+    const baseZ = (W / 2) * TAN30;
+    const Bcalc = baseZ - A;
+    const starA = {
+        vertices: [
+            [0,                       0,  0],
+            [W / 2,                  -B,  Bcalc],
+            [W,                       0,  0],
+            [W / 2,                  -C,  baseZ],
+            [W / 2 - A / ISO_FACTOR, -B,  baseZ + A / 2],
+            [W / 2,                   0,  peakZ],
+            [W / 2 + A / ISO_FACTOR, -B,  baseZ + A / 2]
+        ],
+        // MaxScript 1-indexed:
+        // [1,3,2],[4,2,3],[2,4,1],[1,5,6],[1,4,5],[6,5,4],[3,6,7],[4,7,6],[3,7,4]
+        faces: [
+            [0,2,1],[3,1,2],[1,3,0],
+            [0,4,5],[0,3,4],[5,4,3],
+            [2,5,6],[3,6,5],[2,6,3]
+        ],
+        backFaces: [[0,5,2]]
+    };
+    // Mirror across Z through pivot (W/2, 0, peakZ/2), shift +W/2 in X.
+    // Net transform: (x, y, z) -> (x + W/2, y, peakZ - z). Winding reversed.
+    const starB = {
+        vertices: starA.vertices.map(v => [v[0] + W / 2, v[1], peakZ - v[2]]),
+        faces: reverseWinding(starA.faces),
+        backFaces: [[5, 0, 2]]
+    };
+    return [starA, starB];
+}
+
+function generatePattern(params) {
+    const type = (params.type === 'v8-2') ? 'v8-2' : 'v8-1';
+    const length = Math.max(0.001, Number(params.length) || 100);
+    const desiredW = Math.max(0.001, Number(params.width) || 10);
+    const H = Math.max(0, Number(params.height) || 0);
+    const A = Math.max(0, Number(params.A) || 0);
+    const B = Number(params.B) || 0;
+    const C = Number(params.C) || 0;
+
+    const { count, width: W } = fitCount(length, desiredW);
+
+    let baseMeshes;
+    if (type === 'v8-2') {
+        const baseZ = (W / 2) * TAN30;
+        const Aclamp = Math.min(A, Math.max(0, baseZ - 0.0001));
+        baseMeshes = buildV8Type2(W, Aclamp, B, C);
+    } else {
+        baseMeshes = buildV8Type1(W, H, A, B, C);
+    }
+
+    const units = [];
+    for (let i = 0; i < count; i++) {
+        const xOff = i * W;
+        for (const base of baseMeshes) {
+            units.push(translateMesh(base, xOff, 0, 0));
+        }
+    }
+    return { type, length, unitWidth: W, count, units };
+}
+
+function getMeshEdges(unit) {
+    const set = new Set();
+    const edges = [];
+    for (const f of unit.faces) {
+        const [a, b, c] = f;
+        const pairs = [[a, b], [b, c], [c, a]];
+        for (const [u, v] of pairs) {
+            const key = u < v ? u + '|' + v : v + '|' + u;
+            if (!set.has(key)) {
+                set.add(key);
+                edges.push([u, v]);
+            }
+        }
+    }
+    return edges;
+}
+
+function getSilhouetteEdges(unit) {
+    const counts = new Map();
+    const ordered = [];
+    for (const f of unit.faces) {
+        const [a, b, c] = f;
+        const pairs = [[a, b], [b, c], [c, a]];
+        for (const [u, v] of pairs) {
+            const key = u < v ? u + '|' + v : v + '|' + u;
+            const ex = counts.get(key);
+            if (ex) ex.count++;
+            else {
+                counts.set(key, { count: 1, edge: [u, v] });
+                ordered.push(key);
+            }
+        }
+    }
+    return ordered.map(k => counts.get(k)).filter(e => e.count === 1).map(e => e.edge);
+}
+
+function getBoundingBox(result) {
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    for (const u of result.units) {
+        for (const v of u.vertices) {
+            if (v[0] < minX) minX = v[0]; if (v[0] > maxX) maxX = v[0];
+            if (v[1] < minY) minY = v[1]; if (v[1] > maxY) maxY = v[1];
+            if (v[2] < minZ) minZ = v[2]; if (v[2] > maxZ) maxZ = v[2];
+        }
+    }
+    if (!isFinite(minX)) return {
+        minX:0, minY:0, minZ:0, maxX:1, maxY:1, maxZ:1,
+        sizeX:1, sizeY:1, sizeZ:1
+    };
+    return { minX, minY, minZ, maxX, maxY, maxZ,
+        sizeX: maxX - minX, sizeY: maxY - minY, sizeZ: maxZ - minZ };
+}
+
+// =====================================================================
+// 2D SVG Viewer (front view, XZ plane)
+// =====================================================================
+const SVG_NS = 'http://www.w3.org/2000/svg';
+class Viewer2D {
+    constructor(container) {
+        this.container = container;
+        this.svg = document.createElementNS(SVG_NS, 'svg');
+        this.svg.setAttribute('xmlns', SVG_NS);
+        this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        container.appendChild(this.svg);
+        this.result = null;
+        this._ro = new ResizeObserver(() => this._render());
+        this._ro.observe(container);
+    }
+    resize() { this._render(); }
+    update(r) { this.result = r; this._render(); }
+
+    _render() {
+        const rect = this.container.getBoundingClientRect();
+        const W = Math.max(1, rect.width), H = Math.max(1, rect.height);
+        this.svg.setAttribute('width', W);
+        this.svg.setAttribute('height', H);
+        while (this.svg.firstChild) this.svg.removeChild(this.svg.firstChild);
+        if (!this.result || !this.result.units || this.result.units.length === 0) return;
+
+        const bb = getBoundingBox(this.result);
+        const xMin = bb.minX, xMax = bb.maxX;
+        const zMin = Math.min(0, bb.minZ), zMax = bb.maxZ;
+        const dx = Math.max(0.001, xMax - xMin);
+        const dz = Math.max(0.001, zMax - zMin);
+        const pad = Math.max(dx, dz) * 0.12 + 5;
+        const bw = dx + 2 * pad, bh = dz + 2 * pad;
+        const scale = Math.min(W / bw, H / bh);
+        const offX = (W - bw * scale) / 2 - (xMin - pad) * scale;
+        const offY = H - ((H - bh * scale) / 2 - (zMin - pad) * scale);
+        const toScreen = (x, z) => ({ x: x * scale + offX, y: offY - z * scale });
+
+        this._drawGrid(toScreen, xMin - pad, xMax + pad, zMin - pad, zMax + pad, W, H);
+        this._drawAxes(toScreen, W, H);
+        this._drawGround(toScreen, xMin - pad, xMax + pad);
+        this._drawPattern(toScreen);
+    }
+
+    _drawGrid(toScreen, x0, x1, z0, z1, W, H) {
+        const span = Math.max(x1 - x0, z1 - z0);
+        let step = Math.pow(10, Math.floor(Math.log10(span / 8)));
+        if (span / step < 5) step /= 2;
+        const sx0 = Math.floor(x0 / step) * step;
+        const sx1 = Math.ceil(x1 / step) * step;
+        const sz0 = Math.floor(z0 / step) * step;
+        const sz1 = Math.ceil(z1 / step) * step;
+        const g = document.createElementNS(SVG_NS, 'g');
+        g.setAttribute('stroke', '#2f3236');
+        g.setAttribute('stroke-width', '1');
+        for (let x = sx0; x <= sx1 + 1e-6; x += step) {
+            const p = toScreen(x, 0);
+            const ln = document.createElementNS(SVG_NS, 'line');
+            ln.setAttribute('x1', p.x); ln.setAttribute('y1', 0);
+            ln.setAttribute('x2', p.x); ln.setAttribute('y2', H);
+            g.appendChild(ln);
+        }
+        for (let z = sz0; z <= sz1 + 1e-6; z += step) {
+            const p = toScreen(0, z);
+            const ln = document.createElementNS(SVG_NS, 'line');
+            ln.setAttribute('x1', 0); ln.setAttribute('y1', p.y);
+            ln.setAttribute('x2', W); ln.setAttribute('y2', p.y);
+            g.appendChild(ln);
+        }
+        this.svg.appendChild(g);
+    }
+    _drawAxes(toScreen, W, H) {
+        const o = toScreen(0, 0);
+        const x = document.createElementNS(SVG_NS, 'line');
+        x.setAttribute('x1', 0); x.setAttribute('y1', o.y);
+        x.setAttribute('x2', W); x.setAttribute('y2', o.y);
+        x.setAttribute('stroke', '#c0533a'); x.setAttribute('stroke-width', '1');
+        x.setAttribute('stroke-opacity', '0.5');
+        this.svg.appendChild(x);
+        const z = document.createElementNS(SVG_NS, 'line');
+        z.setAttribute('x1', o.x); z.setAttribute('y1', 0);
+        z.setAttribute('x2', o.x); z.setAttribute('y2', H);
+        z.setAttribute('stroke', '#4a9ad6'); z.setAttribute('stroke-width', '1');
+        z.setAttribute('stroke-opacity', '0.5');
+        this.svg.appendChild(z);
+    }
+    _drawGround(toScreen, x0, x1) {
+        const a = toScreen(x0, 0), b = toScreen(x1, 0);
+        const ln = document.createElementNS(SVG_NS, 'line');
+        ln.setAttribute('x1', a.x); ln.setAttribute('y1', a.y);
+        ln.setAttribute('x2', b.x); ln.setAttribute('y2', b.y);
+        ln.setAttribute('stroke', '#5a5d63'); ln.setAttribute('stroke-width', '1.5');
+        ln.setAttribute('stroke-dasharray', '4 4');
+        this.svg.appendChild(ln);
+    }
+    _drawPattern(toScreen) {
+        const fillC = 'rgba(214, 160, 74, 0.22)';
+        const silC  = '#d6a04a';
+        const wireC = 'rgba(241, 209, 138, 0.6)';
+        const gFill = document.createElementNS(SVG_NS, 'g');
+        gFill.setAttribute('fill', fillC);
+        gFill.setAttribute('stroke', silC);
+        gFill.setAttribute('stroke-width', '1.5');
+        gFill.setAttribute('stroke-linejoin', 'round');
+        gFill.setAttribute('stroke-linecap', 'round');
+        const gWire = document.createElementNS(SVG_NS, 'g');
+        gWire.setAttribute('stroke', wireC);
+        gWire.setAttribute('stroke-width', '1');
+        gWire.setAttribute('stroke-linecap', 'round');
+        gWire.setAttribute('fill', 'none');
+
+        for (const unit of this.result.units) {
+            const sil = this._buildSilhouette(unit);
+            if (sil && sil.length > 2) {
+                const d = sil.map((v, i) => {
+                    const s = toScreen(v[0], v[2]);
+                    return (i === 0 ? 'M' : 'L') + s.x.toFixed(2) + ',' + s.y.toFixed(2);
+                }).join(' ') + ' Z';
+                const path = document.createElementNS(SVG_NS, 'path');
+                path.setAttribute('d', d);
+                gFill.appendChild(path);
+            }
+            for (const e of getMeshEdges(unit)) {
+                const va = unit.vertices[e[0]], vb = unit.vertices[e[1]];
+                const pa = toScreen(va[0], va[2]), pb = toScreen(vb[0], vb[2]);
+                const ln = document.createElementNS(SVG_NS, 'line');
+                ln.setAttribute('x1', pa.x.toFixed(2));
+                ln.setAttribute('y1', pa.y.toFixed(2));
+                ln.setAttribute('x2', pb.x.toFixed(2));
+                ln.setAttribute('y2', pb.y.toFixed(2));
+                gWire.appendChild(ln);
+            }
+        }
+        this.svg.appendChild(gFill);
+        this.svg.appendChild(gWire);
+    }
+    _buildSilhouette(unit) {
+        const edges = getSilhouetteEdges(unit);
+        if (edges.length === 0) return null;
+        const adj = new Map();
+        const add = (u, v) => {
+            if (!adj.has(u)) adj.set(u, []);
+            adj.get(u).push(v);
+        };
+        for (const e of edges) { add(e[0], e[1]); add(e[1], e[0]); }
+        const start = edges[0][0];
+        const visited = new Set([start]);
+        const loop = [start];
+        let cur = start, prev = -1;
+        while (true) {
+            const nbrs = adj.get(cur) || [];
+            const next = nbrs.find(n => n !== prev && !visited.has(n));
+            if (next === undefined) break;
+            loop.push(next);
+            visited.add(next);
+            prev = cur; cur = next;
+        }
+        return loop.map(i => unit.vertices[i]);
+    }
+    getSVGElement() { return this.svg; }
+}
+
+// =====================================================================
+// 3D Three.js Viewer
+// =====================================================================
+class Viewer3D {
+    constructor(container) {
+        this.container = container;
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x1e1f22);
+
+        this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100000);
+        this.camera.position.set(300, 250, 400);
+
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            preserveDrawingBuffer: true
+        });
+        this.renderer.setPixelRatio(window.devicePixelRatio || 1);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(this.renderer.domElement);
+
+        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.08;
+        this.controls.target.set(0, 50, 0);
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+        this.scene.add(ambient);
+
+        const dir = new THREE.DirectionalLight(0xffffff, 0.75);
+        dir.position.set(200, 400, 250);
+        dir.castShadow = true;
+        dir.shadow.mapSize.set(1024, 1024);
+        dir.shadow.camera.left   = -400;
+        dir.shadow.camera.right  =  400;
+        dir.shadow.camera.top    =  400;
+        dir.shadow.camera.bottom = -100;
+        this.scene.add(dir);
+
+        const fill = new THREE.DirectionalLight(0xc8d4e0, 0.35);
+        fill.position.set(-200, 100, -150);
+        this.scene.add(fill);
+
+        const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(2000, 2000),
+            new THREE.MeshStandardMaterial({ color: 0x2a2c30, roughness: 0.95, metalness: 0 })
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.1;
+        ground.receiveShadow = true;
+        this.scene.add(ground);
+
+        this.grid = new THREE.GridHelper(800, 40, 0x444444, 0x2c2e32);
+        this.grid.position.y = -0.05;
+        this.scene.add(this.grid);
+
+        const axes = new THREE.AxesHelper(60);
+        axes.material.depthTest = false;
+        axes.renderOrder = 999;
+        this.scene.add(axes);
+
+        this.patternGroup = new THREE.Group();
+        this.scene.add(this.patternGroup);
+
+        this.material = new THREE.MeshStandardMaterial({
+            color: 0xd6a04a,
+            roughness: 0.65,
+            metalness: 0.1,
+            side: THREE.DoubleSide
+        });
+
+        this._ro = new ResizeObserver(() => this.resize());
+        this._ro.observe(container);
+        this.resize();
+        this._animate = this._animate.bind(this);
+        this._animate();
+    }
+    resize() {
+        const rect = this.container.getBoundingClientRect();
+        const w = Math.max(1, rect.width), h = Math.max(1, rect.height);
+        this.renderer.setSize(w, h, false);
+        this.camera.aspect = w / h;
+        this.camera.updateProjectionMatrix();
+    }
+    _animate() {
+        requestAnimationFrame(this._animate);
+        this.controls.update();
+        this.renderer.render(this.scene, this.camera);
+    }
+    // Call this to force the camera to fit the scene on the next update.
+    requestFit() { this._fitOnNext = true; }
+
+    update(result, forceFit) {
+        while (this.patternGroup.children.length) {
+            const c = this.patternGroup.children.pop();
+            if (c.geometry) c.geometry.dispose();
+        }
+        if (!result || !result.units || result.units.length === 0) return;
+        for (const unit of result.units) {
+            const geom = this._unitGeom(unit);
+            if (!geom) continue;
+            const mesh = new THREE.Mesh(geom, this.material);
+            mesh.rotation.x = -Math.PI / 2;
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            this.patternGroup.add(mesh);
+        }
+        if (forceFit || this._fitOnNext) {
+            this._fit(result);
+            this._fitOnNext = false;
+        }
+    }
+    _unitGeom(unit) {
+        const all = unit.faces.slice();
+        if (unit.backFaces) for (const f of unit.backFaces) all.push(f);
+        if (all.length === 0) return null;
+        const pos = new Float32Array(all.length * 9);
+        let p = 0;
+        for (const f of all) {
+            const a = unit.vertices[f[0]], b = unit.vertices[f[1]], c = unit.vertices[f[2]];
+            pos[p++] = a[0]; pos[p++] = a[1]; pos[p++] = a[2];
+            pos[p++] = b[0]; pos[p++] = b[1]; pos[p++] = b[2];
+            pos[p++] = c[0]; pos[p++] = c[1]; pos[p++] = c[2];
+        }
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        g.computeVertexNormals();
+        return g;
+    }
+    _fit(result) {
+        const bb = getBoundingBox(result);
+        // World coords after mesh.rotation.x = -PI/2: (x, z, -y)
+        const wcx = (bb.minX + bb.maxX) / 2;
+        const wcy = (bb.minZ + bb.maxZ) / 2;
+        const wcz = -(bb.minY + bb.maxY) / 2;
+        const size = Math.max(bb.sizeX, bb.sizeZ, bb.sizeY, 50);
+        this.controls.target.set(wcx, wcy, wcz);
+        const d = size * 1.8;
+        this.camera.position.set(wcx + d * 0.55, wcy + d * 0.45, wcz + d * 0.95);
+        this.camera.lookAt(wcx, wcy, wcz);
+    }
+    getCanvas() { return this.renderer.domElement; }
+}
+
+// =====================================================================
+// Exports
+// =====================================================================
+function downloadText(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportSTL(result, filename) {
+    if (!result || !result.units || result.units.length === 0)
+        throw new Error('STL i\u00E7in ge\u00E7erli geometri yok.');
+    const fmt = n => Number.isFinite(n) ? n.toExponential(6) : '0.000000e+00';
+    const tri = (a, b, c) => {
+        const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+        const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+        let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+        const len = Math.hypot(nx, ny, nz) || 1;
+        nx /= len; ny /= len; nz /= len;
+        return '  facet normal ' + fmt(nx) + ' ' + fmt(ny) + ' ' + fmt(nz) + '\n' +
+               '    outer loop\n' +
+               '      vertex ' + fmt(a[0]) + ' ' + fmt(a[1]) + ' ' + fmt(a[2]) + '\n' +
+               '      vertex ' + fmt(b[0]) + ' ' + fmt(b[1]) + ' ' + fmt(b[2]) + '\n' +
+               '      vertex ' + fmt(c[0]) + ' ' + fmt(c[1]) + ' ' + fmt(c[2]) + '\n' +
+               '    endloop\n  endfacet\n';
+    };
+    const parts = ['solid yedisekiz\n'];
+    for (const u of result.units) {
+        const all = u.faces.slice();
+        if (u.backFaces) for (const f of u.backFaces) all.push(f);
+        for (const f of all)
+            parts.push(tri(u.vertices[f[0]], u.vertices[f[1]], u.vertices[f[2]]));
+    }
+    parts.push('endsolid yedisekiz\n');
+    downloadText(parts.join(''), filename, 'model/stl');
+}
+
+function exportDXF(result, filename) {
+    if (!result || !result.units || result.units.length === 0)
+        throw new Error('DXF i\u00E7in ge\u00E7erli geometri yok.');
+    const bb = getBoundingBox(result);
+    const out = [];
+    let handle = 0x20;
+    const pair = (c, v) => { out.push(String(c)); out.push(String(v)); };
+    const nh = () => { const h = handle.toString(16).toUpperCase(); handle++; return h; };
+    const fn = n => Number.isFinite(n) ? n.toFixed(6) : '0.0';
+
+    // Tables
+    pair(0,'SECTION'); pair(2,'TABLES');
+    pair(0,'TABLE'); pair(2,'LTYPE'); pair(5,nh()); pair(70,1);
+    pair(0,'LTYPE'); pair(5,nh()); pair(2,'CONTINUOUS'); pair(70,64);
+    pair(3,'Solid line'); pair(72,65); pair(73,0); pair(40,'0.0');
+    pair(0,'ENDTAB');
+    pair(0,'TABLE'); pair(2,'LAYER'); pair(5,nh()); pair(70,1);
+    pair(0,'LAYER'); pair(5,nh()); pair(2,'YEDISEKIZ'); pair(70,64); pair(62,7); pair(6,'CONTINUOUS');
+    pair(0,'ENDTAB');
+    pair(0,'TABLE'); pair(2,'STYLE'); pair(5,nh()); pair(70,1);
+    pair(0,'STYLE'); pair(5,nh()); pair(2,'STANDARD'); pair(70,64);
+    pair(40,'0.0'); pair(41,'1.0'); pair(50,'0.0'); pair(71,0); pair(42,'2.5');
+    pair(3,'txt'); pair(4,'');
+    pair(0,'ENDTAB');
+    pair(0,'ENDSEC');
+
+    // Blocks
+    pair(0,'SECTION'); pair(2,'BLOCKS'); pair(0,'ENDSEC');
+
+    // Entities: front-view (XZ) wireframe of all units, deduplicated
+    pair(0,'SECTION'); pair(2,'ENTITIES');
+    const seen = new Set();
+    for (const u of result.units) {
+        for (const e of getMeshEdges(u)) {
+            const va = u.vertices[e[0]], vb = u.vertices[e[1]];
+            const ka = va[0].toFixed(4) + ',' + va[2].toFixed(4);
+            const kb = vb[0].toFixed(4) + ',' + vb[2].toFixed(4);
+            const key = ka < kb ? ka + '|' + kb : kb + '|' + ka;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            pair(0,'LINE'); pair(5,nh()); pair(8,'YEDISEKIZ');
+            pair(10,fn(va[0])); pair(20,fn(va[2])); pair(30,'0.0');
+            pair(11,fn(vb[0])); pair(21,fn(vb[2])); pair(31,'0.0');
+        }
+    }
+    pair(0,'ENDSEC');
+    pair(0,'EOF');
+
+    const seed = handle.toString(16).toUpperCase();
+    const header = [];
+    const ph = (c, v) => { header.push(String(c)); header.push(String(v)); };
+    ph(0,'SECTION'); ph(2,'HEADER');
+    ph(9,'$ACADVER'); ph(1,'AC1009');
+    ph(9,'$INSBASE');  ph(10,'0.0'); ph(20,'0.0'); ph(30,'0.0');
+    ph(9,'$EXTMIN');   ph(10,fn(bb.minX)); ph(20,fn(bb.minZ)); ph(30,'0.0');
+    ph(9,'$EXTMAX');   ph(10,fn(bb.maxX)); ph(20,fn(bb.maxZ)); ph(30,'0.0');
+    ph(9,'$LUNITS');   ph(70,2);
+    ph(9,'$CLAYER');   ph(8,'YEDISEKIZ');
+    ph(9,'$HANDSEED'); ph(5,seed);
+    ph(0,'ENDSEC');
+
+    const text = header.concat(out).join('\r\n') + '\r\n';
+    downloadText(text, filename, 'application/dxf');
+}
+
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = (e) => reject(new Error('SVG y\u00FCklenemedi'));
+        img.src = src;
+    });
+}
+function canvasToDownload(canvas, filename) {
+    return new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+            if (!blob) { reject(new Error('Canvas to Blob ba\u015Far\u0131s\u0131z')); return; }
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            resolve();
+        }, 'image/png');
+    });
+}
+async function exportPNG_2D(viewer2d, filename) {
+    const svg = viewer2d.getSVGElement();
+    const rect = svg.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width));
+    const h = Math.max(1, Math.round(rect.height));
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns', SVG_NS);
+    clone.setAttribute('width', String(w));
+    clone.setAttribute('height', String(h));
+    const xml = new XMLSerializer().serializeToString(clone);
+    const blob = new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n', xml],
+        { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    try {
+        const img = await loadImage(url);
+        const dpr = window.devicePixelRatio || 1;
+        const canvas = document.createElement('canvas');
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#1e1f22';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        await canvasToDownload(canvas, filename);
+    } finally { URL.revokeObjectURL(url); }
+}
+async function exportPNG_3D(viewer3d, filename) {
+    await canvasToDownload(viewer3d.getCanvas(), filename);
+}
+
+// =====================================================================
+// Main App
+// =====================================================================
+const state = {
+    type: 'v8-1',
+    length: 200, width: 50, height: 30,
+    A: 10, B: 12, C: 8,
+    result: null, activeView: '3d'
+};
+const el = {
+    radios:       document.querySelectorAll('input[name="v8-type"]'),
+    preview:      document.getElementById('tip-preview'),
+    paramLength:  document.getElementById('param-length'),
+    paramWidth:   document.getElementById('param-width'),
+    paramHeight:  document.getElementById('param-height'),
+    paramA:       document.getElementById('param-a'),
+    paramB:       document.getElementById('param-b'),
+    paramC:       document.getElementById('param-c'),
+    rowHeight:    document.getElementById('row-height'),
+    rdCount:      document.getElementById('readout-count'),
+    rdWidth:      document.getElementById('readout-width'),
+    rdPeak:       document.getElementById('readout-peak'),
+    view2d:       document.getElementById('view2d'),
+    view3d:       document.getElementById('view3d'),
+    btnReset:     document.getElementById('btn-reset-params'),
+    btnFitCam:    document.getElementById('btn-fit-cam'),
+    btnSTL:       document.getElementById('btn-export-stl'),
+    btnDXF:       document.getElementById('btn-export-dxf'),
+    btnPNG:       document.getElementById('btn-export-png'),
+    btnHelp:      document.getElementById('btn-help'),
+    btnHelpClose: document.getElementById('btn-help-close'),
+    helpOverlay:  document.getElementById('help-overlay')
+};
+
+const DEFAULTS = {
+    type: 'v8-1', length: 200, width: 50, height: 30, A: 10, B: 12, C: 8
+};
+
+if (typeof THREE === 'undefined') {
+    showFatal('Three.js y\u00FCklenemedi. \u0130nternet ba\u011Flant\u0131n\u0131z\u0131 kontrol edin (CDN: unpkg.com).');
+} else {
+    const viewer2d = new Viewer2D(el.view2d);
+    const viewer3d = new Viewer3D(el.view3d);
+
+    function showToast(msg, err) {
+        const ex = document.querySelector('.toast');
+        if (ex) ex.remove();
+        const t = document.createElement('div');
+        t.className = 'toast' + (err ? ' error' : '');
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2400);
+    }
+
+    function refresh(fitCam) {
+        const r = generatePattern({
+            type: state.type, length: state.length, width: state.width,
+            height: state.height, A: state.A, B: state.B, C: state.C
+        });
+        state.result = r;
+        el.rdCount.textContent = String(r.count);
+        el.rdWidth.textContent = r.unitWidth.toFixed(3);
+        el.rdPeak.textContent = (state.type === 'v8-2')
+            ? ((r.unitWidth / 2) / TAN30).toFixed(3)
+            : state.height.toFixed(3);
+        viewer2d.update(r);
+        // Camera is only repositioned on first load or explicit request.
+        viewer3d.update(r, !!fitCam);
+    }
+
+    function bind(input, key, parser) {
+        const h = () => {
+            const v = parser ? parser(input.value) : Number(input.value);
+            if (Number.isFinite(v)) { state[key] = v; refresh(); }
+        };
+        input.addEventListener('input', h);
+        input.addEventListener('change', h);
+    }
+    bind(el.paramLength, 'length', v => Math.max(0.001, Number(v) || 0));
+    bind(el.paramWidth,  'width',  v => Math.max(0.001, Number(v) || 0));
+    bind(el.paramHeight, 'height', v => Math.max(0, Number(v) || 0));
+    bind(el.paramA,      'A',      v => Math.max(0, Number(v) || 0));
+    bind(el.paramB,      'B');
+    bind(el.paramC,      'C');
+
+    function applyTypeUI() {
+        if (state.type === 'v8-2') {
+            el.preview.src = 'assets/v8_tip2.jpg';
+            el.rowHeight.classList.add('disabled');
+            el.paramHeight.disabled = true;
+        } else {
+            el.preview.src = 'assets/v8_tip1.jpg';
+            el.rowHeight.classList.remove('disabled');
+            el.paramHeight.disabled = false;
+        }
+    }
+    el.radios.forEach(r => r.addEventListener('change', e => {
+        if (!e.target.checked) return;
+        state.type = e.target.value;
+        applyTypeUI();
+        refresh(false);
+    }));
+
+    function setActive(v) {
+        state.activeView = v;
+        document.querySelectorAll('.viewport').forEach(x => x.classList.remove('active'));
+        const tgt = (v === '2d') ? el.view2d.parentElement : el.view3d.parentElement;
+        tgt.classList.add('active');
+    }
+    el.view2d.parentElement.addEventListener('click', () => setActive('2d'));
+    el.view3d.parentElement.addEventListener('click', () => setActive('3d'));
+
+    el.btnSTL.addEventListener('click', () => {
+        try { exportSTL(state.result, 'yedisekiz-' + state.type + '.stl'); showToast('STL indirildi.'); }
+        catch (e) { console.error(e); showToast('STL hata: ' + e.message, true); }
+    });
+    el.btnDXF.addEventListener('click', () => {
+        try { exportDXF(state.result, 'yedisekiz-' + state.type + '.dxf'); showToast('DXF indirildi.'); }
+        catch (e) { console.error(e); showToast('DXF hata: ' + e.message, true); }
+    });
+    el.btnPNG.addEventListener('click', async () => {
+        try {
+            const fn = 'yedisekiz-' + state.type + '-' + state.activeView + '.png';
+            if (state.activeView === '3d') await exportPNG_3D(viewer3d, fn);
+            else await exportPNG_2D(viewer2d, fn);
+            showToast('PNG indirildi (' + state.activeView.toUpperCase() + ').');
+        } catch (e) { console.error(e); showToast('PNG hata: ' + e.message, true); }
+    });
+
+    function showHelp(s) {
+        if (s) el.helpOverlay.removeAttribute('hidden');
+        else el.helpOverlay.setAttribute('hidden', '');
+    }
+    // Sıfırla: parametreleri ve tipi varsayılana döndür, kamerayı da sıfırla.
+    el.btnReset.addEventListener('click', () => {
+        Object.assign(state, DEFAULTS);
+        el.paramLength.value = DEFAULTS.length;
+        el.paramWidth.value  = DEFAULTS.width;
+        el.paramHeight.value = DEFAULTS.height;
+        el.paramA.value      = DEFAULTS.A;
+        el.paramB.value      = DEFAULTS.B;
+        el.paramC.value      = DEFAULTS.C;
+        el.radios.forEach(r => { r.checked = (r.value === DEFAULTS.type); });
+        applyTypeUI();
+        refresh(true);
+        showToast('Parametreler sıfırlandı.');
+    });
+
+    // Kamera: yalnızca kamera fit'i uygula.
+    el.btnFitCam.addEventListener('click', () => {
+        if (state.result) viewer3d.update(state.result, true);
+    });
+
+    el.btnHelp.addEventListener('click', () => showHelp(true));
+    el.btnHelpClose.addEventListener('click', () => showHelp(false));
+    el.helpOverlay.addEventListener('click', e => {
+        if (e.target === el.helpOverlay) showHelp(false);
+    });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') showHelp(false); });
+    window.addEventListener('resize', () => { viewer2d.resize(); viewer3d.resize(); });
+
+    applyTypeUI();
+    setActive('3d');
+    // First render: fit camera once, then leave it alone.
+    requestAnimationFrame(() => {
+        try { refresh(true); }
+        catch (e) { console.error(e); showFatal(e.message || String(e)); }
+    });
+}
+</script>
+</body>
+</html>
