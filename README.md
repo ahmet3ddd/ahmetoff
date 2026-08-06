@@ -33,12 +33,16 @@ Farklı kemer tiplerini (Tek Merkezli Teğet, Penci) parametrelerle 3B modeller.
 
 [▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_Kemer/) · [Kaynak](projects/AI_Kemer)
 
-### Mukarnas 3D
+### Mukarnas 3D `v2`
 Mukarnas (sarkıt tavan süslemesi) tiplerini — Badem, Yaprak, Fitil, Kaz Ayağı — parametrik olarak 3B modeller. Çizim ve düzenleme modları.
 
-<img src="assets/shot-muk3d.png" alt="Mukarnas 3D" width="100%" />
+**v2'de yeni:** 7–8 ve 16–17 kenarlarına yay şeklinde **fillet** (yuvarlatma) uygulanabiliyor. Yay her iki uçta yan duvarlara yatırılıyor ve komşu yüzeyler yeniden örülüyor; boyut otomatik hesaplanabiliyor, segment sayısı yay çözünürlüğünü belirliyor (1 = pah). Fillet, A–F/BOY düzenlemelerinden sonra güncel geometriye göre yeniden hesaplanır, düzenlemeleri bozmaz.
 
-[▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d/) · [Kaynak](projects/AI_muk3d)
+<img src="assets/shot-muk3d.png" alt="Mukarnas 3D v2" width="100%" />
+
+[▶ Aç (v2)](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V2/) · [Kaynak](projects/AI_muk3d_V2)
+
+<sub>Önceki sürüm: [v1'i aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d/) · [kaynağı](projects/AI_muk3d) — fillet öncesi hâli, çalışır durumda korunuyor.</sub>
 
 ### Köşe Mukarnas
 Köşe mukarnaslarını üçgen plan (P1-P2-P3) üzerinden kurgular. Eşkenar/dik üçgen veya özel koordinat şablonu, asaba sayısı ve kademelerle 3B form üretir.
@@ -84,7 +88,8 @@ ahmetoff/
 ├── assets/         → Açılış sayfası ve README görselleri
 ├── projects/       → Her bağımsız proje kendi klasöründe
 │   ├── AI_Kemer/       Kemerler 3D
-│   ├── AI_muk3d/       Mukarnas 3D
+│   ├── AI_muk3d_V2/    Mukarnas 3D — güncel sürüm (v2)
+│   ├── AI_muk3d/       Mukarnas 3D — önceki sürüm (v1, arşiv)
 │   ├── AI_K_muk3d/     Köşe Mukarnas
 │   ├── AI_Puskul/      Püskül 3D
 │   ├── AI_7-8/         Yedi-Sekiz
