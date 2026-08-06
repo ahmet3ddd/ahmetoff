@@ -4,17 +4,17 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ahmetoff — Projeler</title>
-<meta name="description" content="Tarayıcıda çalışan parametrik mimari ve geometrik tasarım araçları: Kemerler 3D, Mukarnas 3D, Köşe Mukarnas, Püskül 3D ve Yedi-Sekiz. 2B/3B görüntüleyici, DXF/STL/PNG dışa aktarım." />
+<meta name="description" content="Tarayıcıda çalışan araçlar ve uygulamalar: parametrik mimari tasarım araçları (Kemerler, Mukarnas, Köşe Mukarnas, Püskül, Yedi-Sekiz) ve Elifbâ Osmanlıca öğrenme uygulaması. Kurulum gerekmez." />
 
 <!-- Sosyal medya link onizlemesi (Open Graph / Twitter) -->
 <meta property="og:type" content="website" />
-<meta property="og:title" content="ahmetoff — Parametrik Tasarım Araçları" />
-<meta property="og:description" content="Tarayıcıda çalışan mimari ve geometrik tasarım araçları: Kemerler 3D, Mukarnas 3D, Köşe Mukarnas, Püskül 3D, Yedi-Sekiz. 2B/3B görüntüleyici, DXF/STL/PNG dışa aktarım." />
+<meta property="og:title" content="ahmetoff — Tarayıcıda Çalışan Araçlar ve Uygulamalar" />
+<meta property="og:description" content="Parametrik mimari tasarım araçları (Kemerler, Mukarnas, Köşe Mukarnas, Püskül, Yedi-Sekiz) ve Elifbâ Osmanlıca öğrenme uygulaması. Hepsi tarayıcıda, kurulum yok." />
 <meta property="og:image" content="https://ahmet3ddd.github.io/ahmetoff/assets/cover.png" />
 <meta property="og:url" content="https://ahmet3ddd.github.io/ahmetoff/" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="ahmetoff — Parametrik Tasarım Araçları" />
-<meta name="twitter:description" content="Kemerler 3D, Mukarnas 3D, Köşe Mukarnas, Püskül 3D ve Yedi-Sekiz — tarayıcıda çalışan tasarım araçları." />
+<meta name="twitter:title" content="ahmetoff — Tarayıcıda Çalışan Araçlar ve Uygulamalar" />
+<meta name="twitter:description" content="Parametrik tasarım araçları ve Elifbâ Osmanlıca öğrenme uygulaması — hepsi tarayıcıda çalışır." />
 <meta name="twitter:image" content="https://ahmet3ddd.github.io/ahmetoff/assets/cover.png" />
 
 <style>
@@ -51,6 +51,13 @@
   h1{font-size:clamp(30px,6vw,46px); line-height:1.1; margin:0 0 14px; letter-spacing:-.02em}
   .lead{font-size:18px; color:var(--muted); max-width:60ch; margin:0}
   main{padding:44px 0 24px}
+  .section{margin:0 0 14px}
+  .section:not(:first-child){margin-top:52px}
+  .section h2{
+    font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+    margin:0 0 6px; font-weight:800;
+  }
+  .section p{margin:0 0 22px; color:var(--muted); font-size:15px; max-width:64ch}
   .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(440px,100%),1fr)); gap:28px}
   .card{
     background:var(--panel); border:1px solid var(--line); border-radius:16px;
@@ -63,7 +70,7 @@
     border-bottom:1px solid var(--line); background:#0e1013;
   }
   .body{padding:26px 28px 28px; display:flex; flex-direction:column; flex:1}
-  .card h2{font-size:24px; margin:0 0 8px; letter-spacing:-.01em}
+  .card h3{font-size:24px; margin:0 0 8px; letter-spacing:-.01em; font-weight:700}
   .card p{margin:0 0 20px; color:var(--muted); font-size:16px; flex:1}
   .tags{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 18px}
   .tag{font-size:12px; color:var(--muted); background:var(--chip); border-radius:999px; padding:3px 10px}
@@ -87,19 +94,25 @@
 <body>
   <header>
     <div class="wrap">
-      <span class="eyebrow">Parametrik Tasarım Araçları</span>
+      <span class="eyebrow">Araçlar ve Uygulamalar</span>
       <h1>ahmetoff</h1>
-      <p class="lead">Tarayıcıda çalışan mimari ve geometrik tasarım araçları. Parametrelerle şekiller oluşturun, 2B/3B önizleyin ve DXF, STL veya PNG olarak dışa aktarın.</p>
+      <p class="lead">Tarayıcıda çalışan, kurulum gerektirmeyen açık kaynak projeler. Geleneksel mimari geometriyi parametrik olarak modelleyen tasarım araçları ve Osmanlı Türkçesini sıfırdan öğreten bir uygulama.</p>
     </div>
   </header>
 
   <main class="wrap">
+
+    <section class="section">
+      <h2>Tasarım Araçları</h2>
+      <p>Geleneksel mimari geometriyi parametrelerle modelleyen araçlar. 2B plan ve 3B görünüm eş zamanlı çalışır; sonucu DXF, STL veya PNG olarak dışa aktarabilirsiniz.</p>
+    </section>
+
     <div class="grid">
 
       <article class="card">
         <img class="shot" src="assets/shot-7-8.png" alt="Yedi-Sekiz ekran görüntüsü" />
         <div class="body">
-          <h2>Yedi-Sekiz (7-8)</h2>
+          <h3>Yedi-Sekiz (7-8)</h3>
           <p>Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle oluşturan web aracı.</p>
           <div class="tags">
             <span class="tag">Geometrik desen</span>
@@ -116,7 +129,7 @@
       <article class="card">
         <img class="shot" src="assets/shot-kemer.png" alt="Kemerler 3D ekran görüntüsü" />
         <div class="body">
-          <h2>Kemerler 3D</h2>
+          <h3>Kemerler 3D</h3>
           <p>Farklı kemer tiplerini parametrelerle 3B modelleyen; DXF, STL ve PNG dışa aktarımı destekleyen web aracı.</p>
           <div class="tags">
             <span class="tag">Mimari</span>
@@ -133,7 +146,7 @@
       <article class="card">
         <img class="shot" src="assets/shot-muk3d.png" alt="Mukarnas 3D ekran görüntüsü" />
         <div class="body">
-          <h2>Mukarnas 3D</h2>
+          <h3>Mukarnas 3D</h3>
           <p>Mukarnas (sarkıt tavan süslemesi) tiplerini parametrik olarak 3B modelleyen; dışa aktarım destekli web aracı.</p>
           <div class="tags">
             <span class="tag">Mukarnas</span>
@@ -150,7 +163,7 @@
       <article class="card">
         <img class="shot" src="assets/shot-kmuk3d.png" alt="Köşe Mukarnas ekran görüntüsü" />
         <div class="body">
-          <h2>Köşe Mukarnas</h2>
+          <h3>Köşe Mukarnas</h3>
           <p>Köşe mukarnaslarını üçgen plan üzerinden kurgulayan; asaba sayısı ve kademelerle 3B üreten web aracı.</p>
           <div class="tags">
             <span class="tag">Köşe mukarnas</span>
@@ -167,7 +180,7 @@
       <article class="card">
         <img class="shot" src="assets/shot-puskul.png" alt="Püskül 3D ekran görüntüsü" />
         <div class="body">
-          <h2>Püskül 3D</h2>
+          <h3>Püskül 3D</h3>
           <p>Mukarnas püskül (sarkıt) yapılarını çok katmanlı ve hücre tipli olarak parametrik 3B modelleyen web aracı.</p>
           <div class="tags">
             <span class="tag">Püskül / sarkıt</span>
@@ -177,6 +190,33 @@
           <div class="actions">
             <a class="btn primary" href="projects/AI_Puskul/index.html">Aç &rarr;</a>
             <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_Puskul">Kaynak</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <section class="section">
+      <h2>Öğrenme</h2>
+      <p>Bir konuyu sıfırdan öğretmek için tasarlanmış uygulamalar.</p>
+    </section>
+
+    <div class="grid">
+
+      <article class="card">
+        <img class="shot" src="assets/shot-osmanlica.png" alt="Elifbâ — Osmanlıca Öğren ekran görüntüsü" />
+        <div class="body">
+          <h3>Elifbâ — Osmanlıca Öğren</h3>
+          <p>Osmanlı Türkçesini sıfırdan öğreten uygulama. Elifbânın 33 harfinden başlar, gerçek belge ve divan şiiri okumaya kadar gider. 17 ünite, 73 ders, 13 alıştırma tipi ve aralıklı tekrar sistemi.</p>
+          <div class="tags">
+            <span class="tag">Osmanlı Türkçesi</span>
+            <span class="tag">73 ders</span>
+            <span class="tag">Aralıklı tekrar</span>
+            <span class="tag">Çevrimdışı</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="projects/AI_osmanlica/index.html">Aç &rarr;</a>
+            <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_osmanlica">Kaynak</a>
           </div>
         </div>
       </article>
