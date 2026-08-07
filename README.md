@@ -6,7 +6,8 @@
 
 <p align="center">
   Tarayıcıda çalışan, kurulum gerektirmeyen açık kaynak projeler.<br/>
-  Geleneksel mimari geometriyi modelleyen <strong>parametrik tasarım araçları</strong> ve
+  Geleneksel mimari geometriyi modelleyen <strong>parametrik tasarım araçları</strong>,
+  STL modelleri baskıya hazırlayan <strong>3D Print Model Kontrol</strong> ve
   Osmanlı Türkçesini sıfırdan öğreten <strong>Elifbâ</strong> uygulaması.
 </p>
 
@@ -67,6 +68,19 @@ Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle oluşturur.
 
 ---
 
+## 3B Baskı
+
+### 3D Print Model Kontrol
+STL modellerde FDM et kalınlığını ışın tabanlı analizle ölçer; basılamaz (1 hattın altı) ve riskli (2 hattın altı) bölgeleri model üzerinde renklendirir. Eşikler nozzle çapı ve hat genişliğinden otomatik hesaplanır.
+
+Ayrıca **örgü sağlığı taraması** (açık kenar, non-manifold, yön uyumsuzluğu, dejenere/çift yüz, kırıntı parça), tek tuşla **onarım**, ince bölgeleri hedefe kalınlaştıran **yerel revizyon** ve **STL dışa aktarım** içerir. Dosya hiçbir yere gönderilmez — analiz tamamen tarayıcıda yapılır.
+
+<img src="assets/shot-3dprint.png" alt="3D Print Model Kontrol" width="100%" />
+
+[▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_3Dprint_model_kontrol/) · [Kaynak](projects/AI_3Dprint_model_kontrol)
+
+---
+
 ## Öğrenme
 
 ### Elifbâ — Osmanlıca Öğren
@@ -93,6 +107,7 @@ ahmetoff/
 │   ├── AI_K_muk3d/     Köşe Mukarnas
 │   ├── AI_Puskul/      Püskül 3D
 │   ├── AI_7-8/         Yedi-Sekiz
+│   ├── AI_3Dprint_model_kontrol/  3D Print Model Kontrol
 │   └── AI_osmanlica/   Elifbâ — Osmanlıca Öğren
 └── LICENSE         → MIT
 ```

@@ -4,17 +4,17 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ahmetoff — Projeler</title>
-<meta name="description" content="Tarayıcıda çalışan araçlar ve uygulamalar: parametrik mimari tasarım araçları (Kemerler, Mukarnas, Köşe Mukarnas, Püskül, Yedi-Sekiz) ve Elifbâ Osmanlıca öğrenme uygulaması. Kurulum gerekmez." />
+<meta name="description" content="Tarayıcıda çalışan araçlar ve uygulamalar: parametrik mimari tasarım araçları, 3D Print Model Kontrol (STL et kalınlığı analizi) ve Elifbâ Osmanlıca öğrenme uygulaması. Kurulum gerekmez." />
 
 <!-- Sosyal medya link onizlemesi (Open Graph / Twitter) -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="ahmetoff — Tarayıcıda Çalışan Araçlar ve Uygulamalar" />
-<meta property="og:description" content="Parametrik mimari tasarım araçları (Kemerler, Mukarnas, Köşe Mukarnas, Püskül, Yedi-Sekiz) ve Elifbâ Osmanlıca öğrenme uygulaması. Hepsi tarayıcıda, kurulum yok." />
+<meta property="og:description" content="Parametrik mimari tasarım araçları, 3D Print Model Kontrol ve Elifbâ Osmanlıca öğrenme uygulaması. Hepsi tarayıcıda, kurulum yok." />
 <meta property="og:image" content="https://ahmet3ddd.github.io/ahmetoff/assets/cover.png" />
 <meta property="og:url" content="https://ahmet3ddd.github.io/ahmetoff/" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="ahmetoff — Tarayıcıda Çalışan Araçlar ve Uygulamalar" />
-<meta name="twitter:description" content="Parametrik tasarım araçları ve Elifbâ Osmanlıca öğrenme uygulaması — hepsi tarayıcıda çalışır." />
+<meta name="twitter:description" content="Parametrik tasarım araçları, 3D Print Model Kontrol ve Elifbâ — hepsi tarayıcıda çalışır." />
 <meta name="twitter:image" content="https://ahmet3ddd.github.io/ahmetoff/assets/cover.png" />
 
 <style>
@@ -85,6 +85,8 @@
   .card p{margin:0 0 20px; color:var(--muted); font-size:16px; flex:1}
   .tags{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 18px}
   .tag{font-size:12px; color:var(--muted); background:var(--chip); border-radius:999px; padding:3px 10px}
+  .tag.when{background:transparent; border:1px dashed var(--line); color:var(--muted)}
+  .ver.new{background:#2ea44f; color:#fff}
   .actions{display:flex; gap:10px; flex-wrap:wrap}
   .btn{
     display:inline-flex; align-items:center; gap:7px; text-decoration:none;
@@ -107,7 +109,7 @@
     <div class="wrap">
       <span class="eyebrow">Araçlar ve Uygulamalar</span>
       <h1>ahmetoff</h1>
-      <p class="lead">Tarayıcıda çalışan, kurulum gerektirmeyen açık kaynak projeler. Geleneksel mimari geometriyi parametrik olarak modelleyen tasarım araçları ve Osmanlı Türkçesini sıfırdan öğreten bir uygulama.</p>
+      <p class="lead">Tarayıcıda çalışan, kurulum gerektirmeyen açık kaynak projeler. Geleneksel mimari geometriyi parametrik olarak modelleyen tasarım araçları, 3B baskıya hazırlık yardımcıları ve Osmanlı Türkçesini sıfırdan öğreten bir uygulama.</p>
     </div>
   </header>
 
@@ -129,6 +131,7 @@
             <span class="tag">Geometrik desen</span>
             <span class="tag">Parametrik</span>
             <span class="tag">Web</span>
+            <span class="tag when">4 Ağu 2026</span>
           </div>
           <div class="actions">
             <a class="btn primary" href="projects/AI_7-8/index.html">Aç &rarr;</a>
@@ -146,6 +149,7 @@
             <span class="tag">Mimari</span>
             <span class="tag">3B görüntüleyici</span>
             <span class="tag">DXF / STL / PNG</span>
+            <span class="tag when">4 Ağu 2026</span>
           </div>
           <div class="actions">
             <a class="btn primary" href="projects/AI_Kemer/index.html">Aç &rarr;</a>
@@ -164,6 +168,7 @@
             <span class="tag">Fillet</span>
             <span class="tag">3B görüntüleyici</span>
             <span class="tag">DXF / STL / PNG</span>
+            <span class="tag when">6 Ağu 2026</span>
           </div>
           <div class="actions">
             <a class="btn primary" href="projects/AI_muk3d_V2/index.html">Aç &rarr;</a>
@@ -182,6 +187,7 @@
             <span class="tag">Köşe mukarnas</span>
             <span class="tag">Üçgen plan</span>
             <span class="tag">DXF / STL / PNG</span>
+            <span class="tag when">4 Ağu 2026</span>
           </div>
           <div class="actions">
             <a class="btn primary" href="projects/AI_K_muk3d/index.html">Aç &rarr;</a>
@@ -199,10 +205,39 @@
             <span class="tag">Püskül / sarkıt</span>
             <span class="tag">Katmanlı</span>
             <span class="tag">DXF / STL</span>
+            <span class="tag when">4 Ağu 2026</span>
           </div>
           <div class="actions">
             <a class="btn primary" href="projects/AI_Puskul/index.html">Aç &rarr;</a>
             <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_Puskul">Kaynak</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <section class="section">
+      <h2>3B Baskı</h2>
+      <p>Modeli baskıya göndermeden önce denetleyen yardımcı araçlar.</p>
+    </section>
+
+    <div class="grid">
+
+      <article class="card">
+        <img class="shot" src="assets/shot-3dprint.png" alt="3D Print Model Kontrol ekran görüntüsü" />
+        <div class="body">
+          <h3>3D Print Model Kontrol <span class="ver new">Yeni</span></h3>
+          <p>STL modellerde FDM et kalınlığını ışın tabanlı analizle ölçer; basılamaz ve riskli bölgeleri renklendirir. Örgü sağlığı taraması ve onarım, ince bölgeleri kalınlaştıran yerel revizyon, STL dışa aktarım. Dosya hiçbir yere gönderilmez.</p>
+          <div class="tags">
+            <span class="tag">STL analizi</span>
+            <span class="tag">Et kalınlığı</span>
+            <span class="tag">Onarım / revizyon</span>
+            <span class="tag">Çevrimdışı</span>
+            <span class="tag when">7 Ağu 2026</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="projects/AI_3Dprint_model_kontrol/index.html">Aç &rarr;</a>
+            <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_3Dprint_model_kontrol">Kaynak</a>
           </div>
         </div>
       </article>
@@ -226,6 +261,7 @@
             <span class="tag">73 ders</span>
             <span class="tag">Aralıklı tekrar</span>
             <span class="tag">Çevrimdışı</span>
+            <span class="tag when">6 Ağu 2026</span>
           </div>
           <div class="actions">
             <a class="btn primary" href="projects/AI_osmanlica/index.html">Aç &rarr;</a>

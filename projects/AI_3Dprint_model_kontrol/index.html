@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Print Model Kontrol — FDM Et Kalınlığı Analizi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg:#101417; --panel:#161c21; --panel2:#1b2228; --line:#26303a;
+  --ink:#e6edf2; --ink-dim:#b3c0ca; --ink-faint:#8695a1;
+  --verdigris:#4fd8b4; --verdigris-dim:#2a8570;
+  --head:#7fe3c8; --head-rule:#2f4a45;
+  --field-bg:#0c1013; --btn-bg:#212a31; --btn-ink:#08110e;
+  --crit:#ff6b6b; --warn:#f7bd53; --ok:#4fd8b4;
+  --nm:#c86bff; --grid1:0x2a333c; --grid2:0x1c242b;
+  --mono:"JetBrains Mono","Cascadia Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sans:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+}
+body.light{
+  --bg:#eef1f3; --panel:#fbfcfd; --panel2:#eef2f5; --line:#cfd8de;
+  --ink:#16202a; --ink-dim:#41525f; --ink-faint:#63757f;
+  --verdigris:#0f8f74; --verdigris-dim:#0b7460;
+  --head:#0a6b57; --head-rule:#b6d8cf;
+  --field-bg:#ffffff; --btn-bg:#e6ecf0; --btn-ink:#ffffff;
+  --crit:#cf2f2f; --warn:#a86a05; --ok:#0f8f74;
+  --nm:#8e3fd1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  display:flex; overflow:hidden; font-size:14px;
+}
+#panel{
+  width:330px; min-width:330px; height:100%; overflow-y:auto;
+  background:var(--panel); border-right:1px solid var(--line);
+  padding:0 0 24px 0;
+}
+#panel::-webkit-scrollbar{width:8px}
+#panel::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+header{
+  padding:18px 18px 14px 18px; border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel2),var(--panel));
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+}
+header h1{
+  font-family:var(--mono); font-size:13.5px; letter-spacing:.13em; font-weight:700;
+  color:var(--verdigris); line-height:1.35;
+}
+header p{font-size:11.5px; color:var(--ink-dim); margin-top:4px; letter-spacing:.02em}
+#headActions{display:flex; gap:6px; flex:0 0 auto}
+#btnHelp, #btnTheme{
+  width:30px; height:30px; padding:0; flex:0 0 auto; border-radius:15px;
+  font-size:14px; color:var(--verdigris); line-height:1;
+}
+#helpModal{
+  position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center;
+  background:rgba(8,11,13,.72); padding:20px;
+}
+body.light #helpModal{background:rgba(60,72,80,.45)}
+#helpModal.open{display:flex}
+#helpBox{
+  width:min(660px,94vw); max-height:88vh; overflow-y:auto;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:22px 26px 18px 26px;
+}
+#helpBox::-webkit-scrollbar{width:8px}
+#helpBox::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+#helpHead{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+#helpHead h1{font-family:var(--mono); font-size:13px; letter-spacing:.12em; color:var(--verdigris)}
+#helpClose{width:auto; padding:6px 14px}
+#helpBox h2{margin-top:10px}
+#helpBox p, #helpBox li{font-size:12.5px; color:var(--ink-dim); line-height:1.65}
+#helpBox p{margin-bottom:12px}
+#helpBox ol{margin:0 0 12px 18px}
+#helpBox li{margin-bottom:5px}
+#helpBox .k{font-family:var(--mono); color:var(--ink)}
+section{padding:16px 18px; border-bottom:1px solid var(--line)}
+h2{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; font-weight:700;
+  color:var(--head); text-transform:uppercase; margin-bottom:12px;
+  padding-bottom:7px; border-bottom:1px solid var(--head-rule);
+  display:flex; align-items:center; gap:8px;
+}
+h2::before{
+  content:""; width:3px; height:12px; background:var(--verdigris);
+  border-radius:1px; flex:0 0 auto;
+}
+.row{display:flex; gap:8px; align-items:center; margin-bottom:9px}
+.row label{flex:1; font-size:12.5px; color:var(--ink-dim)}
+input[type=number], select{
+  width:88px; background:var(--field-bg); border:1px solid var(--line); color:var(--ink);
+  font-family:var(--mono); font-size:12.5px; padding:5px 7px; border-radius:4px;
+  outline:none;
+}
+select{width:120px}
+input[type=number]:focus, select:focus{border-color:var(--verdigris)}
+input[type=number]:focus-visible, select:focus-visible, button:focus-visible{
+  outline:2px solid var(--verdigris); outline-offset:2px;
+}
+input[type=checkbox]{accent-color:var(--verdigris); width:15px; height:15px}
+.unit{font-family:var(--mono); font-size:11px; color:var(--ink-faint); width:26px}
+button{
+  font-family:var(--mono); font-size:12px; letter-spacing:.08em; font-weight:600;
+  border:1px solid var(--line); background:var(--btn-bg); color:var(--ink);
+  padding:9px 12px; border-radius:5px; cursor:pointer; width:100%;
+  transition:border-color .15s, background .15s;
+}
+button:hover:not(:disabled){border-color:var(--verdigris)}
+button:disabled{opacity:.4; cursor:not-allowed}
+button.primary{
+  border-color:var(--verdigris-dim); color:var(--btn-ink);
+  background:linear-gradient(180deg,var(--verdigris),var(--verdigris-dim));
+}
+button.primary:hover:not(:disabled){filter:brightness(1.08)}
+.btnrow{display:flex; gap:8px; margin-top:6px}
+.btnrow button{flex:1}
+.hint{font-size:11.5px; color:var(--ink-faint); line-height:1.55; margin-top:9px}
+.thresh{
+  font-family:var(--mono); font-size:12px; background:var(--field-bg);
+  border:1px solid var(--line); border-radius:5px; padding:9px 10px; margin-top:4px;
+}
+.thresh .tr{display:flex; justify-content:space-between; padding:2px 0}
+.thresh .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+#stats{font-family:var(--mono); font-size:12px}
+#stats .tr{display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed var(--line); color:var(--ink-dim)}
+#stats .tr:last-child{border-bottom:none}
+#stats .v{color:var(--ink)}
+#stats .v.crit{color:var(--crit)} #stats .v.warn{color:var(--warn)} #stats .v.ok{color:var(--ok)}
+.kv{font-family:var(--mono); font-size:12px; margin-top:10px}
+.kv .tr{display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed var(--line); color:var(--ink-dim)}
+.kv .tr:last-child{border-bottom:none}
+.kv .v{color:var(--ink)}
+.kv .v.ok{color:var(--ok)} .kv .v.warn{color:var(--warn)}
+#progressWrap{height:4px; background:var(--field-bg); border-radius:2px; margin-top:10px; overflow:hidden; display:none}
+#progressBar{height:100%; width:0%; background:var(--verdigris); transition:width .1s}
+#status{font-family:var(--mono); font-size:11.5px; color:var(--ink-dim); margin-top:7px; min-height:16px; line-height:1.45}
+#viewport{flex:1; position:relative; background:var(--bg)}
+#viewport canvas{display:block}
+#drop{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:10px; pointer-events:none; z-index:5;
+}
+#drop .box{
+  border:1.5px dashed var(--line); border-radius:10px; padding:34px 44px; text-align:center;
+  color:var(--ink-dim); font-family:var(--mono); font-size:12.5px; letter-spacing:.06em;
+  background:var(--panel2);
+}
+#drop .box b{color:var(--verdigris); font-weight:700}
+#viewport.dragover #drop .box{border-color:var(--verdigris); color:var(--ink)}
+#legend{
+  position:absolute; left:14px; bottom:14px; z-index:6;
+  background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  padding:10px 13px; font-family:var(--mono); font-size:11.5px; display:none;
+  box-shadow:0 2px 12px rgba(0,0,0,.18);
+}
+#legend .li{display:flex; align-items:center; gap:8px; padding:2.5px 0; color:var(--ink-dim)}
+#legend .sw{width:11px;height:11px;border-radius:2px}
+#coordTag{
+  position:absolute; right:14px; top:12px; z-index:6; font-family:var(--mono);
+  font-size:10.5px; color:var(--ink-faint); letter-spacing:.1em; text-align:right;
+}
+footer{padding:16px 18px 0 18px}
+footer p{font-size:11px; color:var(--ink-faint); line-height:1.6}
+@media (max-width:760px){
+  body{flex-direction:column}
+  #panel{width:100%; min-width:0; height:52%; border-right:none; border-bottom:1px solid var(--line)}
+  #viewport{height:48%}
+}
+</style>
+</head>
+<body>
+
+<aside id="panel">
+  <header>
+    <div>
+      <h1>3D PRINT MODEL KONTROL</h1>
+      <p id="subTitle">FDM et kalınlığı analizi ve lokal revizyon — 0.40 mm nozzle</p>
+    </div>
+    <div id="headActions">
+      <button id="btnTheme" title="Açık / koyu tema">☀</button>
+      <button id="btnHelp" title="Yardım">?</button>
+    </div>
+  </header>
+
+  <section>
+    <h2>Model</h2>
+    <div class="btnrow">
+      <button id="btnLoad">STL YÜKLE</button>
+      <button id="btnSample">ÖRNEK MODEL</button>
+    </div>
+    <input type="file" id="fileInput" accept=".stl" style="display:none">
+    <div id="modelInfo" class="hint">Henüz model yok. STL dosyasını sürükleyip bırakabilirsin. Birimler mm varsayılır.</div>
+  </section>
+
+  <section>
+    <h2>Örgü Sağlığı</h2>
+    <button id="btnScan" disabled>ÖRGÜYÜ TARA</button>
+    <div id="meshStats" class="kv">
+      <div class="tr"><span>Açık kenar</span><span class="v" id="mBound">—</span></div>
+      <div class="tr"><span>Non-manifold kenar</span><span class="v" id="mNM">—</span></div>
+      <div class="tr"><span>Yön uyumsuz kenar</span><span class="v" id="mMis">—</span></div>
+      <div class="tr"><span>Dejenere üçgen</span><span class="v" id="mDeg">—</span></div>
+      <div class="tr"><span>Çift yüz</span><span class="v" id="mDup">—</span></div>
+      <div class="tr"><span>Parça</span><span class="v" id="mComp">—</span></div>
+      <div class="tr"><span>Durum</span><span class="v" id="mState">—</span></div>
+    </div>
+    <div class="row" style="margin-top:10px"><label>Kusur kenarlarını göster</label><input type="checkbox" id="vDefects" checked></div>
+    <div class="row"><label>Normalleri birleştir ve dışa çevir</label><input type="checkbox" id="fOrient" checked></div>
+    <div class="row"><label>Dejenere / çift yüz temizle</label><input type="checkbox" id="fClean" checked></div>
+    <div class="row"><input type="checkbox" id="fCrumbs" checked><label>Kırıntı parça sil, alan &lt;</label><input type="number" id="fCrumbPct" value="0.5" step="0.1" min="0"><span class="unit">%</span></div>
+    <div class="row"><input type="checkbox" id="fHoles" checked><label>Delik kapat, maks kenar</label><input type="number" id="fHoleMax" value="24" step="1" min="3"><span class="unit"></span></div>
+    <button id="btnFix" class="primary" disabled>ONAR</button>
+    <div class="hint">Sınır kenarları <span style="color:var(--crit)">kırmızı</span>, non-manifold kenarlar <span style="color:#c86bff">mor</span> çizilir. Onarım topolojiyi değiştirdiği için kalınlık analizi sıfırlanır. Büyük delikler yalnızca raporlanır; kendisiyle kesişme bu taramaya dahil değildir.</div>
+  </section>
+
+  <section>
+    <h2>Baskı Parametreleri</h2>
+    <div class="row"><label>Nozzle çapı</label><input type="number" id="pNozzle" value="0.4" step="0.05" min="0.1"><span class="unit">mm</span></div>
+    <div class="row"><label>Hat genişliği</label><input type="number" id="pWidth" value="0.42" step="0.01" min="0.1"><span class="unit">mm</span></div>
+    <div class="row"><label>Malzeme</label><select id="pMat"><option value="1.0">PLA</option><option value="1.15">PETG</option></select></div>
+    <div class="row"><label>Eşikleri otomatik hesapla</label><input type="checkbox" id="pAuto" checked></div>
+    <div class="row"><label>Kritik eşik (1 hat)</label><input type="number" id="pTMin" value="0.42" step="0.01" min="0.05"><span class="unit">mm</span></div>
+    <div class="row"><label>Önerilen eşik (2 hat)</label><input type="number" id="pTRec" value="0.84" step="0.01" min="0.05"><span class="unit">mm</span></div>
+    <div class="row"><label>Koni ışınları (daha doğru, yavaş)</label><input type="checkbox" id="pCone"></div>
+    <button id="btnAnalyze" class="primary" disabled>ANALİZ ET</button>
+    <div id="progressWrap"><div id="progressBar"></div></div>
+    <div id="status"></div>
+  </section>
+
+  <section>
+    <h2>Sonuçlar</h2>
+    <div id="stats">
+      <div class="tr"><span>Kritik alan (&lt; 1 hat)</span><span class="v crit" id="sCrit">—</span></div>
+      <div class="tr"><span>Uyarı alanı (&lt; 2 hat)</span><span class="v warn" id="sWarn">—</span></div>
+      <div class="tr"><span>Uygun alan</span><span class="v ok" id="sOk">—</span></div>
+      <div class="tr"><span>Min. ölçülen kalınlık</span><span class="v" id="sMin">—</span></div>
+      <div class="tr"><span>Kaçan ışın</span><span class="v" id="sMiss">—</span></div>
+    </div>
+    <div class="hint" id="openWarn" style="display:none;color:var(--warn)">Kaçan ışın oranı yüksek — model su geçirmez (watertight) olmayabilir; sonuçlar bu bölgelerde güvenilmezdir.</div>
+  </section>
+
+  <section>
+    <h2>Revizyon</h2>
+    <div class="row"><label>Hedef kalınlık</label><select id="rTarget"><option value="rec">Önerilen (2 hat)</option><option value="min">Kritik (1 hat)</option></select></div>
+    <div class="row"><label>Kalınlaştırma yönü</label><select id="rDir"><option value="1">Dışa doğru</option><option value="-1">İçe doğru</option></select></div>
+    <div class="row"><label>Maks. ofset / yüzey</label><input type="number" id="rMaxOff" value="0.5" step="0.1" min="0.05"><span class="unit">mm</span></div>
+    <div class="row"><label>Yumuşatma iterasyonu</label><input type="number" id="rSmooth" value="6" step="1" min="0" max="30"><span class="unit"></span></div>
+    <button id="btnRepair" class="primary" disabled>REVİZE ET</button>
+    <div class="btnrow">
+      <button id="btnReset" disabled>ORİJİNALE DÖN</button>
+      <button id="btnExport" disabled>STL İNDİR</button>
+    </div>
+    <div class="hint">Revizyon, eşik altı bölgelerdeki köşe noktalarını normal yönünde iterek eksik kalınlığın yarısını her yüzeye ekler; geçişler komşuluk yumuşatmasıyla harmanlanır. Karmaşık geometride kendisiyle kesişme oluşabilir — dilimleyicide kontrol et.</div>
+  </section>
+
+  <section>
+    <h2>Görünüm</h2>
+    <div class="row"><label>Yumuşak gölgeleme (smooth)</label><input type="checkbox" id="vSmooth"></div>
+    <div class="row"><label>Tel kafes</label><input type="checkbox" id="vWire"></div>
+    <div class="row"><label>Izgara</label><input type="checkbox" id="vGrid" checked></div>
+  </section>
+
+  <footer>
+    <p>Analiz, yüzeyden içeri atılan ışınların karşı yüzeye mesafesiyle yapılır (ray tabanlı kalınlık). Baskı yönelimine göre XY/Z ayrımı yapmaz; eşikler dikey duvar kabulüyle yorumlanmalıdır. Tarayıcıda, tamamen yerel çalışır — dosya hiçbir yere gönderilmez.</p>
+  </footer>
+</aside>
+
+<main id="viewport">
+  <div id="drop"><div class="box"><b>STL</b> DOSYASINI BURAYA BIRAK<br><span style="font-size:10.5px">veya soldan yükle / örnek modeli aç</span></div></div>
+  <div id="legend">
+    <div class="li"><span class="sw" style="background:var(--crit)"></span><span id="lgCrit">&lt; 0.42 mm — basılamaz</span></div>
+    <div class="li"><span class="sw" style="background:var(--warn)"></span><span id="lgWarn">&lt; 0.84 mm — riskli / tek hat</span></div>
+    <div class="li"><span class="sw" style="background:var(--ok)"></span><span id="lgOk">uygun</span></div>
+    <div class="li"><span class="sw" style="background:#5a6873"></span><span>ölçülemedi (açık yüzey)</span></div>
+  </div>
+  <div id="coordTag">MM · SOL SÜRÜKLE DÖNDÜR<br>TEKER YAKINLAŞ · SAĞ SÜRÜKLE KAYDIR</div>
+</main>
+
+<div id="helpModal">
+  <div id="helpBox">
+    <div id="helpHead">
+      <h1>3D PRINT MODEL KONTROL — YARDIM</h1>
+      <button id="helpClose">KAPAT</button>
+    </div>
+
+    <h2>Ne işe yarar</h2>
+    <p>Bu araç, FDM 3D baskıda "çok ince, basılamaz" bölgeleri baskıdan önce yakalamak için yapıldı. STL modelini okur, yüzeydeki her üçgenden karşı yüzeye olan mesafeyi ölçerek bir et kalınlığı haritası çıkarır ve nozzle ile hat genişliğinden türetilen eşiklerin altında kalan yerleri renkle işaretler. İstenirse bu bölgeleri hedef kalınlığa ulaşacak şekilde kalınlaştırıp düzeltilmiş bir STL verir. Tamamen tarayıcıda çalışır; dosyan hiçbir sunucuya gönderilmez.</p>
+
+    <h2>Önerilen iş akışı</h2>
+    <ol>
+      <li>STL dosyasını sürükleyip bırak veya <span class="k">STL YÜKLE</span> ile aç. Denemek için <span class="k">ÖRNEK MODEL</span> hazır kusurlarla birlikte gelir.</li>
+      <li><span class="k">ÖRGÜYÜ TARA</span>: delikler, ters normaller, kırıntı parçalar gibi kusurlar raporlanır; gerekiyorsa <span class="k">ONAR</span>. Kusurlu örgüde kalınlık ölçümü güvenilmez — bu adım o yüzden önce gelir.</li>
+      <li>Nozzle, hat genişliği ve malzemeyi gir. Eşikler otomatik türetilir: kritik = 1 hat, önerilen = 2 hat; PETG'de ×1.15 pay eklenir. <span class="k">ANALİZ ET</span> ile haritayı çıkar.</li>
+      <li>Gerekirse <span class="k">REVİZE ET</span>: eşik altı bölgeler yüzey normali yönünde kalınlaştırılır, geçişler yumuşatılır ve model otomatik yeniden analiz edilir.</li>
+      <li><span class="k">STL İNDİR</span> ile sonucu kaydet ve dilimleyicide mutlaka önizle.</li>
+    </ol>
+
+    <h2>Renkler</h2>
+    <p><span style="color:var(--crit)">Kırmızı</span>: kritik eşik altı, bu haliyle basılamaz. <span style="color:var(--warn)">Turuncu</span>: tek hatla basılır ama kırılgan/riskli. <span style="color:var(--ok)">Yeşil</span>: uygun. Gri: ölçülemedi (genellikle açık yüzey). Örgü taramasında <span style="color:var(--crit)">kırmızı çizgi</span> açık kenarı, <span style="color:#c86bff">mor çizgi</span> non-manifold kenarı gösterir.</p>
+
+    <h2>Görünüm kontrolleri</h2>
+    <p><span class="k">Sol tık sürükle</span> döndürür · <span class="k">teker</span> yakınlaştırır · <span class="k">sağ tık</span> veya <span class="k">Shift+sol</span> kaydırır. Görünüm bölümünden yumuşak gölgeleme, tel kafes ve ızgara açılıp kapatılabilir.</p>
+
+    <h2>Sınırlar</h2>
+    <p>Birimler mm varsayılır. Ölçüm ışın tabanlıdır; çok sivri konik uçlarda iyimser çıkabilir — <span class="k">Koni ışınları</span> seçeneği doğruluğu artırır. Eşikler dikey duvar kabulüyle yorumlanmalıdır; yatay ince levhalar katman sayısına göre ayrıca değerlendirilmelidir. Revizyon köşe noktalarını iterek çalışır; karmaşık geometride kendisiyle kesişme oluşabilir. Kendisiyle kesişme taranmaz, büyük delikler onarılmaz yalnızca raporlanır. Çıktıyı her zaman dilimleyicide doğrula.</p>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   3D Print Model Kontrol — durum
+============================================================ */
+const S = {
+  nv:0, nf:0,
+  pos:null, idx:null,          // Float32Array, Uint32Array
+  posOrig:null, idxOrig:null,  // orijinal kopyalar
+  vnorm:null, fnorm:null, farea:null,
+  adj:null,                    // komşuluk: Array<Uint32Array>
+  bvh:null, scan:null,
+  thickF:null, thickV:null,    // yüz / köşe kalınlıkları
+  analyzed:false, missed:0, totalArea:0,
+  mesh:null, wire:null, geom:null,
+  diag:1, name:"model"
+};
+const $ = id => document.getElementById(id);
+const fmt = (x,d=2)=> isFinite(x)? x.toFixed(d) : "—";
+
+/* ============================================================
+   Three.js sahne + basit orbit kontrol
+============================================================ */
+const vp = $("viewport");
+const TH = {
+  dark:  {bg:0x101417, base:[0.62,0.66,0.69], grid1:0x2a333c, grid2:0x1c242b, wire:0x3a4650, wireOp:0.35,
+          crit:[1.0,0.42,0.42], warn:[0.97,0.74,0.33], ok:[0.31,0.85,0.71], na:[0.42,0.48,0.53],
+          lineCrit:0xff6b6b, lineNM:0xc86bff, hemiSky:0xcfd8de, hemiGround:0x2a3138},
+  light: {bg:0xeef1f3, base:[0.55,0.60,0.64], grid1:0xb9c4cc, grid2:0xd3dbe1, wire:0x8b98a3, wireOp:0.45,
+          crit:[0.81,0.18,0.18], warn:[0.66,0.42,0.02], ok:[0.06,0.56,0.45], na:[0.55,0.61,0.66],
+          lineCrit:0xcf2f2f, lineNM:0x8e3fd1, hemiSky:0xffffff, hemiGround:0x9aa8b2},
+  cur:"dark",
+  get(){ return this.cur==="light"? this.light : this.dark; },
+  get bg(){ return this.get().bg }, get base(){ return this.get().base },
+  get grid1(){ return this.get().grid1 }, get grid2(){ return this.get().grid2 },
+  get wire(){ return this.get().wire }, get wireOp(){ return this.get().wireOp },
+  get crit(){ return this.get().crit }, get warn(){ return this.get().warn },
+  get ok(){ return this.get().ok }, get na(){ return this.get().na },
+  get lineCrit(){ return this.get().lineCrit }, get lineNM(){ return this.get().lineNM },
+  get hemiSky(){ return this.get().hemiSky }, get hemiGround(){ return this.get().hemiGround }
+};
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+vp.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(TH.bg);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 5000);
+const hemi = new THREE.HemisphereLight(TH.hemiSky, TH.hemiGround, 0.85); scene.add(hemi);
+const dir1 = new THREE.DirectionalLight(0xffffff, 0.7); dir1.position.set(1,1.4,0.8); scene.add(dir1);
+const dir2 = new THREE.DirectionalLight(0x8fb8c8, 0.25); dir2.position.set(-1,-0.4,-0.8); scene.add(dir2);
+let grid = null;
+
+const orbit = { target:new THREE.Vector3(), r:120, theta:0.9, phi:1.05, panX:0 };
+function applyCam(){
+  const t = orbit.target;
+  const sp = Math.sin(orbit.phi), cp = Math.cos(orbit.phi);
+  camera.position.set(
+    t.x + orbit.r*sp*Math.cos(orbit.theta),
+    t.y + orbit.r*cp,
+    t.z + orbit.r*sp*Math.sin(orbit.theta)
+  );
+  camera.lookAt(t);
+}
+function resize(){
+  const w = vp.clientWidth, h = vp.clientHeight;
+  renderer.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize);
+
+let drag=null;
+renderer.domElement.addEventListener("contextmenu", e=>e.preventDefault());
+renderer.domElement.addEventListener("pointerdown", e=>{
+  drag = {x:e.clientX, y:e.clientY, btn:e.button, shift:e.shiftKey};
+  renderer.domElement.setPointerCapture(e.pointerId);
+});
+renderer.domElement.addEventListener("pointermove", e=>{
+  if(!drag) return;
+  const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
+  drag.x = e.clientX; drag.y = e.clientY;
+  if(drag.btn===0 && !drag.shift){
+    orbit.theta += dx*0.006;
+    orbit.phi = Math.min(Math.PI-0.05, Math.max(0.05, orbit.phi - dy*0.006));
+  } else {
+    const k = orbit.r*0.0016;
+    const right = new THREE.Vector3().subVectors(orbit.target,camera.position).cross(camera.up).normalize();
+    const up = new THREE.Vector3().copy(camera.up);
+    orbit.target.addScaledVector(right, -dx*k).addScaledVector(up, dy*k);
+  }
+  applyCam();
+});
+renderer.domElement.addEventListener("pointerup", ()=> drag=null);
+renderer.domElement.addEventListener("wheel", e=>{
+  e.preventDefault();
+  orbit.r *= (1 + Math.sign(e.deltaY)*0.1);
+  orbit.r = Math.max(S.diag*0.05, Math.min(S.diag*20, orbit.r));
+  applyCam();
+},{passive:false});
+
+(function loop(){ requestAnimationFrame(loop); renderer.render(scene,camera); })();
+resize(); applyCam();
+
+/* ============================================================
+   STL okuma (binary + ascii) ve köşe birleştirme
+============================================================ */
+function parseSTL(buf){
+  if(buf.byteLength >= 84){
+    const dv = new DataView(buf);
+    const n = dv.getUint32(80, true);
+    if(84 + n*50 === buf.byteLength) return parseBinary(dv, n);
+  }
+  const txt = new TextDecoder().decode(buf);
+  if(/facet/i.test(txt)) return parseASCII(txt);
+  throw new Error("STL biçimi tanınamadı.");
+}
+function parseBinary(dv, n){
+  const p = new Float32Array(n*9);
+  let o = 84;
+  for(let i=0;i<n;i++){
+    o += 12; // yüz normali atla
+    for(let k=0;k<9;k++){ p[i*9+k] = dv.getFloat32(o, true); o+=4; }
+    o += 2;
+  }
+  return p;
+}
+function parseASCII(txt){
+  const re = /vertex\s+([-\d.eE+]+)\s+([-\d.eE+]+)\s+([-\d.eE+]+)/g;
+  const arr = []; let m;
+  while((m = re.exec(txt))) arr.push(+m[1], +m[2], +m[3]);
+  return new Float32Array(arr);
+}
+function weld(raw){
+  const nTri = raw.length/9;
+  const map = new Map();
+  const verts = []; const idx = new Uint32Array(nTri*3);
+  const Q = 1e4;
+  for(let i=0;i<nTri*3;i++){
+    const x = raw[i*3], y = raw[i*3+1], z = raw[i*3+2];
+    const key = Math.round(x*Q)+"_"+Math.round(y*Q)+"_"+Math.round(z*Q);
+    let vi = map.get(key);
+    if(vi===undefined){ vi = verts.length/3; verts.push(x,y,z); map.set(key,vi); }
+    idx[i]=vi;
+  }
+  return { pos:new Float32Array(verts), idx };
+}
+
+/* ============================================================
+   Normal, alan, komşuluk
+============================================================ */
+function computeNormals(){
+  const {pos, idx, nf, nv} = S;
+  const fn = S.fnorm || new Float32Array(nf*3);
+  const fa = S.farea || new Float32Array(nf);
+  const vn = S.vnorm || new Float32Array(nv*3);
+  vn.fill(0);
+  let total=0;
+  for(let f=0; f<nf; f++){
+    const a=idx[f*3]*3, b=idx[f*3+1]*3, c=idx[f*3+2]*3;
+    const e1x=pos[b]-pos[a],   e1y=pos[b+1]-pos[a+1], e1z=pos[b+2]-pos[a+2];
+    const e2x=pos[c]-pos[a],   e2y=pos[c+1]-pos[a+1], e2z=pos[c+2]-pos[a+2];
+    let nx=e1y*e2z-e1z*e2y, ny=e1z*e2x-e1x*e2z, nz=e1x*e2y-e1y*e2x;
+    const l = Math.hypot(nx,ny,nz);
+    const area = l*0.5; fa[f]=area; total+=area;
+    if(l>1e-12){ nx/=l; ny/=l; nz/=l; }
+    fn[f*3]=nx; fn[f*3+1]=ny; fn[f*3+2]=nz;
+    for(const vi of [a,b,c]){
+      vn[vi]   += nx*area; vn[vi+1] += ny*area; vn[vi+2] += nz*area;
+    }
+  }
+  for(let v=0; v<nv; v++){
+    const l = Math.hypot(vn[v*3],vn[v*3+1],vn[v*3+2]);
+    if(l>1e-12){ vn[v*3]/=l; vn[v*3+1]/=l; vn[v*3+2]/=l; }
+  }
+  S.fnorm=fn; S.farea=fa; S.vnorm=vn; S.totalArea=total;
+}
+function buildAdjacency(){
+  const {idx, nf, nv} = S;
+  const sets = Array.from({length:nv}, ()=>new Set());
+  for(let f=0; f<nf; f++){
+    const a=idx[f*3], b=idx[f*3+1], c=idx[f*3+2];
+    sets[a].add(b); sets[a].add(c);
+    sets[b].add(a); sets[b].add(c);
+    sets[c].add(a); sets[c].add(b);
+  }
+  S.adj = sets.map(s=>Uint32Array.from(s));
+}
+
+/* ============================================================
+   BVH (üçgen düzeyi, medyan bölme)
+============================================================ */
+function buildBVH(){
+  const {pos, idx, nf} = S;
+  const tmin = new Float32Array(nf*3), tmax = new Float32Array(nf*3), cen = new Float32Array(nf*3);
+  for(let f=0; f<nf; f++){
+    const a=idx[f*3]*3, b=idx[f*3+1]*3, c=idx[f*3+2]*3;
+    for(let k=0;k<3;k++){
+      const va=pos[a+k], vb=pos[b+k], vc=pos[c+k];
+      tmin[f*3+k]=Math.min(va,vb,vc); tmax[f*3+k]=Math.max(va,vb,vc);
+      cen[f*3+k]=(va+vb+vc)/3;
+    }
+  }
+  const order = new Uint32Array(nf); for(let i=0;i<nf;i++) order[i]=i;
+  const nodes = [];
+  function makeNode(start,count){
+    const ni = nodes.length;
+    const node = {min:[Infinity,Infinity,Infinity], max:[-Infinity,-Infinity,-Infinity], start, count, left:-1, right:-1};
+    nodes.push(node);
+    for(let i=start;i<start+count;i++){
+      const f=order[i];
+      for(let k=0;k<3;k++){
+        if(tmin[f*3+k]<node.min[k]) node.min[k]=tmin[f*3+k];
+        if(tmax[f*3+k]>node.max[k]) node.max[k]=tmax[f*3+k];
+      }
+    }
+    if(count<=8) return ni;
+    let axis=0, ext=-1;
+    for(let k=0;k<3;k++){
+      let lo=Infinity, hi=-Infinity;
+      for(let i=start;i<start+count;i++){ const v=cen[order[i]*3+k]; if(v<lo)lo=v; if(v>hi)hi=v; }
+      if(hi-lo>ext){ ext=hi-lo; axis=k; }
+    }
+    if(ext<1e-9) return ni;
+    const slice = Array.from(order.subarray(start,start+count));
+    slice.sort((x,y)=>cen[x*3+axis]-cen[y*3+axis]);
+    order.set(slice, start);
+    const mid = start + (count>>1);
+    node.count = 0;
+    node.left  = makeNode(start, mid-start);
+    node.right = makeNode(mid, start+count-mid);
+    return ni;
+  }
+  makeNode(0, nf);
+  S.bvh = {nodes, order};
+}
+function boxT(node, ox,oy,oz, ix,iy,iz){
+  let t0=-Infinity, t1=Infinity;
+  const o=[ox,oy,oz], inv=[ix,iy,iz];
+  for(let k=0;k<3;k++){
+    let a=(node.min[k]-o[k])*inv[k], b=(node.max[k]-o[k])*inv[k];
+    if(a>b){const t=a;a=b;b=t;}
+    if(a>t0)t0=a; if(b<t1)t1=b;
+    if(t0>t1) return -1;
+  }
+  return t1<0 ? -1 : Math.max(t0,0);
+}
+function triT(f, ox,oy,oz, dx,dy,dz, tMin, tMax){
+  const {pos, idx} = S;
+  const a=idx[f*3]*3, b=idx[f*3+1]*3, c=idx[f*3+2]*3;
+  const ax=pos[a],ay=pos[a+1],az=pos[a+2];
+  const e1x=pos[b]-ax, e1y=pos[b+1]-ay, e1z=pos[b+2]-az;
+  const e2x=pos[c]-ax, e2y=pos[c+1]-ay, e2z=pos[c+2]-az;
+  const px=dy*e2z-dz*e2y, py=dz*e2x-dx*e2z, pz=dx*e2y-dy*e2x;
+  const det=e1x*px+e1y*py+e1z*pz;
+  if(Math.abs(det)<1e-12) return -1;
+  const inv=1/det;
+  const sx=ox-ax, sy=oy-ay, sz=oz-az;
+  const u=(sx*px+sy*py+sz*pz)*inv;
+  if(u<-1e-6||u>1+1e-6) return -1;
+  const qx=sy*e1z-sz*e1y, qy=sz*e1x-sx*e1z, qz=sx*e1y-sy*e1x;
+  const v=(dx*qx+dy*qy+dz*qz)*inv;
+  if(v<-1e-6||u+v>1+1e-6) return -1;
+  const t=(e2x*qx+e2y*qy+e2z*qz)*inv;
+  return (t>tMin && t<tMax) ? t : -1;
+}
+const bvhStack = new Int32Array(256);
+function nearestHit(ox,oy,oz, dx,dy,dz, tMin){
+  const {nodes, order} = S.bvh;
+  const ix=1/dx, iy=1/dy, iz=1/dz;
+  let best=Infinity, sp=0;
+  bvhStack[sp++]=0;
+  while(sp>0){
+    const node = nodes[bvhStack[--sp]];
+    const tb = boxT(node, ox,oy,oz, ix,iy,iz);
+    if(tb<0 || tb>=best) continue;
+    if(node.left<0){
+      for(let i=node.start; i<node.start+node.count; i++){
+        const t = triT(order[i], ox,oy,oz, dx,dy,dz, tMin, best);
+        if(t>0 && t<best) best=t;
+      }
+    } else {
+      bvhStack[sp++]=node.left; bvhStack[sp++]=node.right;
+    }
+  }
+  return best;
+}
+
+/* ============================================================
+   Kalınlık analizi (parçalı, ilerleme çubuklu)
+============================================================ */
+let analyzing=false;
+function analyze(){
+  if(!S.geom || analyzing) return;
+  analyzing = true;
+  setButtons();
+  const {pos, idx, nf, fnorm} = S;
+  const thickF = new Float32Array(nf); thickF.fill(Infinity);
+  const eps = Math.max(1e-4, S.diag*2e-6);
+  const useCone = $("pCone").checked;
+  const tilt = 25*Math.PI/180, ct=Math.cos(tilt), st=Math.sin(tilt);
+  let missed=0, f=0;
+  const CHUNK = useCone? 1500 : 4000;
+  $("progressWrap").style.display="block";
+  const t0 = performance.now();
+
+  function step(){
+    const end = Math.min(f+CHUNK, nf);
+    for(; f<end; f++){
+      const a=idx[f*3]*3, b=idx[f*3+1]*3, c=idx[f*3+2]*3;
+      const cx=(pos[a]+pos[b]+pos[c])/3, cy=(pos[a+1]+pos[b+1]+pos[c+1])/3, cz=(pos[a+2]+pos[b+2]+pos[c+2])/3;
+      const nx=fnorm[f*3], ny=fnorm[f*3+1], nz=fnorm[f*3+2];
+      if(nx===0&&ny===0&&nz===0){ continue; }
+      const dx=-nx, dy=-ny, dz=-nz;
+      const ox=cx+dx*eps, oy=cy+dy*eps, oz=cz+dz*eps;
+      let best = nearestHit(ox,oy,oz, dx,dy,dz, eps);
+      if(useCone){
+        // d etrafında ortonormal taban
+        let ux,uy,uz;
+        if(Math.abs(dx)<0.9){ ux=0; uy=-dz; uz=dy; } else { ux=-dz; uy=0; uz=dx; }
+        let l=Math.hypot(ux,uy,uz); ux/=l; uy/=l; uz/=l;
+        const wx=dy*uz-dz*uy, wy=dz*ux-dx*uz, wz=dx*uy-dy*ux;
+        for(let k=0;k<4;k++){
+          const ph=k*Math.PI/2, cph=Math.cos(ph), sph=Math.sin(ph);
+          const rx=dx*ct+(ux*cph+wx*sph)*st;
+          const ry=dy*ct+(uy*cph+wy*sph)*st;
+          const rz=dz*ct+(uz*cph+wz*sph)*st;
+          const t = nearestHit(cx+rx*eps, cy+ry*eps, cz+rz*eps, rx,ry,rz, eps);
+          if(isFinite(t)) best = Math.min(best, t*ct);
+        }
+      }
+      if(isFinite(best)) thickF[f] = best + eps;
+      else missed++;
+    }
+    $("progressBar").style.width = (100*f/nf).toFixed(1)+"%";
+    if(f<nf){ setTimeout(step, 0); return; }
+    // köşe kalınlıkları
+    const thickV = new Float32Array(S.nv); thickV.fill(Infinity);
+    for(let g=0; g<nf; g++){
+      const t = thickF[g];
+      for(let k=0;k<3;k++){
+        const vi = idx[g*3+k];
+        if(t<thickV[vi]) thickV[vi]=t;
+      }
+    }
+    S.thickF=thickF; S.thickV=thickV; S.missed=missed; S.analyzed=true;
+    analyzing=false;
+    $("progressWrap").style.display="none";
+    $("status").textContent = "Analiz "+((performance.now()-t0)/1000).toFixed(1)+" sn sürdü.";
+    colorize(); showStats(); setButtons();
+  }
+  $("status").textContent = "Analiz ediliyor…";
+  setTimeout(step, 10);
+}
+
+/* ============================================================
+   Renklendirme + istatistik
+============================================================ */
+const C_CRIT=null; // renkler artık TH tema paletinden gelir
+function thresholds(){
+  return { tMin:+$("pTMin").value, tRec:+$("pTRec").value };
+}
+function colorize(){
+  if(!S.analyzed) return;
+  const {tMin,tRec} = thresholds();
+  const col = S.geom.attributes.color.array;
+  for(let v=0; v<S.nv; v++){
+    const t = S.thickV[v];
+    let c;
+    if(!isFinite(t)) c=TH.na;
+    else if(t<tMin) c=TH.crit;
+    else if(t<tRec) c=TH.warn;
+    else c=TH.ok;
+    col[v*3]=c[0]; col[v*3+1]=c[1]; col[v*3+2]=c[2];
+  }
+  S.geom.attributes.color.needsUpdate = true;
+  $("legend").style.display="block";
+  $("lgCrit").textContent = "< "+fmt(tMin)+" mm — basılamaz";
+  $("lgWarn").textContent = "< "+fmt(tRec)+" mm — riskli / tek hat";
+}
+function showStats(){
+  const {tMin,tRec} = thresholds();
+  let aCrit=0, aWarn=0, aOk=0, minT=Infinity;
+  for(let f=0; f<S.nf; f++){
+    const t=S.thickF[f], ar=S.farea[f];
+    if(!isFinite(t)) continue;
+    if(t<minT) minT=t;
+    if(t<tMin) aCrit+=ar; else if(t<tRec) aWarn+=ar; else aOk+=ar;
+  }
+  const A = S.totalArea||1;
+  $("sCrit").textContent = (100*aCrit/A).toFixed(1)+" %";
+  $("sWarn").textContent = (100*aWarn/A).toFixed(1)+" %";
+  $("sOk").textContent   = (100*aOk/A).toFixed(1)+" %";
+  $("sMin").textContent  = isFinite(minT)? fmt(minT)+" mm" : "—";
+  const missPct = 100*S.missed/S.nf;
+  $("sMiss").textContent = missPct.toFixed(1)+" %";
+  $("openWarn").style.display = missPct>2 ? "block":"none";
+}
+
+/* ============================================================
+   Revizyon: normal yönünde lokal ofset + Laplasyen yumuşatma
+============================================================ */
+function repair(){
+  if(!S.analyzed) return;
+  const {tMin,tRec} = thresholds();
+  const target = $("rTarget").value==="rec" ? tRec : tMin;
+  const sign = +$("rDir").value;
+  const maxOff = +$("rMaxOff").value;
+  const iters = Math.max(0, Math.min(30, Math.round(+$("rSmooth").value)));
+  const nv=S.nv, pos=S.pos, vn=S.vnorm, adj=S.adj;
+
+  let off = new Float32Array(nv);
+  let touched=0;
+  for(let v=0; v<nv; v++){
+    const t = S.thickV[v];
+    if(isFinite(t) && t<target){
+      off[v] = Math.min((target-t)/2, maxOff);
+      touched++;
+    }
+  }
+  if(touched===0){ $("status").textContent="Eşik altında bölge yok — revizyona gerek kalmadı."; return; }
+  let tmp = new Float32Array(nv);
+  for(let it=0; it<iters; it++){
+    for(let v=0; v<nv; v++){
+      const nb = adj[v];
+      if(nb.length===0){ tmp[v]=off[v]; continue; }
+      let s=0; for(let k=0;k<nb.length;k++) s+=off[nb[k]];
+      tmp[v] = 0.5*off[v] + 0.5*(s/nb.length);
+    }
+    const sw=off; off=tmp; tmp=sw;
+  }
+  for(let v=0; v<nv; v++){
+    if(off[v]<=0) continue;
+    pos[v*3]   += vn[v*3]  *off[v]*sign;
+    pos[v*3+1] += vn[v*3+1]*off[v]*sign;
+    pos[v*3+2] += vn[v*3+2]*off[v]*sign;
+  }
+  S.geom.attributes.position.needsUpdate = true;
+  computeNormals(); buildBVH();
+  S.geom.computeVertexNormals();
+  if(S.scan) drawDefects(S.scan.bEdges, S.scan.nmEdges);
+  $("status").textContent = touched+" köşe revize edildi, yeniden analiz ediliyor…";
+  analyze();
+}
+function resetModel(){
+  if(!S.posOrig) return;
+  S.pos = new Float32Array(S.posOrig);
+  S.idx = new Uint32Array(S.idxOrig);
+  S.nv = S.pos.length/3; S.nf = S.idx.length/3;
+  recompute(); buildAdjacency(); buildBVH();
+  refreshGeometry();
+  S.analyzed=false; S.thickF=null; S.thickV=null;
+  clearDefects();
+  ["sCrit","sWarn","sOk","sMin","sMiss"].forEach(id=>$(id).textContent="—");
+  $("legend").style.display="none";
+  $("status").textContent="Orijinal geometriye dönüldü.";
+  setButtons();
+}
+
+/* ============================================================
+   STL dışa aktarma (binary)
+============================================================ */
+function exportSTL(){
+  const {pos, idx, nf, fnorm} = S;
+  const buf = new ArrayBuffer(84 + nf*50);
+  const dv = new DataView(buf);
+  const head = "3D Print Model Kontrol - revize STL";
+  for(let i=0;i<head.length;i++) dv.setUint8(i, head.charCodeAt(i));
+  dv.setUint32(80, nf, true);
+  let o=84;
+  for(let f=0; f<nf; f++){
+    dv.setFloat32(o, fnorm[f*3], true);   dv.setFloat32(o+4, fnorm[f*3+1], true); dv.setFloat32(o+8, fnorm[f*3+2], true); o+=12;
+    for(let k=0;k<3;k++){
+      const vi = idx[f*3+k]*3;
+      dv.setFloat32(o, pos[vi], true); dv.setFloat32(o+4, pos[vi+1], true); dv.setFloat32(o+8, pos[vi+2], true); o+=12;
+    }
+    dv.setUint16(o, 0, true); o+=2;
+  }
+  const blob = new Blob([buf], {type:"application/octet-stream"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = S.name.replace(/\.stl$/i,"") + "_revize.stl";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+}
+
+/* ============================================================
+   Örgü sağlığı: tarama, kusur işaretleme, onarım
+============================================================ */
+let defectGroup = null;
+function epsArea(){ return Math.max(1e-12, Math.pow(S.diag*1e-6, 2)); }
+function recompute(){ S.fnorm=null; S.farea=null; S.vnorm=null; computeNormals(); }
+
+function clearDefects(){
+  if(defectGroup){
+    scene.remove(defectGroup);
+    defectGroup.children.forEach(o=>{o.geometry.dispose(); o.material.dispose();});
+    defectGroup=null;
+  }
+  S.scan=null;
+  ["mBound","mNM","mMis","mDeg","mDup","mComp","mState"].forEach(id=>{ $(id).textContent="—"; });
+  $("mState").className="v";
+  $("btnFix").disabled=true;
+}
+function buildEdgeMap(){
+  const m = new Map(); const {idx,nf}=S; const N=S.nv;
+  for(let f=0; f<nf; f++){
+    for(let k=0;k<3;k++){
+      const a=idx[f*3+k], b=idx[f*3+(k+1)%3];
+      const u=Math.min(a,b), v=Math.max(a,b);
+      const key=u*N+v;
+      let e=m.get(key);
+      if(!e){ e={u,v,f:[],d:[]}; m.set(key,e); }
+      e.f.push(f); e.d.push(a===u?1:-1);
+    }
+  }
+  return m;
+}
+function traceLoops(bEdges){
+  const vmap=new Map();
+  bEdges.forEach((e,i)=>{ [e.u,e.v].forEach(v=>{ let l=vmap.get(v); if(!l){l=[];vmap.set(v,l);} l.push(i); }); });
+  const used=new Uint8Array(bEdges.length); const loops=[];
+  for(let i=0;i<bEdges.length;i++){
+    if(used[i]) continue;
+    const startV=bEdges[i].u;
+    const verts=[]; let cur=startV, ei=i, guard=0;
+    while(ei>=0 && !used[ei] && guard++<bEdges.length+2){
+      used[ei]=1;
+      const e=bEdges[ei];
+      verts.push(cur);
+      cur = (e.u===cur)? e.v : e.u;
+      const cand=(vmap.get(cur)||[]).filter(j=>!used[j]);
+      ei = cand.length? cand[0] : -1;
+    }
+    loops.push({verts, closed: cur===startV});
+  }
+  return loops;
+}
+function components(em){
+  const {nf,farea}=S;
+  const adjF = Array.from({length:nf},()=>[]);
+  for(const e of em.values()){
+    const fs=e.f;
+    for(let i=0;i<fs.length;i++)
+      for(let j=i+1;j<fs.length;j++){ adjF[fs[i]].push(fs[j]); adjF[fs[j]].push(fs[i]); }
+  }
+  const compId=new Int32Array(nf).fill(-1);
+  const queue=new Int32Array(nf); const areas=[];
+  let count=0;
+  for(let s=0;s<nf;s++){
+    if(compId[s]>=0) continue;
+    let head=0, tail=0; queue[tail++]=s; compId[s]=count; let ar=0;
+    while(head<tail){
+      const f=queue[head++]; ar+=farea[f];
+      for(const g of adjF[f]) if(compId[g]<0){ compId[g]=count; queue[tail++]=g; }
+    }
+    areas.push(ar); count++;
+  }
+  const pct=Math.max(0,+$("fCrumbPct").value)/100;
+  const total=S.totalArea||1;
+  const crumbs=[];
+  if(count>1) for(let c=0;c<count;c++) if(areas[c]<total*pct) crumbs.push(c);
+  return {count, areas, compId, crumbs};
+}
+function drawDefects(bEdges, nmEdges){
+  if(defectGroup){
+    scene.remove(defectGroup);
+    defectGroup.children.forEach(o=>{o.geometry.dispose(); o.material.dispose();});
+  }
+  defectGroup=new THREE.Group();
+  function lines(edges, color){
+    if(!edges.length) return;
+    const p=new Float32Array(edges.length*6);
+    edges.forEach((e,i)=>{
+      const a=e.u*3, b=e.v*3;
+      p[i*6]=S.pos[a];   p[i*6+1]=S.pos[a+1]; p[i*6+2]=S.pos[a+2];
+      p[i*6+3]=S.pos[b]; p[i*6+4]=S.pos[b+1]; p[i*6+5]=S.pos[b+2];
+    });
+    const g=new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(p,3));
+    const l=new THREE.LineSegments(g, new THREE.LineBasicMaterial({color, depthTest:false, transparent:true, opacity:0.95}));
+    l.renderOrder=10;
+    defectGroup.add(l);
+  }
+  lines(bEdges, TH.lineCrit);
+  lines(nmEdges, TH.lineNM);
+  defectGroup.visible = $("vDefects").checked;
+  scene.add(defectGroup);
+}
+function scanMesh(auto){
+  if(!S.geom) return;
+  recompute();
+  const em = buildEdgeMap();
+  const {idx,nf,farea}=S; const eA=epsArea();
+  let deg=0, dup=0;
+  const dupMap=new Map();
+  for(let f=0; f<nf; f++){
+    const a=idx[f*3], b=idx[f*3+1], c=idx[f*3+2];
+    if(a===b||b===c||a===c||farea[f]<eA) deg++;
+    const s=[a,b,c].sort((x,y)=>x-y);
+    const k=s[0]+"_"+s[1]+"_"+s[2];
+    if(dupMap.has(k)) dup++; else dupMap.set(k,1);
+  }
+  const bEdges=[], nmEdges=[]; let mis=0;
+  for(const e of em.values()){
+    if(e.f.length===1) bEdges.push(e);
+    else if(e.f.length>2) nmEdges.push(e);
+    else if(e.d[0]===e.d[1]) mis++;
+  }
+  const loops = traceLoops(bEdges);
+  const comp = components(em);
+  S.scan = {bEdges, nmEdges, mis, deg, dup, loops, compCount:comp.count, crumbCount:comp.crumbs.length};
+  $("mBound").textContent = bEdges.length + (loops.length? " ("+loops.length+" halka)":"");
+  $("mNM").textContent = nmEdges.length;
+  $("mMis").textContent = mis;
+  $("mDeg").textContent = deg;
+  $("mDup").textContent = dup;
+  $("mComp").textContent = comp.count + (comp.crumbs.length? " ("+comp.crumbs.length+" kırıntı)":"");
+  const ok = bEdges.length===0 && nmEdges.length===0 && mis===0 && deg===0;
+  $("mState").textContent = ok? "SU GEÇİRMEZ" : "SORUNLU";
+  $("mState").className = "v "+(ok?"ok":"warn");
+  drawDefects(bEdges, nmEdges);
+  $("btnFix").disabled = false;
+  if(!auto) $("status").textContent = "Örgü tarandı.";
+}
+function applyKeep(keep){
+  let n=0; for(let f=0;f<S.nf;f++) if(keep[f]) n++;
+  const ni=new Uint32Array(n*3); let o=0;
+  for(let f=0;f<S.nf;f++) if(keep[f]){ ni[o++]=S.idx[f*3]; ni[o++]=S.idx[f*3+1]; ni[o++]=S.idx[f*3+2]; }
+  S.idx=ni; S.nf=n;
+}
+function fixMesh(){
+  if(!S.geom) return;
+  const msgs=[];
+  // 1) dejenere + çift yüz temizliği
+  if($("fClean").checked){
+    recompute();
+    const {idx,nf,farea}=S; const eA=epsArea();
+    const keep=new Uint8Array(nf).fill(1);
+    const dupMap=new Map(); let rDeg=0, rDup=0;
+    for(let f=0;f<nf;f++){
+      const a=idx[f*3], b=idx[f*3+1], c=idx[f*3+2];
+      if(a===b||b===c||a===c||farea[f]<eA){ keep[f]=0; rDeg++; continue; }
+      const s=[a,b,c].sort((x,y)=>x-y);
+      const k=s[0]+"_"+s[1]+"_"+s[2];
+      if(dupMap.has(k)){ keep[f]=0; rDup++; } else dupMap.set(k,1);
+    }
+    if(rDeg+rDup>0){ applyKeep(keep); msgs.push(rDeg+" dejenere, "+rDup+" çift yüz silindi"); }
+  }
+  // 2) normal birleştirme + dışa çevirme
+  if($("fOrient").checked){
+    recompute();
+    const em=buildEdgeMap();
+    const {idx,nf}=S;
+    const adjF=Array.from({length:nf},()=>[]);
+    for(const e of em.values()){
+      if(e.f.length===2){
+        const par=(e.d[0]===e.d[1])?1:0;
+        adjF[e.f[0]].push([e.f[1],par]);
+        adjF[e.f[1]].push([e.f[0],par]);
+      }
+    }
+    const flip=new Int8Array(nf).fill(-1); const stack=[]; let flips=0;
+    for(let s=0;s<nf;s++){
+      if(flip[s]>=0) continue;
+      flip[s]=0; stack.push(s);
+      while(stack.length){
+        const f=stack.pop();
+        for(const [g,par] of adjF[f]){
+          if(flip[g]<0){ flip[g]=flip[f]^par; stack.push(g); }
+        }
+      }
+    }
+    for(let f=0;f<nf;f++) if(flip[f]===1){ const t=idx[f*3+1]; idx[f*3+1]=idx[f*3+2]; idx[f*3+2]=t; flips++; }
+    // kapalı bileşenlerde işaretli hacim ile dışa dönüklük
+    recompute();
+    const em2=buildEdgeMap();
+    const comp=components(em2);
+    const hasBoundary=new Uint8Array(comp.count);
+    for(const e of em2.values()) if(e.f.length===1) hasBoundary[comp.compId[e.f[0]]]=1;
+    const vol=new Float64Array(comp.count);
+    const {pos}=S;
+    for(let f=0;f<S.nf;f++){
+      const a=idx[f*3]*3, b=idx[f*3+1]*3, c=idx[f*3+2]*3;
+      vol[comp.compId[f]] += ( pos[a]  *(pos[b+1]*pos[c+2]-pos[b+2]*pos[c+1])
+                             - pos[a+1]*(pos[b]  *pos[c+2]-pos[b+2]*pos[c])
+                             + pos[a+2]*(pos[b]  *pos[c+1]-pos[b+1]*pos[c]) )/6;
+    }
+    let vf=0;
+    for(let f=0;f<S.nf;f++){
+      const cId=comp.compId[f];
+      if(!hasBoundary[cId] && vol[cId]<0){ const t=idx[f*3+1]; idx[f*3+1]=idx[f*3+2]; idx[f*3+2]=t; vf++; }
+    }
+    if(flips+vf>0) msgs.push((flips+vf)+" yüzün yönü düzeltildi");
+  }
+  // 3) kırıntı parçalar
+  if($("fCrumbs").checked){
+    recompute();
+    const comp=components(buildEdgeMap());
+    if(comp.crumbs.length){
+      const crumbSet=new Set(comp.crumbs);
+      const keep=new Uint8Array(S.nf); let r=0;
+      for(let f=0;f<S.nf;f++){
+        if(crumbSet.has(comp.compId[f])){ keep[f]=0; r++; } else keep[f]=1;
+      }
+      applyKeep(keep);
+      msgs.push(comp.crumbs.length+" kırıntı parça ("+r+" yüz) silindi");
+    }
+  }
+  // 4) küçük delik kapatma (merkez fan)
+  if($("fHoles").checked){
+    recompute();
+    const em=buildEdgeMap();
+    const N=S.nv;
+    const bEdges=[...em.values()].filter(e=>e.f.length===1);
+    const loops=traceLoops(bEdges);
+    const maxN=Math.max(3, Math.round(+$("fHoleMax").value));
+    let filled=0; const newV=[], newF=[];
+    for(const L of loops){
+      const n=L.verts.length;
+      if(!L.closed || n<3 || n>maxN) continue;
+      let cx=0,cy=0,cz=0;
+      for(const v of L.verts){ cx+=S.pos[v*3]; cy+=S.pos[v*3+1]; cz+=S.pos[v*3+2]; }
+      cx/=n; cy/=n; cz/=n;
+      const cIdx=S.nv + newV.length/3;
+      newV.push(cx,cy,cz);
+      for(let i=0;i<n;i++){
+        const a=L.verts[i], b=L.verts[(i+1)%n];
+        const e=em.get(Math.min(a,b)*N+Math.max(a,b));
+        if(!e || e.f.length!==1) continue;
+        const start = e.d[0]===1? e.u : e.v;   // mevcut yüzün kat ettiği yön
+        const end   = e.d[0]===1? e.v : e.u;
+        newF.push(end, start, cIdx);            // komşuyla tutarlı sarım
+      }
+      filled++;
+    }
+    if(filled){
+      const np=new Float32Array(S.pos.length+newV.length);
+      np.set(S.pos); np.set(newV, S.pos.length);
+      S.pos=np; S.nv=np.length/3;
+      const ni=new Uint32Array(S.idx.length+newF.length);
+      ni.set(S.idx); ni.set(newF, S.idx.length);
+      S.idx=ni; S.nf=ni.length/3;
+      msgs.push(filled+" delik kapatıldı");
+    }
+  }
+  // yeniden kur + yeniden tara
+  recompute(); buildAdjacency(); buildBVH();
+  refreshGeometry();
+  S.analyzed=false; S.thickF=null; S.thickV=null;
+  ["sCrit","sWarn","sOk","sMin","sMiss"].forEach(id=>$(id).textContent="—");
+  $("legend").style.display="none";
+  scanMesh(true);
+  $("status").textContent = msgs.length? "Onarım: "+msgs.join(", ")+"." : "Onarım gerektiren kusur bulunamadı.";
+  setButtons();
+}
+
+/* ============================================================
+   Model kurulum
+============================================================ */
+function refreshGeometry(){
+  if(S.mesh){ scene.remove(S.mesh); S.geom.dispose(); S.mesh.material.dispose(); }
+  if(S.wire){ scene.remove(S.wire); S.wire.geometry.dispose(); S.wire.material.dispose(); S.wire=null; }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute("position", new THREE.BufferAttribute(S.pos, 3));
+  geom.setIndex(new THREE.BufferAttribute(S.idx, 1));
+  const col = new Float32Array(S.nv*3);
+  const b = TH.base;
+  for(let v=0;v<S.nv;v++){ col[v*3]=b[0]; col[v*3+1]=b[1]; col[v*3+2]=b[2]; }
+  geom.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  geom.computeVertexNormals();
+  geom.computeBoundingBox();
+  const mat = new THREE.MeshPhongMaterial({vertexColors:true, shininess:14, side:THREE.DoubleSide, flatShading: !$("vSmooth").checked});
+  S.mesh = new THREE.Mesh(geom, mat);
+  scene.add(S.mesh);
+  S.geom = geom;
+  if($("vWire").checked){
+    const wg = new THREE.WireframeGeometry(geom);
+    S.wire = new THREE.LineSegments(wg, new THREE.LineBasicMaterial({color:TH.wire, transparent:true, opacity:TH.wireOp}));
+    scene.add(S.wire);
+  }
+  return geom;
+}
+function setModel(raw, name){
+  const {pos, idx} = weld(raw);
+  S.pos = pos; S.idx = idx;
+  S.nv = pos.length/3; S.nf = idx.length/3;
+  S.posOrig = new Float32Array(pos);
+  S.idxOrig = new Uint32Array(idx);
+  S.fnorm=null; S.farea=null; S.vnorm=null;
+  S.thickF=null; S.thickV=null; S.analyzed=false; S.name=name||"model";
+  computeNormals(); buildAdjacency(); buildBVH();
+
+  const geom = refreshGeometry();
+  const bb = geom.boundingBox;
+  const size = new THREE.Vector3(); bb.getSize(size);
+  const center = new THREE.Vector3(); bb.getCenter(center);
+  S.diag = size.length()||1;
+
+  if(grid){ scene.remove(grid); }
+  const gsize = Math.pow(10, Math.ceil(Math.log10(Math.max(size.x,size.z)*1.6||10)));
+  grid = new THREE.GridHelper(gsize, 20, TH.grid1, TH.grid2);
+  grid.userData.size = gsize;
+  grid.position.y = bb.min.y;
+  grid.visible = $("vGrid").checked;
+  scene.add(grid);
+
+  orbit.target.copy(center);
+  orbit.r = S.diag*1.7; orbit.theta=0.9; orbit.phi=1.05;
+  applyCam();
+
+  clearDefects();
+  $("drop").style.display="none";
+  $("legend").style.display="none";
+  ["sCrit","sWarn","sOk","sMin","sMiss"].forEach(id=>$(id).textContent="—");
+  $("modelInfo").innerHTML =
+    "<span style='font-family:var(--mono);color:var(--ink)'>"+S.name+"</span><br>"+
+    S.nf.toLocaleString("tr")+" üçgen · "+S.nv.toLocaleString("tr")+" köşe · "+
+    fmt(size.x,1)+" × "+fmt(size.y,1)+" × "+fmt(size.z,1)+" mm";
+  $("status").textContent = S.nf>250000 ? "Uyarı: model büyük, analiz yavaş olabilir." : "";
+  setButtons();
+}
+
+/* ============================================================
+   Örnek model: taban + değişken kalınlıkta kanatlar
+============================================================ */
+function sampleModel(){
+  const tris = [];
+  function box(cx,cy,cz, sx,sy,sz){
+    const x0=cx-sx/2,x1=cx+sx/2, y0=cy-sy/2,y1=cy+sy/2, z0=cz-sz/2,z1=cz+sz/2;
+    const q=(a,b,c,d)=>{ tris.push(...a,...b,...c, ...a,...c,...d); };
+    q([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]); // +z
+    q([x1,y0,z0],[x0,y0,z0],[x0,y1,z0],[x1,y1,z0]); // -z
+    q([x1,y0,z1],[x1,y0,z0],[x1,y1,z0],[x1,y1,z1]); // +x
+    q([x0,y0,z0],[x0,y0,z1],[x0,y1,z1],[x0,y1,z0]); // -x
+    q([x0,y1,z1],[x1,y1,z1],[x1,y1,z0],[x0,y1,z0]); // +y
+    q([x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]); // -y
+  }
+  box(0, 1.5, 0, 46, 3, 26);                       // taban plakası
+  const th = [0.3, 0.5, 0.8, 1.2, 2.0];            // kanat kalınlıkları
+  const xs = [-16, -8, 0, 8, 16];
+  for(let i=0;i<5;i++) box(xs[i], 3+7, 0, th[i], 14, 18);  // dikey kanatlar
+  box(0, 3+14+0.2, 0, 40, 0.4, 6);                 // üstte ince yatay köprü levha
+  box(28, 8, 14, 0.8, 0.8, 0.8);                   // kasıtlı kırıntı parça
+  // kasıtlı kusurlar: köprünün üst yüzünden bir üçgen sil (delik) + tabanda bir yüzü ters çevir
+  const raw = new Float32Array(tris);
+  const cut = 80*9;                                 // köprü üst yüzünün ilk üçgeni
+  const raw2 = new Float32Array(raw.length-9);
+  raw2.set(raw.subarray(0,cut)); raw2.set(raw.subarray(cut+9), cut);
+  for(let k=0;k<3;k++){ const t=raw2[3+k]; raw2[3+k]=raw2[6+k]; raw2[6+k]=t; } // ilk üçgeni ters çevir
+  setModel(raw2, "ornek_kanat_testi.stl");
+  $("status").textContent = "Örnek: 0.3–2.0 mm kanatlar + kasıtlı kusurlar (delik, ters yüz, kırıntı). Önce ÖRGÜYÜ TARA.";
+}
+
+/* ============================================================
+   UI bağlama
+============================================================ */
+function autoThresholds(){
+  if(!$("pAuto").checked) return;
+  const w = +$("pWidth").value, m = +$("pMat").value;
+  $("pTMin").value = (w*m).toFixed(2);
+  $("pTRec").value = (2*w*m).toFixed(2);
+  if(S.analyzed){ colorize(); showStats(); }
+}
+function updateSubtitle(){
+  const n = +$("pNozzle").value;
+  $("subTitle").textContent = "FDM et kalınlığı analizi ve lokal revizyon — " + (isFinite(n)&&n>0 ? n.toFixed(2) : "?") + " mm nozzle";
+}
+$("pNozzle").addEventListener("input", updateSubtitle);
+$("pNozzle").addEventListener("change", ()=>{
+  $("pWidth").value = (+$("pNozzle").value*1.05).toFixed(2);
+  autoThresholds();
+  updateSubtitle();
+});
+$("pWidth").addEventListener("change", autoThresholds);
+$("pMat").addEventListener("change", autoThresholds);
+$("pAuto").addEventListener("change", autoThresholds);
+$("pTMin").addEventListener("change", ()=>{ $("pAuto").checked=false; if(S.analyzed){colorize();showStats();} });
+$("pTRec").addEventListener("change", ()=>{ $("pAuto").checked=false; if(S.analyzed){colorize();showStats();} });
+
+$("btnLoad").addEventListener("click", ()=>$("fileInput").click());
+$("fileInput").addEventListener("change", e=>{
+  const f = e.target.files[0]; if(!f) return;
+  f.arrayBuffer().then(buf=>{
+    try{ setModel(parseSTL(buf), f.name); }
+    catch(err){ $("status").textContent = "Hata: "+err.message; }
+  });
+  e.target.value="";
+});
+$("btnSample").addEventListener("click", sampleModel);
+$("btnScan").addEventListener("click", ()=>{ $("status").textContent="Örgü taranıyor…"; setTimeout(()=>scanMesh(false), 10); });
+$("btnFix").addEventListener("click", ()=>{ $("status").textContent="Onarılıyor…"; setTimeout(fixMesh, 10); });
+$("vDefects").addEventListener("change", e=>{ if(defectGroup) defectGroup.visible=e.target.checked; });
+$("btnAnalyze").addEventListener("click", analyze);
+$("btnRepair").addEventListener("click", repair);
+$("btnReset").addEventListener("click", resetModel);
+$("btnExport").addEventListener("click", exportSTL);
+$("vWire").addEventListener("change", e=>{
+  if(e.target.checked && S.geom){
+    if(!S.wire){
+      const wg = new THREE.WireframeGeometry(S.geom);
+      S.wire = new THREE.LineSegments(wg, new THREE.LineBasicMaterial({color:TH.wire, transparent:true, opacity:TH.wireOp}));
+      scene.add(S.wire);
+    }
+    S.wire.visible = true;
+  } else if(S.wire) S.wire.visible = false;
+});
+$("vGrid").addEventListener("change", e=>{ if(grid) grid.visible = e.target.checked; });
+function applyTheme(name){
+  TH.cur = name;
+  document.body.classList.toggle("light", name==="light");
+  $("btnTheme").textContent = name==="light" ? "☾" : "☀";
+  $("btnTheme").title = name==="light" ? "Koyu temaya geç" : "Açık temaya geç";
+  scene.background = new THREE.Color(TH.bg);
+  hemi.color = new THREE.Color(TH.hemiSky);
+  hemi.groundColor = new THREE.Color(TH.hemiGround);
+  if(grid){
+    const gy = grid.position.y;
+    const size = grid.userData.size || 100;
+    scene.remove(grid);
+    grid = new THREE.GridHelper(size, 20, TH.grid1, TH.grid2);
+    grid.userData.size = size;
+    grid.position.y = gy;
+    grid.visible = $("vGrid").checked;
+    scene.add(grid);
+  }
+  if(S.wire){ S.wire.material.color = new THREE.Color(TH.wire); S.wire.material.opacity = TH.wireOp; }
+  if(S.geom){
+    if(S.analyzed) colorize();
+    else{
+      const col=S.geom.attributes.color.array, b=TH.base;
+      for(let v=0;v<S.nv;v++){ col[v*3]=b[0]; col[v*3+1]=b[1]; col[v*3+2]=b[2]; }
+      S.geom.attributes.color.needsUpdate=true;
+    }
+  }
+  if(S.scan) drawDefects(S.scan.bEdges, S.scan.nmEdges);
+}
+$("btnTheme").addEventListener("click", ()=> applyTheme(TH.cur==="light" ? "dark" : "light"));
+$("btnHelp").addEventListener("click", ()=>$("helpModal").classList.add("open"));
+$("helpClose").addEventListener("click", ()=>$("helpModal").classList.remove("open"));
+$("helpModal").addEventListener("click", e=>{ if(e.target.id==="helpModal") $("helpModal").classList.remove("open"); });
+addEventListener("keydown", e=>{ if(e.key==="Escape") $("helpModal").classList.remove("open"); });
+$("vSmooth").addEventListener("change", e=>{
+  if(S.mesh){ S.mesh.material.flatShading = !e.target.checked; S.mesh.material.needsUpdate = true; }
+});
+
+["dragenter","dragover"].forEach(ev=>vp.addEventListener(ev, e=>{e.preventDefault(); vp.classList.add("dragover");}));
+["dragleave","drop"].forEach(ev=>vp.addEventListener(ev, e=>{e.preventDefault(); vp.classList.remove("dragover");}));
+vp.addEventListener("drop", e=>{
+  const f = e.dataTransfer.files[0]; if(!f) return;
+  f.arrayBuffer().then(buf=>{
+    try{ setModel(parseSTL(buf), f.name); }
+    catch(err){ $("status").textContent = "Hata: "+err.message; }
+  });
+});
+
+function setButtons(){
+  const has = !!S.geom;
+  $("btnAnalyze").disabled = !has || analyzing;
+  $("btnRepair").disabled  = !S.analyzed || analyzing;
+  $("btnReset").disabled   = !has || analyzing;
+  $("btnExport").disabled  = !has || analyzing;
+  $("btnScan").disabled    = !has || analyzing;
+  $("btnFix").disabled     = !S.scan || analyzing;
+}
+setButtons();
+autoThresholds();
+updateSubtitle();
+applyTheme(matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+</script>
+</body>
+</html>

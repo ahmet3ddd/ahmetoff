@@ -38,3 +38,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          # Varsayilan 600000 ms (10 dk) yetmiyordu; 30 dakikaya cikarildi.
+          timeout: 1800000
+          reporting_interval: 15000
