@@ -73,7 +73,7 @@ Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle oluşturur.
 ### 3D Print Model Kontrol
 STL modellerde FDM et kalınlığını ışın tabanlı analizle ölçer; basılamaz (1 hattın altı) ve riskli (2 hattın altı) bölgeleri model üzerinde renklendirir. Eşikler nozzle çapı ve hat genişliğinden otomatik hesaplanır.
 
-Ayrıca **örgü sağlığı taraması** (açık kenar, non-manifold, yön uyumsuzluğu, dejenere/çift yüz, kırıntı parça), tek tuşla **onarım**, ince bölgeleri hedefe kalınlaştıran **yerel revizyon** ve **STL dışa aktarım** içerir. Dosya hiçbir yere gönderilmez — analiz tamamen tarayıcıda yapılır.
+Ayrıca **örgü sağlığı taraması** (açık kenar, non-manifold, yön uyumsuzluğu, dejenere/çift yüz, kırıntı parça), tek tuşla **onarım**, **ölçek ve birim düzeltme** (inç/cm/m → mm, ya da hedef boyuta göre otomatik çarpan), ince bölgeleri hedefe kalınlaştıran **yerel revizyon** ve **STL dışa aktarım** içerir. Dosya hiçbir yere gönderilmez — analiz tamamen tarayıcıda yapılır.
 
 <img src="assets/shot-3dprint.png" alt="3D Print Model Kontrol" width="100%" />
 

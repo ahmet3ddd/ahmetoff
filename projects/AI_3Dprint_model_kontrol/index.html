@@ -195,6 +195,15 @@ footer p{font-size:11px; color:var(--ink-faint); line-height:1.6}
   </section>
 
   <section>
+    <h2>Ölçek</h2>
+    <div class="row"><label>Çarpan</label><input type="number" id="scFactor" value="1.0" step="0.1" min="0.001"><span class="unit">×</span></div>
+    <div class="row"><label>Hedef en büyük boyut</label><input type="number" id="scTarget" step="1" min="0.1"><span class="unit">mm</span></div>
+    <div class="row"><label>Birim düzeltme</label><select id="scUnit"><option value="">—</option><option value="25.4">inç → mm</option><option value="10">cm → mm</option><option value="1000">m → mm</option></select></div>
+    <button id="btnScale" disabled>ÖLÇEĞİ UYGULA</button>
+    <div class="hint" id="scInfo">Toplam ölçek: ×1. Hedef boyut girilirse çarpanın yerine geçer; birim düzeltme anında uygulanır. Ölçek et kalınlığını da değiştirdiği için mevcut analiz otomatik güncellenir.</div>
+  </section>
+
+  <section>
     <h2>Örgü Sağlığı</h2>
     <button id="btnScan" disabled>ÖRGÜYÜ TARA</button>
     <div id="meshStats" class="kv">
@@ -290,7 +299,7 @@ footer p{font-size:11px; color:var(--ink-faint); line-height:1.6}
 
     <h2>Önerilen iş akışı</h2>
     <ol>
-      <li>STL dosyasını sürükleyip bırak veya <span class="k">STL YÜKLE</span> ile aç. Denemek için <span class="k">ÖRNEK MODEL</span> hazır kusurlarla birlikte gelir.</li>
+      <li>STL dosyasını sürükleyip bırak veya <span class="k">STL YÜKLE</span> ile aç. Denemek için <span class="k">ÖRNEK MODEL</span> hazır kusurlarla birlikte gelir. Birimi yanlış gelen modeli (inç, cm, m) <span class="k">ÖLÇEK</span> bölümünden düzeltebilir, hedef boyut vererek büyütüp küçültebilirsin — ölçek et kalınlığını da değiştirdiği için mevcut analiz otomatik güncellenir.</li>
       <li><span class="k">ÖRGÜYÜ TARA</span>: delikler, ters normaller, kırıntı parçalar gibi kusurlar raporlanır; gerekiyorsa <span class="k">ONAR</span>. Kusurlu örgüde kalınlık ölçümü güvenilmez — bu adım o yüzden önce gelir.</li>
       <li>Nozzle, hat genişliği ve malzemeyi gir. Eşikler otomatik türetilir: kritik = 1 hat, önerilen = 2 hat; PETG'de ×1.15 pay eklenir. <span class="k">ANALİZ ET</span> ile haritayı çıkar.</li>
       <li>Gerekirse <span class="k">REVİZE ET</span>: eşik altı bölgeler yüzey normali yönünde kalınlaştırılır, geçişler yumuşatılır ve model otomatik yeniden analiz edilir.</li>
@@ -319,7 +328,7 @@ const S = {
   posOrig:null, idxOrig:null,  // orijinal kopyalar
   vnorm:null, fnorm:null, farea:null,
   adj:null,                    // komşuluk: Array<Uint32Array>
-  bvh:null, scan:null,
+  bvh:null, scan:null, scaleTotal:1,
   thickF:null, thickV:null,    // yüz / köşe kalınlıkları
   analyzed:false, missed:0, totalArea:0,
   mesh:null, wire:null, geom:null,
@@ -1117,15 +1126,66 @@ function setModel(raw, name){
   applyCam();
 
   clearDefects();
+  S.scaleTotal=1;
+  $("scFactor").value="1.0"; $("scTarget").value=""; $("scUnit").value="";
+  $("scInfo").textContent="Toplam ölçek: ×1. Hedef boyut girilirse çarpanın yerine geçer; birim düzeltme anında uygulanır. Ölçek et kalınlığını da değiştirdiği için mevcut analiz otomatik güncellenir.";
   $("drop").style.display="none";
   $("legend").style.display="none";
   ["sCrit","sWarn","sOk","sMin","sMiss"].forEach(id=>$(id).textContent="—");
+  updateModelInfo();
+  $("status").textContent = S.nf>250000 ? "Uyarı: model büyük, analiz yavaş olabilir." : "";
+  setButtons();
+}
+
+function updateModelInfo(){
+  const bb=S.geom.boundingBox;
+  const size=new THREE.Vector3(); bb.getSize(size);
   $("modelInfo").innerHTML =
     "<span style='font-family:var(--mono);color:var(--ink)'>"+S.name+"</span><br>"+
     S.nf.toLocaleString("tr")+" üçgen · "+S.nv.toLocaleString("tr")+" köşe · "+
     fmt(size.x,1)+" × "+fmt(size.y,1)+" × "+fmt(size.z,1)+" mm";
-  $("status").textContent = S.nf>250000 ? "Uyarı: model büyük, analiz yavaş olabilir." : "";
-  setButtons();
+  return size;
+}
+function applyScale(f){
+  if(!S.geom) return;
+  if(!isFinite(f) || f<=1e-6 || f>=1e6){ $("status").textContent="Geçersiz ölçek çarpanı."; return; }
+  if(Math.abs(f-1)<1e-9){ $("status").textContent="Ölçek değişmedi (×1)."; return; }
+  for(let i=0;i<S.pos.length;i++) S.pos[i]*=f;
+  for(let i=0;i<S.posOrig.length;i++) S.posOrig[i]*=f;
+  S.diag*=f;
+  S.scaleTotal*=f;
+  computeNormals(); buildBVH();
+  S.geom.attributes.position.needsUpdate=true;
+  S.geom.computeVertexNormals();
+  S.geom.computeBoundingBox();
+  const bb=S.geom.boundingBox;
+  const size=new THREE.Vector3(); bb.getSize(size);
+  const center=new THREE.Vector3(); bb.getCenter(center);
+  if(grid){ scene.remove(grid); }
+  const gsize=Math.pow(10, Math.ceil(Math.log10(Math.max(size.x,size.z)*1.6||10)));
+  grid=new THREE.GridHelper(gsize, 20, TH.grid1, TH.grid2);
+  grid.userData.size=gsize;
+  grid.position.y=bb.min.y;
+  grid.visible=$("vGrid").checked;
+  scene.add(grid);
+  orbit.target.copy(center); orbit.r*=f; applyCam();
+  if(S.wire){ scene.remove(S.wire); S.wire.geometry.dispose(); S.wire.material.dispose(); S.wire=null; }
+  if($("vWire").checked){
+    const wg=new THREE.WireframeGeometry(S.geom);
+    S.wire=new THREE.LineSegments(wg, new THREE.LineBasicMaterial({color:TH.wire, transparent:true, opacity:TH.wireOp}));
+    scene.add(S.wire);
+  }
+  // üniform ölçekte kalınlık tam lineer ölçeklenir — analiz yeniden koşturulmadan güncellenir
+  if(S.analyzed){
+    for(let i=0;i<S.thickF.length;i++) S.thickF[i]*=f;
+    for(let i=0;i<S.thickV.length;i++) S.thickV[i]*=f;
+    colorize(); showStats();
+  }
+  if(S.scan) drawDefects(S.scan.bEdges, S.scan.nmEdges);
+  const sz=updateModelInfo();
+  const fS=(+f.toFixed(4)).toString(), tS=(+S.scaleTotal.toFixed(4)).toString();
+  $("scInfo").textContent="Toplam ölçek: ×"+tS+". Hedef boyut girilirse çarpanın yerine geçer; birim düzeltme anında uygulanır. Ölçek et kalınlığını da değiştirdiği için mevcut analiz otomatik güncellenir.";
+  $("status").textContent="Ölçek ×"+fS+" uygulandı — yeni boyut "+fmt(sz.x,1)+" × "+fmt(sz.y,1)+" × "+fmt(sz.z,1)+" mm.";
 }
 
 /* ============================================================
@@ -1195,6 +1255,24 @@ $("fileInput").addEventListener("change", e=>{
   e.target.value="";
 });
 $("btnSample").addEventListener("click", sampleModel);
+$("btnScale").addEventListener("click", ()=>{
+  if(!S.geom) return;
+  let f;
+  const tgt=+$("scTarget").value;
+  if(tgt>0){
+    const size=new THREE.Vector3(); S.geom.boundingBox.getSize(size);
+    const maxDim=Math.max(size.x,size.y,size.z)||1;
+    f=tgt/maxDim;
+    $("scFactor").value=(+f.toFixed(4)).toString();
+    $("scTarget").value="";
+  } else f=+$("scFactor").value;
+  applyScale(f);
+});
+$("scUnit").addEventListener("change", e=>{
+  const f=+e.target.value;
+  e.target.value="";
+  if(f>0 && S.geom) applyScale(f);
+});
 $("btnScan").addEventListener("click", ()=>{ $("status").textContent="Örgü taranıyor…"; setTimeout(()=>scanMesh(false), 10); });
 $("btnFix").addEventListener("click", ()=>{ $("status").textContent="Onarılıyor…"; setTimeout(fixMesh, 10); });
 $("vDefects").addEventListener("change", e=>{ if(defectGroup) defectGroup.visible=e.target.checked; });
@@ -1269,6 +1347,7 @@ function setButtons(){
   $("btnExport").disabled  = !has || analyzing;
   $("btnScan").disabled    = !has || analyzing;
   $("btnFix").disabled     = !S.scan || analyzing;
+  $("btnScale").disabled   = !has || analyzing;
 }
 setButtons();
 autoThresholds();
