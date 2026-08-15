@@ -1,14 +1,12 @@
 <p align="center">
-  <img src="assets/cover.png" alt="ahmetoff — Tarayıcıda çalışan araçlar ve uygulamalar" width="100%" />
+  <img src="assets/cover.png" alt="ahmetoff — Tarayıcıda çalışan açık kaynak araçlar" width="100%" />
 </p>
 
 <h1 align="center">ahmetoff</h1>
 
 <p align="center">
-  Tarayıcıda çalışan, kurulum gerektirmeyen açık kaynak projeler.<br/>
-  Geleneksel mimari geometriyi modelleyen <strong>parametrik tasarım araçları</strong>,
-  STL modelleri baskıya hazırlayan <strong>3D Print Model Kontrol</strong> ve
-  Osmanlı Türkçesini sıfırdan öğreten <strong>Elifbâ</strong> uygulaması.
+  Tarayıcıda çalışan açık kaynak araçlar.<br/>
+  Hiçbiri kurulum istemez, hiçbiri dosyanızı bir sunucuya göndermez.
 </p>
 
 <p align="center">
@@ -23,21 +21,24 @@
 
 ---
 
-## Tasarım Araçları
+## İçindekiler
 
-Geleneksel mimari geometriyi parametrelerle modelleyen araçlar. 2B plan ve 3B görünüm eş zamanlı çalışır; sonuç **DXF**, **STL** veya **PNG** olarak dışa aktarılır. Üçüncü taraf bağımlılık yalnızca [Three.js](https://threejs.org).
+| Bölüm | Projeler |
+|---|---|
+| **[Mimari Geometri](#mimari-geometri)** | Mukarnas 3D · Köşe Mukarnas · Püskül 3D · Kemerler 3D · Yedi-Sekiz |
+| **[Üretim ve Analiz](#üretim-ve-analiz)** | AI Light · 3D Print Model Kontrol |
+| **[Öğrenme](#öğrenme)** | Elifbâ — Osmanlıca Öğren |
 
-### Kemerler 3D
-Farklı kemer tiplerini (Tek Merkezli Teğet, Penci) parametrelerle 3B modeller.
+---
 
-<img src="assets/shot-kemer.png" alt="Kemerler 3D" width="100%" />
+## Mimari Geometri
 
-[▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_Kemer/) · [Kaynak](projects/AI_Kemer)
+Geleneksel mimari formları parametrelerle modelleyen araçlar. 2B plan ve 3B görünüm eş zamanlı çalışır; sonuç **DXF**, **STL** veya **PNG** olarak dışa aktarılır. 3B görselleştirme [Three.js](https://threejs.org) ile yapılır.
 
 ### Mukarnas 3D `v2`
-Mukarnas (sarkıt tavan süslemesi) tiplerini — Badem, Yaprak, Fitil, Kaz Ayağı — parametrik olarak 3B modeller. Çizim ve düzenleme modları.
+Mukarnas (sarkıt tavan süslemesi) hücrelerini — Badem, Yaprak, Fitil, Kaz Ayağı — parametrik olarak 3B modeller. Çizim ve düzenleme modları, plan üçgeni girişi, otomatik asaba hesabı.
 
-**v2'de yeni:** 7–8 ve 16–17 kenarlarına yay şeklinde **fillet** (yuvarlatma) uygulanabiliyor. Yay her iki uçta yan duvarlara yatırılıyor ve komşu yüzeyler yeniden örülüyor; boyut otomatik hesaplanabiliyor, segment sayısı yay çözünürlüğünü belirliyor (1 = pah). Fillet, A–F/BOY düzenlemelerinden sonra güncel geometriye göre yeniden hesaplanır, düzenlemeleri bozmaz.
+**v2'de yeni:** 7–8 ve 16–17 kenarlarına yay şeklinde **fillet** uygulanabiliyor; yay yan duvarlara yatırılıp komşu yüzeyler yeniden örülüyor. Boyut otomatik hesaplanır, segment sayısı yay çözünürlüğünü belirler.
 
 <img src="assets/shot-muk3d.png" alt="Mukarnas 3D v2" width="100%" />
 
@@ -46,21 +47,28 @@ Mukarnas (sarkıt tavan süslemesi) tiplerini — Badem, Yaprak, Fitil, Kaz Aya�
 <sub>Önceki sürüm: [v1'i aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d/) · [kaynağı](projects/AI_muk3d) — fillet öncesi hâli, çalışır durumda korunuyor.</sub>
 
 ### Köşe Mukarnas
-Köşe mukarnaslarını üçgen plan (P1-P2-P3) üzerinden kurgular. Eşkenar/dik üçgen veya özel koordinat şablonu, asaba sayısı ve kademelerle 3B form üretir.
+Köşe mukarnaslarını üçgen plan (P1-P2-P3) üzerinden kurgular. Eşkenar/dik üçgen veya özel koordinat şablonu; asaba sayısı arttıkça plan alt hücrelere bölünüp form kademelenir.
 
 <img src="assets/shot-kmuk3d.png" alt="Köşe Mukarnas" width="100%" />
 
 [▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_K_muk3d/) · [Kaynak](projects/AI_K_muk3d)
 
 ### Püskül 3D
-Mukarnas püskül (sarkıt) yapılarını çok katmanlı olarak modeller. Katman yönetimi, hücre tipi atama, geçiş yüzeyleri ve JSON kaydet/yükle.
+Mukarnas püskül (sarkıt) yapılarını çok katmanlı modeller. Katman yönetimi, hücre tipi atama, katmanlar arası geçiş yüzeyleri ve JSON kaydet/yükle.
 
 <img src="assets/shot-puskul.png" alt="Püskül 3D" width="100%" />
 
 [▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_Puskul/) · [Kaynak](projects/AI_Puskul)
 
+### Kemerler 3D
+Tek Merkezli Teğet ve Penci kemer tiplerini parametrelerle 3B modeller.
+
+<img src="assets/shot-kemer.png" alt="Kemerler 3D" width="100%" />
+
+[▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_Kemer/) · [Kaynak](projects/AI_Kemer)
+
 ### Yedi-Sekiz (7-8)
-Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle oluşturur.
+Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle üretir.
 
 <img src="assets/shot-7-8.png" alt="Yedi-Sekiz" width="100%" />
 
@@ -68,12 +76,23 @@ Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle oluşturur.
 
 ---
 
-## 3B Baskı
+## Üretim ve Analiz
+
+Ölçen, denetleyen ve sonucu görselleştiren araçlar.
+
+### AI Light — Geometrik Optik Simülatörü
+Mercek, ayna, prizma ve diyaframlarla optik düzenekler kurar; ışın izlerini, görüntü oluşumunu ve tayf ayrışmasını gerçek zamanlı hesaplar. On üç hazır kurulum içerir (prizma tayfı, akromatik dublet, Kepler teleskobu, bileşik mikroskop…).
+
+Kırılma **Snell**, yansıma oranları **Fresnel** ile hesaplanır; renk ayrışması için **Cauchy dispersiyonu** ve **Abbe sayısı** kullanılır. **Brewster açısı**, **Airy diski**, difraksiyon sınırı ve büyütme hesapları da yapılır. Sahne PNG, DXF ve STL olarak dışa aktarılır — tasarladığınız merceği 3B baskıya gönderebilirsiniz. Dış bağımlılığı yoktur, çevrimdışı çalışır.
+
+<img src="assets/shot-light.png" alt="AI Light" width="100%" />
+
+[▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_light/) · [Kaynak](projects/AI_light)
 
 ### 3D Print Model Kontrol
 STL modellerde FDM et kalınlığını ışın tabanlı analizle ölçer; basılamaz (1 hattın altı) ve riskli (2 hattın altı) bölgeleri model üzerinde renklendirir. Eşikler nozzle çapı ve hat genişliğinden otomatik hesaplanır.
 
-Ayrıca **örgü sağlığı taraması** (açık kenar, non-manifold, yön uyumsuzluğu, dejenere/çift yüz, kırıntı parça), tek tuşla **onarım**, **ölçek ve birim düzeltme** (inç/cm/m → mm, ya da hedef boyuta göre otomatik çarpan), ince bölgeleri hedefe kalınlaştıran **yerel revizyon** ve **STL dışa aktarım** içerir. Dosya hiçbir yere gönderilmez — analiz tamamen tarayıcıda yapılır.
+Ayrıca **örgü sağlığı taraması** (açık kenar, non-manifold, yön uyumsuzluğu, dejenere/çift yüz, kırıntı parça), tek tuşla **onarım**, **ölçek ve birim düzeltme** (inç/cm/m → mm), ince bölgeleri hedefe kalınlaştıran **yerel revizyon** ve **STL dışa aktarım** içerir.
 
 <img src="assets/shot-3dprint.png" alt="3D Print Model Kontrol" width="100%" />
 
@@ -86,7 +105,7 @@ Ayrıca **örgü sağlığı taraması** (açık kenar, non-manifold, yön uyums
 ### Elifbâ — Osmanlıca Öğren
 Osmanlı Türkçesini sıfırdan öğreten uygulama. Elifbânın 33 harfinden başlar, gerçek belge ve divan şiiri okumaya kadar gider.
 
-**17 ünite, 73 ders, 13 alıştırma tipi.** Aralıklı tekrar (SRS) sistemi, telaffuz alıştırması, yazı tahtası ve sözlük içerir. Yazı tipleri dâhil her şey uygulamanın içinde — internet bağlantısı olmadan da çalışır. Arayüz telefon, tablet ve masaüstü düzenleri arasında anında geçer.
+**17 ünite, 73 ders, 13 alıştırma tipi.** Aralıklı tekrar (SRS) sistemi, telaffuz alıştırması, gerçekten puanlayan yazı tahtası ve 280 kelimelik sözlük içerir. Yazı tipleri dâhil her şey uygulamanın içinde — çevrimdışı çalışır.
 
 <img src="assets/shot-osmanlica.png" alt="Elifbâ — Osmanlıca Öğren" width="100%" />
 
@@ -101,22 +120,23 @@ ahmetoff/
 ├── index.html      → Tüm projeleri listeleyen açılış sayfası
 ├── assets/         → Açılış sayfası ve README görselleri
 ├── projects/       → Her bağımsız proje kendi klasöründe
-│   ├── AI_Kemer/       Kemerler 3D
-│   ├── AI_muk3d_V2/    Mukarnas 3D — güncel sürüm (v2)
-│   ├── AI_muk3d/       Mukarnas 3D — önceki sürüm (v1, arşiv)
-│   ├── AI_K_muk3d/     Köşe Mukarnas
-│   ├── AI_Puskul/      Püskül 3D
-│   ├── AI_7-8/         Yedi-Sekiz
+│   ├── AI_muk3d_V2/               Mukarnas 3D — güncel sürüm (v2)
+│   ├── AI_muk3d/                  Mukarnas 3D — önceki sürüm (v1, arşiv)
+│   ├── AI_K_muk3d/                Köşe Mukarnas
+│   ├── AI_Puskul/                 Püskül 3D
+│   ├── AI_Kemer/                  Kemerler 3D
+│   ├── AI_7-8/                    Yedi-Sekiz
+│   ├── AI_light/                  AI Light — optik simülatörü
 │   ├── AI_3Dprint_model_kontrol/  3D Print Model Kontrol
-│   └── AI_osmanlica/   Elifbâ — Osmanlıca Öğren
+│   └── AI_osmanlica/              Elifbâ — Osmanlıca Öğren
 └── LICENSE         → MIT
 ```
 
 ## Teknoloji
 
-Tümü saf HTML/CSS/JavaScript. Tasarım araçları 3B görselleştirme için [Three.js](https://threejs.org) kullanır (CDN üzerinden, internet bağlantısı gerekir). Elifbâ ise tamamen kendi kendine yeter; hiçbir dış bağımlılığı yoktur.
+Tümü saf HTML/CSS/JavaScript. Mimari geometri araçları 3B görselleştirme için [Three.js](https://threejs.org) kullanır (CDN üzerinden). AI Light, 3D Print Model Kontrol ve Elifbâ tamamen kendi kendine yeter; dış bağımlılıkları yoktur ve çevrimdışı çalışırlar.
 
-Hiçbir projede sunucu tarafı yoktur — veri toplanmaz, hiçbir şey yüklenmez.
+Hiçbir projede sunucu tarafı yoktur — veri toplanmaz, hiçbir dosya yüklenmez.
 
 ## Lisans
 
