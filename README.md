@@ -81,7 +81,9 @@ Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle üretir.
 Ölçen, denetleyen ve sonucu görselleştiren araçlar.
 
 ### AI Light — Geometrik Optik Simülatörü
-Mercek, ayna, prizma ve diyaframlarla optik düzenekler kurar; ışın izlerini, görüntü oluşumunu ve tayf ayrışmasını gerçek zamanlı hesaplar. On üç hazır kurulum içerir (prizma tayfı, akromatik dublet, Kepler teleskobu, bileşik mikroskop…).
+Mercek, ayna, prizma ve diyaframlarla optik düzenekler kurar; ışın izlerini, görüntü oluşumunu ve tayf ayrışmasını gerçek zamanlı hesaplar. On yedi hazır kurulum içerir (prizma tayfı, akromatik dublet, Kepler teleskobu, bileşik mikroskop…).
+
+**3D Fizik Modu:** İleri modda ışınlar 2B kesitte değil **hacimde** izlenir; Snell ve Fresnel 3B vektörlerle uygulanır. Böylece eğik elemanlarda astigmatizm, yatık prizmada dönen tayf ve perdede iki boyutlu görüntü gibi 2B'de görünmesi imkânsız etkiler ortaya çıkar.
 
 Kırılma **Snell**, yansıma oranları **Fresnel** ile hesaplanır; renk ayrışması için **Cauchy dispersiyonu** ve **Abbe sayısı** kullanılır. **Brewster açısı**, **Airy diski**, difraksiyon sınırı ve büyütme hesapları da yapılır. Sahne PNG, DXF ve STL olarak dışa aktarılır — tasarladığınız merceği 3B baskıya gönderebilirsiniz. Dış bağımlılığı yoktur, çevrimdışı çalışır.
 

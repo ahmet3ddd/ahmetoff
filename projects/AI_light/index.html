@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ====================================================================
-  AI Light — Geometrik Optik Simülatörü · Final 1.9
+  AI Light 2.0 — Geometrik Optik Simülatörü
   Tek dosyalık, tamamen çevrimdışı çalışan optik masa simülatörü.
   Dış ağ isteği YOKTUR: Three.js dosyaya gömülüdür, ikonlar inline
   SVG'dir, yazı tipi system-ui'dir. Başka üçüncü taraf kod, font
@@ -55,7 +55,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>AI Light — Geometrik Optik Simülatörü · Final 1.9</title>
+<title>AI Light — Geometrik Optik Simülatörü · 2.0</title>
 <style>
 /* ==================================================================
    AI Light — Geometrik Optik Simülatörü — FINAL 1.0
@@ -181,6 +181,17 @@ body.light .brand .logo{background:radial-gradient(circle at 30% 30%, #dce6f5, #
 .btn.icon{padding:7px 8px}
 .btn:disabled{opacity:.35;cursor:default}
 .btn:disabled:hover{border-color:var(--line);color:var(--text)}
+/* Tur B: 2D'ye özel araçların ileri moddaki GEREKÇE rozeti (başlık ipucuyla) */
+.btn[data-reason]{position:relative;overflow:visible;opacity:.55}
+.btn[data-reason]::after{
+  content:attr(data-reason);
+  position:absolute;top:-6px;right:-6px;
+  font-size:8px;font-weight:700;letter-spacing:.4px;line-height:1;
+  background:var(--warn);color:#231a05;border-radius:7px;padding:2px 4px;
+  pointer-events:none;
+}
+.exp-item.dim2d{opacity:.45;cursor:default;pointer-events:none}
+.exp-item.dim2d small{color:var(--warn)}
 .btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .divider{width:1px;height:22px;background:var(--line);flex:none}
 
@@ -262,6 +273,14 @@ body.light #view3d{background:#dfe6f1}
 }
 @keyframes neBlink{50%{opacity:0}}
 /* Final 1.7 — hizalama / yakalama rozeti */
+#topviewBadge{
+  position:absolute;top:12px;left:12px;z-index:6;display:none;
+  align-items:center;gap:7px;font-size:11px;color:var(--warn);
+  background:color-mix(in srgb, var(--panel-2) 88%, transparent);
+  border:1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  padding:5px 11px;border-radius:20px;pointer-events:none;
+}
+#topviewBadge.show{display:flex}
 #snapBadge{
   position:absolute;left:50%;top:48px;transform:translateX(-50%);z-index:8;display:none;
   align-items:center;gap:7px;
@@ -910,7 +929,7 @@ body.light .modal-actions .btn.primary{color:#fff}
         <path d="M10 7l4.5 2.5v5L10 17V7z" fill="rgba(77,210,255,.2)" stroke="#4dd2ff" stroke-width="1.4" stroke-linejoin="round"/>
       </svg>
     </div>
-    <h1>AI <span>Light</span><small>Geometrik Optik Simülatörü · Final 1.9</small></h1>
+    <h1>AI <span>Light</span><small>Geometrik Optik Simülatörü · 2.0</small></h1>
   </div>
 
   <div class="top-center">
@@ -929,6 +948,12 @@ body.light .modal-actions .btn.primary{color:#fff}
       <option value="aynaGoruntu">İçbükey Aynada Görüntü</option>
       <option value="teleskop">Kepler Teleskobu</option>
       <option value="mikroskop">Bileşik Mikroskop</option>
+      <optgroup label="3D · İleri Fizik Modu">
+        <option value="p3dAstig">3D · Eğik Mercek — Astigmatizm</option>
+        <option value="p3dTayf">3D · Prizma Yatışı — Tayf Döner</option>
+        <option value="p3dFharf">3D · F Harfi — 2B Görüntü</option>
+        <option value="p3dLevha">3D · Eğik Levha — Astigmatizm</option>
+      </optgroup>
     </select>
   </div>
 
@@ -943,6 +968,15 @@ body.light .modal-actions .btn.primary{color:#fff}
         3D
       </button>
     </div>
+    <button class="btn" id="btnMode3D" title="İleri 3D fizik modu: ışınlar hacimde izlenir (eğim/yükseklik)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <ellipse cx="12" cy="12" rx="9" ry="3.6"/>
+        <ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/>
+        <ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(-60 12 12)"/>
+        <circle cx="12" cy="12" r="1.4" fill="currentColor"/>
+      </svg>
+      3D Fizik
+    </button>
     <button class="btn icon" id="btnRuler" title="Cetvel — iki nokta veya nesne kenarı (Shift: 15° kilit, ESC çıkar)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="13" width="19" height="7" rx="1.5" transform="rotate(-25 12 16.5)"/><path d="M7 14.8l1 2.1M10.6 13.1l.7 1.5M14.2 11.4l1 2.1M17.8 9.7l.7 1.5"/></svg>
     </button>
@@ -973,7 +1007,7 @@ body.light .modal-actions .btn.primary{color:#fff}
         </button>
         <button class="exp-item" data-file="save">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M5 3h11l3 3v15H5V3z"/><path d="M8 3v5h7V3M8 14h8v7H8v-7z"/></svg>
-          <span><b>Kaydet</b><small>.ailight.json (format v3) indir</small></span>
+          <span><b>Kaydet</b><small>.ailight.json (format v5) indir</small></span>
         </button>
         <div class="ctx-sep"></div>
         <button class="exp-item" data-export="png-dark">
@@ -1081,6 +1115,13 @@ body.light .modal-actions .btn.primary{color:#fff}
         <path d="M3 12h18M6 9l-3 3 3 3M18 9l3 3-3 3"/>
       </svg>
       <span id="axisLockTxt"></span>
+    </div>
+    <!-- 2.0: ileri modda 2D tuval üstten izdüşümdür -->
+    <div id="topviewBadge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 3v6M9 6l3 3 3-3"/><rect x="4" y="12" width="16" height="8" rx="1.5"/>
+      </svg>
+      üstten izdüşüm — 2D ölçüm araçları kesit modunda
     </div>
     <!-- Final 1.7: hangi yakalamanın uygulandığı (hizalama / ızgara) -->
     <div id="snapBadge">
@@ -1265,6 +1306,7 @@ body.light .modal-actions .btn.primary{color:#fff}
       <a role="button" tabindex="0" data-g="g11"><b>11</b> Sık sorulanlar</a>
       <a role="button" tabindex="0" data-g="g12"><b>12</b> Katkılar ve lisans</a>
       <a role="button" tabindex="0" data-g="g13"><b>13</b> Yenilikler</a>
+      <a role="button" tabindex="0" data-g="g14"><b>14</b> 3D Fizik Modu</a>
     </nav>
     <div class="guide-body" id="guideBody">
 
@@ -1614,6 +1656,7 @@ body.light .modal-actions .btn.primary{color:#fff}
             <tr><td>Orta tuş <span class="g-kbd-or">veya</span> Shift + sol</td><td>Sahneyi kaydır (3D’de pan)</td></tr>
             <tr><td>Döndürme tutamacı + sürükle</td><td>Seçimi merkez etrafında döndür</td></tr>
             <tr><td>Köşe tutamacı + sürükle</td><td><b>Köşeleri Düzenle</b> açıkken kesit köşesini oynat</td></tr>
+            <tr><td>3D köşe tutamacı + sürükle <span class="g-kbd-or">(ileri mod)</span></td><td>Üst/alt yüzey köşesini <b>tabana paralel</b> taşı; <b>Shift</b> ile <b>düşey</b> (yükseklik)</td></tr>
             <tr><td>Ölçü ucu + sürükle</td><td>Ucu başka bir noktaya <b>yeniden bağla</b>; boşluğa bırakınca bağ kopar</td></tr>
             <tr><td>Ölçü gövdesi + sürükle</td><td>Ölçüyü kendine dik yönde ötele (değer değişmez)</td></tr>
           </tbody>
@@ -1767,6 +1810,16 @@ body.light .modal-actions .btn.primary{color:#fff}
         <h3>13 · Yenilikler</h3>
         <p>Hangi özelliğin hangi sürümle geldiğini buradan izleyebilirsiniz. En yeni sürüm en üstte.</p>
         <dl class="g-dl stack">
+          <dt>2.0 — Gerçek 3D fizik modu</dt>
+          <dd>Yeni <b>İleri 3D fizik modu</b>: ışınlar 2D kesitte değil, <b>hacimde</b> izlenir. Nesnelere
+          <b>eğim</b> (öne-arkaya), <b>yatış</b> (optik eksen etrafında) ve <b>yükseklik</b> verilebilir; eğik mercekte
+          <b>astigmatizm</b> (ayrışan teğetsel/sagital odaklar) gerçek izlemeden çıkar. Prizmatik nesnelerde
+          <b>gerçek 3D köşe düzenleme</b>: üst ve alt yüzey köşeleri bağımsız tutamaçlarla üç yönde sürüklenir,
+          kapaklar kulak-kesme üçgenlemesiyle içbükey kesitlerde de doğru kapanır. Cisimler (F harfi) perdede
+          <b>2 boyutlu görüntü</b> olarak çözülür — ters ve aynalanmış. STL ileri modda nesnelerin gerçek
+          (pozlu, düzenlenmiş) ağını dışa aktarır. Yeni "3D ·" kurulumları listede ayrı gruptadır.
+          Ayrıntı: <b>Bölüm 14</b>.</dd>
+
           <dt>Final 1.9 — Görüntü oluşumu</dt>
           <dd>Yeni <b>Cisim</b> nesnesi: genişletilmiş, kendinden ışıklı <b>mum / ok / F harfi</b>. Yüksekliği boyunca
           birçok noktadan ışır ve her nokta, en yakın elemanın açıklığına <b>otomatik nişanlanmış</b> bir yelpaze yayar.
@@ -1816,6 +1869,45 @@ body.light .modal-actions .btn.primary{color:#fff}
         </dl>
       </section>
 
+      <section class="g-sec" id="g14">
+        <h3>14 · 3D Fizik Modu (İleri Mod)</h3>
+        <p><b>Ne yapar:</b> Varsayılan modda fizik, optik masanın 2D kesitinde hesaplanır. İleri 3D fizik modunda
+        ise ışınlar <b>hacimde</b> izlenir: her yüzey (küre parçası, düzlem, silindir yanağı, üçgen ağ) 3D'de
+        kesilir, Snell yasası ve Fresnel katsayıları 3D vektörlerle uygulanır. 2D'de görünmesi imkânsız etkiler —
+        eğik elemanlarda astigmatizm, yatık prizmada dönen tayf, perdede 2 boyutlu görüntü — gerçek izlemeden çıkar.</p>
+        <p><b>Nasıl açılır:</b> Üst bardaki <b>3D Fizik</b> düğmesi veya Genel Ayarlar → <b>İleri 3D fizik modu</b>.
+        Mod açılınca 3D görünüme geçilir; 2D tuval ise <b>üstten izdüşüm</b> olarak çalışmaya devam eder.
+        Kapatırken sahnede eğim/yükseklik veya 3D köşe düzenlemesi varsa <b>düzleştirme onayı</b> sorulur —
+        2D kesit bu bilgiyi temsil edemez.</p>
+        <p><b>Eğim, yatış, yükseklik:</b> Seçili nesnenin panelindeki <b>3D Yönelim</b> bölümünden verilir:
+        <b>eğim</b> (öne-arkaya, tiltP), <b>yatış</b> (optik eksen etrafında, tiltR) ve <b>yükseklik</b> (masadan, zOff).
+        Bu pozlar dosyaya (v5) kaydedilir; eski dosyalar 2D modda açılır.</p>
+        <p><b>Gerçek 3D köşe düzenleme:</b> Prizmatik (çokgen) nesnelerde ileri modda seçim, köşe tutamaçlarını
+        <b>üst yüzey (turuncu)</b> ve <b>alt yüzey (mavi)</b> için AYRI AYRI gösterir. Bir <b>3D köşe</b> tutamacını
+        sürüklediğinizde köşe tabana paralel düzlemde taşınır; <b>Shift</b> basılıyken düşey (yükseklik) yönünde
+        hareket eder. Üst ve alt köşeler ayrışınca yan yüzler kendiliğinden üçgen çiftlerine bölünür ve motor
+        genel üçgen ağı izlediği için <b>fizik otomatik olarak doğru kalır</b> — eğik yan yüzeyde kırılma o yüzeyin
+        gerçek normaliyle hesaplanır. Kapaklar kulak-kesme (ear clipping) ile üçgenlenir; içbükey (L biçimli)
+        kesitler de doğru kapanır. 2D kesit köşelerini düzenlerseniz 3D köşe düzenlemeleri kesitten yeniden türetilir.</p>
+        <p><b>Astigmatizm nedir?</b> Mercek demete göre eğik durduğunda, eğim düzlemindeki (teğetsel) ışınlar ile
+        ona dik düzlemdeki (sagital) ışınlar <b>farklı uzaklıklarda</b> odaklanır; nokta görüntü yerine iki ayrı
+        <b>odak çizgisi</b> oluşur. 30° eğik f≈100 mm mercekte teğetsel odak ≈ 71 mm, sagital ≈ 94 mm ölçülür —
+        “3D · Eğik Mercek” kurulumunda perdeyi kaydırarak iki çizgiyi de görebilirsiniz.</p>
+        <p><b>Hangi araçlar neden 2D'de kaldı?</b> Cetvel, açı ölçüsü, otomatik düzenek ölçüleri, kenara bağlı
+        ölçüler ve sürücü ölçü <b>kesit düzleminde</b> tanımlıdır; 3D hacimde tek bir kesit yoktur. Bu araçlar
+        ileri modda pasifleşir ve düğmelerinde “2D” gerekçe rozeti görünür. <b>Kırınım katmanı</b> da kırınım
+        hesabı 2D kesit varsaydığı için kapalıdır. <b>DXF</b> 2 boyutlu bir çizim formatıdır — ileri modda Dosya
+        menüsünde pasiftir; 3B çıktı için <b>STL</b> kullanın: STL ileri modda nesnelerin gerçek (pozlu ve 3D köşe
+        düzenlemeli) ağını dışa aktarır.</p>
+        <p class="g-note"><b>Polarizasyon sınırı:</b> Bu motor <b>şiddet tabanlıdır; faz taşınmaz</b>. s/p bileşenleri
+        her yüzeyde geliş düzlemine şiddet izdüşümüyle döndürülür; <b>geliş düzlemi döndüğünde kutuplanma durumu tam
+        korunmaz</b>. Bu yüzden simülatörde <b>polarizör elemanı yoktur</b> ve bu modele eklenmeyecektir — doğru
+        polarizör davranışı faz (Jones/Stokes) takibi gerektirir.</p>
+        <p class="g-note"><b>Performans:</b> 3D izleme kesit izlemesinden pahalıdır; sürükleme sırasında perde
+        görüntü geçişi kendiliğinden düşük kaliteye iner, bırakınca geri yükselir. Işın sayısını ve sekme limitini
+        makul tutmak akıcılığı korur.</p>
+      </section>
+
     </div>
   </div>
 </div>
@@ -1860,6 +1952,11 @@ body.light .modal-actions .btn.primary{color:#fff}
                                  ortam yığını, şiddet-öncelikli kuyruk
      2b. KIRINIM SINIRI        — türetilmiş bilgi katmanı (Airy/Rayleigh/
                                  Abbe/a_opt); motoru DEĞİŞTİRMEZ
+     2d. 3D FİZİK MOTORU       — "İleri mod" (2.0/Tur A): analitik küre/
+                                 düzlem/silindir/üçgen ağ kesişimi, 3D vektör
+                                 Snell, Fresnel s/p, ortam yığını, Beer-Lambert;
+                                 çakışık yüzey GRUBU (yapışık dublet) ve
+                                 n(λ) köprüsü 2D motorla ORTAK
      3. 2D ÇİZİM (RENDER)      — paletler, spektral ışın demetleri, ölçüler
      4. ETKİLEŞİM              — çoklu seçim, cetvel/açı araçları, menüler
      5. UI — PANELLER          — spektral kaynak, cam (n_d,V_d,T), dosya menüsü
@@ -1875,8 +1972,10 @@ body.light .modal-actions .btn.primary{color:#fff}
    ===================================================================== */
 const DEG = Math.PI/180;
 /* v4 (Final 1.7): ölçülere uç ankrajları (a1/a2) eklendi. Eski dosyalar
-   (v3 ve öncesi) sorunsuz açılır; ankrajsız ölçüler SERBEST uçlu gelir. */
-const FORMAT_VERSION = 4;
+   (v3 ve öncesi) sorunsuz açılır; ankrajsız ölçüler SERBEST uçlu gelir.
+   v5 (2.0/Tur A): physicsMode ('2d'|'3d') + nesnelerde 3D poz alanları
+   (zOff / tiltP / tiltR, vars. 0). Eski dosyalar 2D modda açılır. */
+const FORMAT_VERSION = 5;
 const LAMBDA_D = 587.56;               // d çizgisi (helyum) — n_d referansı
 let _nextId = 1;
 const uid = () => _nextId++;
@@ -1906,6 +2005,7 @@ const state = {
     showDiffraction:false, diffLambda:550,   // Final 1.2: kırınım sınırı bilgi katmanı
   },
   rev: 0,
+  physicsMode: '2d',                   // 2.0: '2d' (kesit, VARSAYILAN) | '3d' (ileri mod)
   dragging: false,                     // performans: sürüklemede tayf azaltma
   highlight: null,                     // v3.1: vurgulu ışın soy ağacı {tree, bi, seg}
   hoverId: null,                       // v3.1: imleç altındaki nesne (parlama)
@@ -1928,10 +2028,29 @@ function fmtLen(mm, forceDec){
 }
 
 function serializeScene(){
+  /* 2.0: '_' ile başlayan alanlar TÜRETİLMİŞ önbellektir (ör. o._rotM, o._surf3d)
+     ve asla diske/geçmişe yazılmaz. */
   return JSON.stringify({
     format:'ailight-scene', version:FORMAT_VERSION,
+    physicsMode: state.physicsMode,
     objects: state.objects, settings: state.settings
-  });
+  }, (k, v) => (k && k[0] === '_') ? undefined : v);
+}
+/* 2.0: sahnede düzlem dışı poz var mı? (3D→2D geçiş onayı ve dosya açma)
+   Tur B: bağımsız 3D köşe düzenlemeleri (vertsTop/vertsBot) de düzlem dışı
+   durum sayılır — 2D kesit bu bilgiyi temsil edemez. */
+function hasVerts3D(objs){
+  return (objs || state.objects).some(o => o.type === 'poly' && (o.vertsTop || o.vertsBot));
+}
+function hasOutOfPlanePose(objs){
+  return (objs || state.objects).some(o =>
+    (o.zOff || 0) !== 0 || (o.tiltP || 0) !== 0 || (o.tiltR || 0) !== 0) || hasVerts3D(objs);
+}
+function flattenPose(){
+  for (const o of state.objects){
+    o.zOff = 0; o.tiltP = 0; o.tiltR = 0;
+    delete o.vertsTop; delete o.vertsBot;     /* Tur B: 3D köşe düzenlemeleri sıfırlanır */
+  }
 }
 /* v1/v2 dosyaları da açılır — göç: n→n_d, alpha→T10 */
 function normalizeObject(o){
@@ -1977,6 +2096,21 @@ function normalizeObject(o){
     if (o.imgQuality === undefined) o.imgQuality = 'med';
   }
   if (['poly','lens','cmirror'].includes(o.type) && o.depth === undefined) o.depth = 56;
+  /* 2.0 (v5): 3D poz alanları — eski dosyalarda 0 (düzlem içi) kabul edilir.
+     rot düşey eksen dönüşü (yaw) olarak KALIR; tiltP öne-arkaya eğim,
+     tiltR kendi optik ekseni etrafında yatış, zOff masadan yükseklik (mm). */
+  if (o.type !== 'measure' && o.type !== 'ameasure'){
+    if (o.zOff === undefined) o.zOff = 0;
+    if (o.tiltP === undefined) o.tiltP = 0;
+    if (o.tiltR === undefined) o.tiltR = 0;
+  }
+  /* Tur B (2.0): bağımsız 3D köşeler — yalnız çokgenlerde ve kesitle aynı
+     sayıda köşe varsa geçerli; bozuksa ekstrüzyondan yeniden türetilir. */
+  if (o.type === 'poly'){
+    for (const k3 of ['vertsTop','vertsBot']){
+      if (o[k3] && (!Array.isArray(o[k3]) || o[k3].length !== o.verts.length)) delete o[k3];
+    }
+  } else if (o.vertsTop || o.vertsBot){ delete o.vertsTop; delete o.vertsBot; }
   /* Final 1.7: v3 ve öncesi ölçülerde uç ankrajı yoktur → serbest uç */
   if (o.type === 'measure'){
     if (o.a1 === undefined) o.a1 = null;
@@ -1992,6 +2126,11 @@ function restoreScene(json){
   const d = JSON.parse(json);
   state.objects = (d.objects || []).map(normalizeObject);
   state.settings = Object.assign({}, state.settings, d.settings);
+  /* 2.0: mod bilgisi anlık görüntünün parçasıdır — geri al/yinele ve dosya
+     açma modu sessizce geri getirir (diyalog YALNIZ dosya açma akışında,
+     restoreScene çağrılmadan ÖNCE sorulur). */
+  const pm = d.physicsMode === '3d' ? '3d' : '2d';
+  if (pm !== state.physicsMode) setPhysicsModeSilent(pm);
   for (const o of state.objects) if (o.id >= _nextId) _nextId = o.id + 1;
   pruneOrphanMeasures();
   state.selIds = state.selIds.filter(id => state.objects.some(o => o.id === id));
@@ -2732,6 +2871,8 @@ function effectiveSpectralK(){
   return (state.dragging && perfSlow) ? Math.max(3, Math.round(K/3)) : K;
 }
 function traceAll(){
+  /* 2.0: ileri mod — sahne 3D motorla izlenir (2D yol birebir korunur). */
+  if (state.physicsMode === '3d' && typeof traceAll3D === 'function'){ traceAll3D(); return; }
   const t0 = performance.now();
   const S = buildSurfaces(state.objects);
   lastEvents = []; lastScreenHits = [];
@@ -3747,6 +3888,1013 @@ function focusScreen(scr){
 }
 </script>
 
+
+<script>
+"use strict";
+/* =====================================================================
+   2d. 3D FİZİK MOTORU — "İLERİ MOD"  (AI Light 2.0 · Tur A)
+   Kaynak: proto_3d.html (rotM DÜZELTMELİ sürüm — dönme matrisi o.R ile
+   çakışmasın diye türetilmiş önbellek o._rotM adında tutulur; ana projede
+   o.R küresel aynanın EĞRİLİK YARIÇAPIDIR ve serialize edilir, _rotM
+   edilmez).
+
+   Taşınanlar: analitik küre parçası, sınırlı düzlem, kenar silindiri,
+   üçgen ağ (Möller-Trumbore) kesişimleri; 3D vektör Snell, Fresnel s/p
+   (Is/Ip), TIR, ortam yığını, Beer-Lambert, enerji muhasebesi.
+
+   Fizikçi şartları:
+   · B1 (C-1): nearest3D, en yakın t'ye tolerans içinde düşen TÜM kırıcı
+     yüzeyleri GRUP olarak döndürür; ortam yığını grup üzerinde tek seferde
+     güncellenir → yapışık dublet BAĞIL indisle, hayalet hava katmanı yok
+     (2D motordaki çakışık-yüzey deseninin birebir 3D karşılığı).
+   · B2 (C-5): n(λ) 2D motorla AYNI kaynaktan gelir — e3dIndexAt() doğrudan
+     glassN(o, λ)'yı (n_d + Abbe V_d → Cauchy nm²) çağırır. Ayrı katsayı
+     kopyası YOKTUR; iki motor tanım gereği aynı n üretir.
+   · B3 (C-3): hitSphere3D / hitCylinder3D / hitMesh3D çıkışında
+     out.lx = out.ly = 0 AÇIKÇA yazılır (perde yerel koordinatı yalnız
+     düzlem yüzeylerden gelir; bayat değer sızamaz).
+   · B4 (C-2, polarizasyon SINIRI): Bu motor ŞİDDET TABANLIDIR; faz
+     taşınmaz. s/p bazı her yüzeyde geliş düzlemine ŞİDDET izdüşümüyle
+     döndürülür. Geliş düzlemi dönen ardışık yüzey dizilerinde kutuplanma
+     durumu tam korunmaz (φ=45° döndürülmüş 3 yüzeyli örnekte iletimde
+     ~%3.4, yansımada ~%49 sapma). Bu nedenle POLARİZÖR ELEMANI YOKTUR ve
+     bu modele eklenmeyecektir (kılavuz notu: Tur B).
+
+   KOORDİNATLAR: (x, y) = 2D masa düzlemi (mm, 2D ile aynı), z = masadan
+   yükseklik. Nesne pozu: rot (yaw, MEVCUT alan) + tiltP (öne-arkaya eğim)
+   + tiltR (optik eksen etrafında yatış) + zOff (yükseklik). Yüzeyler
+   proto'daki gibi optik ekseni +z_s olan YEREL çerçevede tanımlıdır;
+   sabit P permütasyonu bunları nesne çerçevesine (optik eksen +x) taşır.
+   ===================================================================== */
+const E3D_EPS = 1e-9;
+
+/* ---------- 3x3 matris yardımcıları (satır-major, 9 eleman) ---------- */
+function e3dMul(a, b){
+  const o = new Array(9);
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++)
+    o[i*3+j] = a[i*3]*b[j] + a[i*3+1]*b[3+j] + a[i*3+2]*b[6+j];
+  return o;
+}
+/* Yüzey-yerel → nesne çerçevesi: z_s→+x (optik eksen), x_s→+y (düzlem içi
+   enine), y_s→+z (yukarı). */
+const E3D_P = [0,0,1,  1,0,0,  0,1,0];
+function e3dPoseM(o){        // nesne çerçevesi → dünya:  Rz(rot)·Ry(−tiltP)·Rx(tiltR)
+  const a = (o.rot||0)*DEG, p = (o.tiltP||0)*DEG, r = (o.tiltR||0)*DEG;
+  const ca = Math.cos(a), sa = Math.sin(a);
+  const cp = Math.cos(p), sp = Math.sin(p);
+  const cr = Math.cos(r), sr = Math.sin(r);
+  const Rz = [ca,-sa,0, sa,ca,0, 0,0,1];
+  const Ry = [cp,0,-sp, 0,1,0, sp,0,cp];        // Ry(−tiltP): +tiltP → eksen yukarı
+  const Rx = [1,0,0, 0,cr,-sr, 0,sr,cr];
+  return e3dMul(e3dMul(Rz, Ry), Rx);
+}
+/* 2D üreteci o.rot'u ZATEN uygulamıştır: yalnız EK dönüşler → R·Rz(−rot) */
+function e3dExtraM(o){
+  const a = (o.rot||0)*DEG, ca = Math.cos(a), sa = Math.sin(a);
+  return e3dMul(e3dPoseM(o), [ca,sa,0, -sa,ca,0, 0,0,1]);
+}
+const e3dApply  = (m,x,y,z) => [ m[0]*x+m[1]*y+m[2]*z, m[3]*x+m[4]*y+m[5]*z, m[6]*x+m[7]*y+m[8]*z ];
+const e3dApplyT = (m,x,y,z) => [ m[0]*x+m[3]*y+m[6]*z, m[1]*x+m[4]*y+m[7]*z, m[2]*x+m[5]*y+m[8]*z ];
+
+/* ---------- ilkel yüzey kesişimleri (yüzey-yerel; eksen +z_s) ---------- */
+/* Küre parçası: merkez (0,0,cz), açıklık apR, doğru yarıküre (capSign). */
+function hitSphere3D(sf, ox, oy, oz, dx, dy, dz, tMin, out){
+  const pz = oz - sf.cz;
+  const b = dx*ox + dy*oy + dz*pz;
+  const c = ox*ox + oy*oy + pz*pz - sf.R2;
+  const disc = b*b - c;
+  if (disc < 0) return false;
+  const sq = Math.sqrt(disc);
+  for (let k = 0; k < 2; k++){
+    const t = k === 0 ? -b - sq : -b + sq;
+    if (t <= tMin) continue;
+    const hx = ox + dx*t, hy = oy + dy*t, hz = oz + dz*t;
+    if (hx*hx + hy*hy > sf.apR2) continue;
+    if ((hz - sf.cz)*sf.capSign < 0) continue;
+    out.t = t;
+    const inv = 1/sf.Rabs;
+    out.nx = hx*inv; out.ny = hy*inv; out.nz = (hz - sf.cz)*inv;
+    out.lx = 0; out.ly = 0;                     /* B3: bayat perde koordinatı sızmasın */
+    return true;
+  }
+  return false;
+}
+/* Sınırlı düzlem: yerel z=0, normal +z; dikdörtgen (halfW/halfH) veya disk. */
+function hitPlane3D(sf, ox, oy, oz, dx, dy, dz, tMin, out){
+  if (Math.abs(dz) < E3D_EPS) return false;
+  const t = -oz/dz;
+  if (t <= tMin) return false;
+  const hx = ox + dx*t, hy = oy + dy*t;
+  if (sf.diskR2 > 0){ if (hx*hx + hy*hy > sf.diskR2) return false; }
+  else if (Math.abs(hx) > sf.halfW || Math.abs(hy) > sf.halfH) return false;
+  out.t = t; out.nx = 0; out.ny = 0; out.nz = 1;
+  out.lx = hx; out.ly = hy;                     /* perde görüntü birikimi için */
+  return true;
+}
+/* Silindir yanak (mercek kenarı): r=R, z0..z1 */
+function hitCylinder3D(sf, ox, oy, oz, dx, dy, dz, tMin, out){
+  const a = dx*dx + dy*dy;
+  if (a < E3D_EPS) return false;
+  const b = ox*dx + oy*dy;
+  const c = ox*ox + oy*oy - sf.R2;
+  const disc = b*b - a*c;
+  if (disc < 0) return false;
+  const sq = Math.sqrt(disc);
+  for (let k = 0; k < 2; k++){
+    const t = (k === 0 ? -b - sq : -b + sq)/a;
+    if (t <= tMin) continue;
+    const hz = oz + dz*t;
+    if (hz < sf.z0 || hz > sf.z1) continue;
+    const hx = ox + dx*t, hy = oy + dy*t;
+    out.t = t;
+    const inv = 1/sf.R;
+    out.nx = hx*inv; out.ny = hy*inv; out.nz = 0;
+    out.lx = 0; out.ly = 0;                     /* B3 */
+    return true;
+  }
+  return false;
+}
+/* Üçgen ağ: Möller-Trumbore (çift taraflı) */
+/* D-1 DÜZELTMESİ (fizikçi şartı): bir çokgen katısı 3D'de TEK "mesh" yüzeyidir.
+   Öz-çarpmayı 0.05 mm'lik kaba bir tMin ile elemek, aynı katı içindeki bir
+   sonraki kirişi 0.05 mm'den kısaysa da eliyordu; ışın camdan çıkamıyor ve
+   2D↔3D paritesi bozuluyordu (ince levha, prizma apeksi). Artık yalnız AZ ÖNCE
+   çarpılan ÜÇGEN dışlanır; epsilon tabana (epsBase) döner. */
+let _h3ExclTri = -1;
+function hitMesh3D(sf, ox, oy, oz, dx, dy, dz, tMin, out){
+  const tri = sf.tri;
+  let best = Infinity, bi = -1;
+  for (let i = 0; i < tri.length; i += 9){
+    if (i === _h3ExclTri) continue;
+    const ax = tri[i], ay = tri[i+1], az = tri[i+2];
+    const e1x = tri[i+3]-ax, e1y = tri[i+4]-ay, e1z = tri[i+5]-az;
+    const e2x = tri[i+6]-ax, e2y = tri[i+7]-ay, e2z = tri[i+8]-az;
+    const px = dy*e2z - dz*e2y, py = dz*e2x - dx*e2z, pz = dx*e2y - dy*e2x;
+    const det = e1x*px + e1y*py + e1z*pz;
+    if (det > -E3D_EPS && det < E3D_EPS) continue;
+    const inv = 1/det;
+    const tx = ox-ax, ty = oy-ay, tz = oz-az;
+    const u = (tx*px + ty*py + tz*pz)*inv;
+    if (u < 0 || u > 1) continue;
+    const qx = ty*e1z - tz*e1y, qy = tz*e1x - tx*e1z, qz = tx*e1y - ty*e1x;
+    const v = (dx*qx + dy*qy + dz*qz)*inv;
+    if (v < 0 || u + v > 1) continue;
+    const t = (e2x*qx + e2y*qy + e2z*qz)*inv;
+    if (t > tMin && t < best){ best = t; bi = i; }
+  }
+  if (bi < 0) return false;
+  const i = bi;
+  const ax = tri[i], ay = tri[i+1], az = tri[i+2];
+  const e1x = tri[i+3]-ax, e1y = tri[i+4]-ay, e1z = tri[i+5]-az;
+  const e2x = tri[i+6]-ax, e2y = tri[i+7]-ay, e2z = tri[i+8]-az;
+  let nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x;
+  const l = Math.sqrt(nx*nx + ny*ny + nz*nz) || 1;
+  out.t = best; out.nx = nx/l; out.ny = ny/l; out.nz = nz/l;
+  out.lx = 0; out.ly = 0;                       /* B3 */
+  out.tri = bi;                                 /* D-1: üçgen bazlı dışlama için */
+  return true;
+}
+function hitSurf3D(sf, ox, oy, oz, dx, dy, dz, tMin, out){
+  switch (sf.kind){
+    case 'sphere':   return hitSphere3D(sf, ox, oy, oz, dx, dy, dz, tMin, out);
+    case 'plane':    return hitPlane3D(sf, ox, oy, oz - (sf.offsetZ||0), dx, dy, dz, tMin, out);
+    case 'cylinder': return hitCylinder3D(sf, ox, oy, oz, dx, dy, dz, tMin, out);
+    case 'mesh':     return hitMesh3D(sf, ox, oy, oz, dx, dy, dz, tMin, out);
+  }
+  return false;
+}
+
+/* ---------- dispersiyon köprüsü (B2): 2D ile AYNI kaynak ---------- */
+function e3dIndexAt(mat, lambda){
+  if (!mat) return 1;
+  if (mat.fixedN != null) return mat.fixedN;    // yalnız doğrulama malzemeleri
+  return glassN(mat, lambda);                   // n_d + V_d → Cauchy (nm²) — TEK kaynak
+}
+
+/* ---------- yüzey üretimi (nesne başına, türetilmiş önbellek) ---------- */
+/* Tur B: çokgen katısı. verts (2D kesit) + isteğe bağlı vertsTop/vertsBot
+   (bağımsız 3D köşeler; yoksa ekstrüzyondan türetilir). Kapaklar artık
+   KULAK-KESME (ear clipping, triangulatePoly) ile üçgenlenir → içbükey
+   kesitler de doğru kapanır (eski yelpaze yalnız dışbükeydi). Üst/alt
+   köşeler ayrışınca kapaklar düzlemsel olmayabilir; her kapak KENDİ köşe
+   kümesinin (x,y) izdüşümünden üçgenlenir — kırılma üçgen normalinden
+   hesaplandığı için fizik tutarlı kalır. Yüzey-yerel eksenler:
+   [x_s, y_s, z_s] = [yerel_y·s, yükseklik z, yerel_x·s]. */
+function polyVerts3D(o, face){
+  const h = (o.depth || 56)/2;
+  const arr = face === 'top' ? o.vertsTop : o.vertsBot;
+  const zDef = face === 'top' ? h : -h;
+  return (arr || o.verts).map(v => ({
+    x: v.x, y: v.y, z: (arr && v.z !== undefined) ? v.z : zDef }));
+}
+function e3dExtrudePoly(o){
+  const sc = o.scale || 1;
+  const top = polyVerts3D(o, 'top'), bot = polyVerts3D(o, 'bot');
+  const N = top.length, tri = [];
+  const S = v => [v.y*sc, v.z, v.x*sc];               // → yüzey-yerel
+  const push = (a,b,c) => tri.push(a[0],a[1],a[2], b[0],b[1],b[2], c[0],c[1],c[2]);
+  for (let i = 0; i < N; i++){                         // yan yüzler (üçgen çiftleri)
+    const j = (i+1)%N;
+    push(S(bot[i]), S(bot[j]), S(top[j]));
+    push(S(bot[i]), S(top[j]), S(top[i]));
+  }
+  for (const w of [bot, top]){                         // kapaklar: kulak-kesme
+    const tris = triangulatePoly(w.map(v => ({ x:v.x, y:v.y })));
+    for (const [a,b,c] of tris) push(S(w[a]), S(w[b]), S(w[c]));
+  }
+  return { kind:'mesh', tri: new Float64Array(tri) };
+}
+/* ---------- Tur B: bağımsız 3D köşe yardımcıları ---------- */
+function ensureVerts3D(o){
+  const h = (o.depth || 56)/2;
+  if (!o.vertsTop) o.vertsTop = o.verts.map(v => ({ x:v.x, y:v.y, z: h }));
+  if (!o.vertsBot) o.vertsBot = o.verts.map(v => ({ x:v.x, y:v.y, z:-h }));
+}
+/* Köşenin FİZİK dünya koordinatı — poz (rot/tiltP/tiltR/zOff) dahil */
+function poly3DCorner(o, i, face){
+  const sc = o.scale || 1, h = (o.depth || 56)/2;
+  const arr = face === 'top' ? o.vertsTop : o.vertsBot;
+  const v = arr ? arr[i] : o.verts[i];
+  const z = (arr && v.z !== undefined) ? v.z : (face === 'top' ? h : -h);
+  const w = e3dApply(e3dPoseM(o), v.x*sc, v.y*sc, z);
+  return { x: o.x + w[0], y: o.y + w[1], z: (o.zOff || 0) + w[2] };
+}
+function poly3DCornerFromWorld(o, wx, wy, wz){
+  const sc = o.scale || 1;
+  const l = e3dApplyT(e3dPoseM(o), wx - o.x, wy - o.y, wz - (o.zOff || 0));
+  return { x: l[0]/sc, y: l[1]/sc, z: l[2] };
+}
+/* 2D kesit düzenlendi: bağımsız 3D köşeler kesitten yeniden türetilir */
+function onCrossSectionEdited(o){
+  if (!o || o.type !== 'poly' || (!o.vertsTop && !o.vertsBot)) return;
+  delete o.vertsTop; delete o.vertsBot;
+  if (typeof flashStatus === 'function')
+    flashStatus('Kesit değişti — 3D köşe düzenlemeleri kesitten yeniden türetildi');
+}
+/* ---------- Tur B: 3D nokta-içinde-katı (başlangıç ortam yığını) ----------
+   Camın İÇİNDE doğan veya eğik poz nedeniyle z≠0'da başlayan ışınlar için
+   ortam yığını 3D testle kurulur: mesh için ışın-sayma (çift/tek kuralı),
+   mercek (küre parçalı katı) için analitik yüzey aralığı testi. */
+function meshCrossings(tri, ox, oy, oz, dx, dy, dz){
+  let n = 0;
+  for (let i = 0; i < tri.length; i += 9){
+    const ax = tri[i], ay = tri[i+1], az = tri[i+2];
+    const e1x = tri[i+3]-ax, e1y = tri[i+4]-ay, e1z = tri[i+5]-az;
+    const e2x = tri[i+6]-ax, e2y = tri[i+7]-ay, e2z = tri[i+8]-az;
+    const px = dy*e2z - dz*e2y, py = dz*e2x - dx*e2z, pz = dx*e2y - dy*e2x;
+    const det = e1x*px + e1y*py + e1z*pz;
+    if (det > -1e-12 && det < 1e-12) continue;
+    const inv = 1/det;
+    const tx = ox-ax, ty = oy-ay, tz = oz-az;
+    const u = (tx*px + ty*py + tz*pz)*inv;
+    if (u < 0 || u > 1) continue;
+    const qx = ty*e1z - tz*e1y, qy = tz*e1x - tx*e1z, qz = tx*e1y - ty*e1x;
+    const v = (dx*qx + dy*qy + dz*qz)*inv;
+    if (v < 0 || u + v > 1) continue;
+    if ((e2x*qx + e2y*qy + e2z*qz)*inv > 1e-7) n++;
+  }
+  return n;
+}
+function insideSolid3D(o, wx, wy, wz){
+  if (o.type !== 'poly' && o.type !== 'lens') return false;
+  if (!o._rotM || !o._surf3d || o._surfKey !== e3dSurfKey(o)){
+    o._surf3d = e3dBuildSurfaces(o); o._surfKey = e3dSurfKey(o);
+    o._rotM = e3dMul(e3dPoseM(o), E3D_P);
+  }
+  const lo = e3dApplyT(o._rotM, wx - o.x, wy - o.y, wz - (o.zOff || 0));
+  if (o.type === 'lens'){
+    const g = lensSolid(o), r = Math.hypot(lo[0], lo[1]);
+    if (r > g.h) return false;
+    return lo[2] >= g.xf(r) - 1e-9 && lo[2] <= g.xb(r) + 1e-9;
+  }
+  const sf = o._surf3d[0];
+  if (!sf || sf.kind !== 'mesh') return false;
+  /* eksen-paralel patolojilerden kaçınmak için eğik sabit doğrultu */
+  return (meshCrossings(sf.tri, lo[0], lo[1], lo[2], 0.53452, 0.26726, 0.80178) % 2) === 1;
+}
+function stack3DAt(ents, x, y, z){
+  const st = [];
+  for (const q of ents)
+    if ((q.type === 'poly' || q.type === 'lens') && insideSolid3D(q, x, y, z)) st.push(q);
+  return st;
+}
+function e3dSurfKey(o){
+  switch (o.type){
+    case 'poly':     return 'p' + JSON.stringify([o.verts, o.scale, o.depth, o.vertsTop, o.vertsBot]);
+    case 'lens':     return 'l' + JSON.stringify([o.R1, o.R2, o.thickness, o.diameter]);
+    case 'cmirror':  return 'c' + JSON.stringify([o.R, o.concave, o.aperture]);
+    case 'mirror':   return 'm' + o.length;
+    case 'screen':   return 's' + o.length;
+    case 'aperture': return 'a' + JSON.stringify([o.length, o.gap]);
+  }
+  return '';
+}
+function e3dBuildSurfaces(o){
+  const S = [];
+  if (o.type === 'poly'){
+    /* Tur B: verts + (varsa) vertsTop/vertsBot'tan kulak-kesme kapaklı ağ */
+    S.push(Object.assign(e3dExtrudePoly(o), { role:'refract' }));
+  }
+  else if (o.type === 'lens'){
+    const g = lensSolid(o), h = g.h, t = o.thickness;
+    const addFace = (R, zv, role) => {
+      if (R){
+        const cz = zv + R;
+        S.push({ kind:'sphere', cz, R, Rabs:Math.abs(R), R2:R*R, apR2:h*h,
+                 capSign: Math.sign(zv - cz) || 1, role });
+      } else S.push({ kind:'plane', offsetZ: zv, diskR2:h*h, halfW:0, halfH:0, role });
+    };
+    addFace(o.R1, -t/2, 'refract');
+    addFace(o.R2,  t/2, 'refract');
+    const e1 = g.xf(h), e2 = g.xb(h);
+    const z0 = Math.min(e1, e2), z1 = Math.max(e1, e2);
+    if (z1 - z0 > 1e-6) S.push({ kind:'cylinder', R:h, R2:h*h, z0, z1, role:'refract' });
+  }
+  else if (o.type === 'cmirror'){
+    const R = o.concave ? o.R : -o.R;          // 2D: içbükeyde merkez −R'de
+    const cz = -R;
+    const ap = o.aperture/2;
+    S.push({ kind:'sphere', cz, R, Rabs:Math.abs(R), R2:R*R, apR2:ap*ap,
+             capSign: Math.sign(0 - cz) || 1, role:'mirror' });
+  }
+  else if (o.type === 'mirror'){
+    S.push({ kind:'plane', diskR2:0, halfW:o.length/2, halfH:36, role:'mirror' });
+  }
+  else if (o.type === 'screen'){
+    S.push({ kind:'plane', diskR2:0, halfW:o.length/2, halfH:36, role:'screen' });
+  }
+  else if (o.type === 'aperture'){
+    S.push({ kind:'plane', diskR2:0, halfW:o.length/2, halfH:36,
+             holeR2:(o.gap/2)*(o.gap/2), role:'aperture' });
+  }
+  return S;
+}
+/* Sahne varlıkları: _rotM + _surf3d türetilmiş önbelleği tazele */
+function e3dScene(objs){
+  const ents = [];
+  for (const o of (objs || state.objects)){
+    if (!['poly','lens','cmirror','mirror','screen','aperture'].includes(o.type)) continue;
+    const key = e3dSurfKey(o);
+    if (o._surfKey !== key){ o._surf3d = e3dBuildSurfaces(o); o._surfKey = key; }
+    o._rotM = e3dMul(e3dPoseM(o), E3D_P);
+    ents.push(o);
+  }
+  return ents;
+}
+
+/* ---------- en yakın kesişim + ÇAKIŞIK KIRICI GRUP (B1) ---------- */
+const _h3tmp = { t:0, nx:0, ny:0, nz:0, lx:0, ly:0 };
+function nearest3D(px, py, pz, dx, dy, dz, ents, lastKeys, lastTris){
+  const epsBase = 1e-6 + 1e-9*(Math.abs(px)+Math.abs(py)+Math.abs(pz));
+  const epsSame = 0.05;
+  let bestT = Infinity, best = null;
+  const cands = [];
+  for (const o of ents){
+    const m = o._rotM;
+    const wz = pz - (o.zOff || 0);
+    const lo = e3dApplyT(m, px - o.x, py - o.y, wz);
+    const ldir = e3dApplyT(m, dx, dy, dz);
+    for (let si = 0; si < o._surf3d.length; si++){
+      const sf = o._surf3d[si];
+      const key = o.id + ':' + si;
+      /* D-1: 'mesh' yüzeyinde öz-çarpma ÜÇGEN bazında elenir (epsilon tabanda
+         kalır); küre/silindir/düzlem tek parça olduğundan eski epsSame korunur. */
+      const same = !!(lastKeys && lastKeys.indexOf(key) >= 0);
+      let eps = epsBase;
+      _h3ExclTri = -1;
+      if (same){
+        if (sf.kind === 'mesh') _h3ExclTri = (lastTris && lastTris[key] !== undefined)
+                                             ? lastTris[key] : -1;
+        else eps = epsSame;
+      }
+      if (!hitSurf3D(sf, lo[0], lo[1], lo[2], ldir[0], ldir[1], ldir[2], eps, _h3tmp)) continue;
+      _h3ExclTri = -1;
+      const wn = e3dApply(m, _h3tmp.nx, _h3tmp.ny, _h3tmp.nz);
+      const c = { t:_h3tmp.t, obj:o, sf, key, tri:_h3tmp.tri,
+                  nx:wn[0], ny:wn[1], nz:wn[2], lx:_h3tmp.lx, ly:_h3tmp.ly };
+      cands.push(c);
+      if (c.t < bestT){ bestT = c.t; best = c; }
+    }
+  }
+  if (!best) return null;
+  /* B1: en yakın t'nin toleransındaki TÜM kırıcı yüzeyler tek grup —
+     yapışık dublet arayüzü BİR kez, bağıl indisle işlenir. Tolerans 2D
+     motorla aynı biçimdedir (tolC ~ 1e-6·(1+t)); 1e-6 mm'lik "değme
+     boşluğu" da gruplanır → hayalet hava katmanı oluşmaz. */
+  if (best.sf.role === 'refract'){
+    const tolC = 1e-6*(1 + bestT) + 1e-9;
+    const seen = new Set();
+    const group = [];
+    for (const c of cands){
+      if (c.sf.role !== 'refract' || c.t > bestT + tolC) continue;
+      const id = c.obj.id + ':' + c.obj._surf3d.indexOf(c.sf);
+      if (seen.has(id)) continue;
+      seen.add(id);
+      group.push(c);
+    }
+    return Object.assign({}, best, { group });
+  }
+  return Object.assign({}, best, { group:[best] });
+}
+
+/* ---------- 3D perde birikimi (2B görüntü) ---------- */
+const E3D_SCR_RES = 128, E3D_SCR_HALFH = 36;
+function e3dDepositScreen(scr, lx, ly, lambda, I){
+  const res = E3D_SCR_RES;
+  if (!scr._img3d || scr._img3d.length !== res*res*3){
+    scr._img3d = new Float32Array(res*res*3);
+    scr._img3dN = 0;
+  }
+  const u = (lx/(scr.length/2)*0.5 + 0.5)*(res - 1);
+  const v = (ly/E3D_SCR_HALFH*0.5 + 0.5)*(res - 1);
+  const i0 = Math.floor(u), j0 = Math.floor(v);
+  const fu = u - i0, fv = v - j0;
+  const c = wavelengthToRGB(lambda);
+  for (let dj = 0; dj < 2; dj++) for (let di = 0; di < 2; di++){
+    const i = i0 + di, j = j0 + dj;
+    if (i < 0 || j < 0 || i >= res || j >= res) continue;
+    const w = (di ? fu : 1-fu)*(dj ? fv : 1-fv)*I;
+    const k = (j*res + i)*3;
+    scr._img3d[k] += w*c.r; scr._img3d[k+1] += w*c.g; scr._img3d[k+2] += w*c.b;
+  }
+  scr._img3dN = (scr._img3dN || 0) + 1;
+}
+
+/* ---------- 3D izleme çekirdeği (2D traceScene ile AYNI yapı) ---------- */
+function trace3DScene(rays, ents, opt){
+  const thr = (opt && opt.thr != null) ? opt.thr : state.settings.intensityMin;
+  const segCap = (opt && opt.segCap) || SEG_CAP;
+  const useFresnel = (opt && opt.fresnel != null) ? opt.fresnel : state.settings.fresnel;
+  const branchCap = (opt && opt.branchCap) || 900;
+  const events = (opt && opt.events) || lastEvents;
+  const deposit = !(opt && opt.noDeposit);
+  const heap = makeHeap();
+  const branches = [];
+  let segCount = 0;
+  for (const r of rays){ branches.push(r.branch); heap.push(r); }
+
+  while (heap.size){
+    if (segCount >= segCap){ energyStat.untracked += heap.drainEnergy(); break; }
+    const r = heap.pop();
+    let guard = 0;
+    while (guard++ < 500){
+      if (segCount >= segCap){ energyStat.untracked += (r.Is + r.Ip)/2; break; }
+      const hit = nearest3D(r.x, r.y, r.z, r.dx, r.dy, r.dz, ents, r.lastKeys, r.lastTris);
+      const I0 = (r.Is + r.Ip)/2;
+      if (!hit){
+        const L = 4000;
+        const med = r.stack[r.stack.length-1];
+        let f = 1;
+        if (med) f = Math.pow(glassT10(med, r.lambda), L/10);
+        r.branch.pts.push({x:r.x + r.dx*L, y:r.y + r.dy*L, z:r.z + r.dz*L});
+        r.branch.end = {x:r.x, y:r.y, z:r.z, dx:r.dx, dy:r.dy, dz:r.dz, screen:null};
+        r.branch.I.push(I0);
+        r.branch.nseg.push(med ? glassN(med, r.lambda) : 1);
+        segCount++;
+        energyStat.escaped += I0*f;
+        energyStat.absorbed += I0*(1 - f);
+        break;
+      }
+      const hx = r.x + r.dx*hit.t, hy = r.y + r.dy*hit.t, hz = r.z + r.dz*hit.t;
+
+      /* Diyafram DELİĞİ: 2D'de kesişim hiç yoktur → nokta/sekme kaydetmeden
+         düzlemin ötesine geç (Beer-Lambert kat edilen yol için işler). */
+      if (hit.sf.role === 'aperture' && hit.lx*hit.lx + hit.ly*hit.ly <= hit.sf.holeR2){
+        const med0 = r.stack[r.stack.length-1];
+        if (med0){
+          const f = Math.pow(glassT10(med0, r.lambda), hit.t/10);
+          energyStat.absorbed += (r.Is + r.Ip)/2*(1 - f);
+          r.Is *= f; r.Ip *= f;
+        }
+        r.x = hx + r.dx*1e-6; r.y = hy + r.dy*1e-6; r.z = hz + r.dz*1e-6;
+        r.lastKeys = [hit.key];
+        r.lastTris = { [hit.key]: hit.tri };
+        continue;
+      }
+
+      const med = r.stack[r.stack.length-1];
+      if (med){
+        const f = Math.pow(glassT10(med, r.lambda), hit.t/10);
+        energyStat.absorbed += (r.Is + r.Ip)/2*(1 - f);
+        r.Is *= f; r.Ip *= f;
+      }
+      r.branch.pts.push({x:hx, y:hy, z:hz});
+      r.branch.I.push((r.Is + r.Ip)/2);
+      const nSeg = med ? glassN(med, r.lambda) : 1;
+      r.branch.nseg.push(nSeg);
+      r.u += nSeg*hit.t;
+      segCount++;
+      r.x = hx; r.y = hy; r.z = hz;
+      r.lastKeys = hit.group.map(g => g.key);
+      r.lastTris = {}; for (const g of hit.group) r.lastTris[g.key] = g.tri;
+      const I = (r.Is + r.Ip)/2;
+      r.bounces++;
+
+      if (hit.sf.role === 'screen'){
+        lastScreenHits.push({x:hx, y:hy, I, c:r.branch.color, br:r.branch, scr:hit.obj,
+                             dx:r.dx, dy:r.dy, lx:hit.lx, ly:hit.ly});
+        r.branch.hits.push({x:hx, y:hy, z:hz, screen:true, I, oid:hit.obj.id,
+                            lx:hit.lx, ly:hit.ly});
+        const pv = r.branch.pts[r.branch.pts.length-2];
+        r.branch.end = { x:(pv?pv.x:hx), y:(pv?pv.y:hy), z:(pv?pv.z:hz),
+                         dx:r.dx, dy:r.dy, dz:r.dz, screen:hit.obj };
+        energyStat.screen += I;
+        if (deposit) e3dDepositScreen(hit.obj, hit.lx, hit.ly, r.lambda, I);
+        break;
+      }
+      if (hit.sf.role === 'aperture'){          // kanat: soğurur (2D 'absorb' gibi)
+        r.branch.hits.push({x:hx, y:hy, z:hz, I, absorb:true, oid:hit.obj.id});
+        energyStat.absorbed += I;
+        break;
+      }
+      if (r.bounces > r.maxBounce){ energyStat.untracked += I; break; }
+
+      let nx = hit.nx, ny = hit.ny, nz = hit.nz;
+      let cosI = -(r.dx*nx + r.dy*ny + r.dz*nz);
+      if (cosI < 0){ nx = -nx; ny = -ny; nz = -nz; cosI = -cosI; }
+      if (cosI > 1) cosI = 1;
+
+      /* s-polarizasyon bazını yeni geliş düzlemine döndür (ŞİDDET izdüşümü —
+         bkz. B4 sınır notu). Düzlem içi ışın + dik yüzeyde s = ẑ kalır →
+         2D motorla birebir parite. */
+      let nsx = r.dy*nz - r.dz*ny, nsy = r.dz*nx - r.dx*nz, nsz = r.dx*ny - r.dy*nx;
+      const nsl = Math.sqrt(nsx*nsx + nsy*nsy + nsz*nsz);
+      if (nsl > 1e-9){
+        nsx /= nsl; nsy /= nsl; nsz /= nsl;
+        const cph = r.sx*nsx + r.sy*nsy + r.sz*nsz;
+        const c2 = Math.min(1, cph*cph), s2 = 1 - c2;
+        const nIs = r.Is*c2 + r.Ip*s2, nIp = r.Is*s2 + r.Ip*c2;
+        r.Is = nIs; r.Ip = nIp;
+        r.sx = nsx; r.sy = nsy; r.sz = nsz;
+      }
+
+      if (hit.sf.role === 'mirror'){
+        const R = mirrorR(hit.obj, r.lambda);
+        energyStat.absorbed += I*(1 - R);
+        r.Is *= R; r.Ip *= R;
+        const dn = r.dx*nx + r.dy*ny + r.dz*nz;
+        r.dx -= 2*dn*nx; r.dy -= 2*dn*ny; r.dz -= 2*dn*nz;
+        r.branch.hits.push({x:hx, y:hy, z:hz, I, optic:true, oid:hit.obj.id});
+        if ((r.Is + r.Ip)/2 < thr){ energyStat.untracked += (r.Is + r.Ip)/2; break; }
+        continue;
+      }
+
+      /* ---- kırıcı grup (B1): ortam yığını TEK seferde, bağıl indis ---- */
+      let newStack = r.stack.slice();
+      const entered = [];
+      for (const gc of hit.group){
+        const gi = newStack.lastIndexOf(gc.obj);
+        if (gi >= 0) newStack.splice(gi, 1);
+        else if (!entered.includes(gc.obj)) entered.push(gc.obj);
+      }
+      for (const eo of entered) newStack.push(eo);
+      const obj = entered[0] || hit.group[0].obj;
+      const n1 = r.stack.length ? e3dIndexAt(r.stack[r.stack.length-1], r.lambda) : 1;
+      const n2 = newStack.length ? e3dIndexAt(newStack[newStack.length-1], r.lambda) : 1;
+      const nr = n1/n2;
+      const sinT2 = nr*nr*(1 - cosI*cosI);
+      if (sinT2 > 1){                            // TIR — kayıpsız
+        const dn = r.dx*nx + r.dy*ny + r.dz*nz;
+        r.dx -= 2*dn*nx; r.dy -= 2*dn*ny; r.dz -= 2*dn*nz;
+        r.branch.hits.push({x:hx, y:hy, z:hz, tir:true, I, optic:true, oid:obj.id});
+        events.push({obj, x:hx, y:hy, z:hz, tir:true, kind:'TIR',
+          t1:Math.acos(Math.min(1,cosI))/DEG, t2:null, n1, n2});
+        continue;
+      }
+      const cosT = Math.sqrt(1 - sinT2);
+      let Rs = 0, Rp = 0;
+      if (useFresnel && Math.abs(n1 - n2) > 1e-9){
+        const rs = (n1*cosI - n2*cosT)/(n1*cosI + n2*cosT);
+        const rp = (n2*cosI - n1*cosT)/(n2*cosI + n1*cosT);
+        Rs = rs*rs; Rp = rp*rp;
+      }
+      const IrS = r.Is*Rs, IrP = r.Ip*Rp;
+      const Iref = (IrS + IrP)/2;
+      if (Iref > 1e-9){
+        if (Iref >= thr && branches.length < branchCap){
+          const dn = r.dx*nx + r.dy*ny + r.dz*nz;
+          const rdx = r.dx - 2*dn*nx, rdy = r.dy - 2*dn*ny, rdz = r.dz - 2*dn*nz;
+          const nb = { pts:[{x:hx, y:hy, z:hz}], I:[], color:r.branch.color, hex:r.branch.hex,
+                       lambda:r.lambda, thickness:r.branch.thickness, srcId:r.branch.srcId,
+                       primary:false, hits:[], is0:IrS, ip0:IrP,
+                       nseg:[], u0:r.u, tree:r.branch.tree, b0:r.bounces, maxB:r.maxBounce };
+          branches.push(nb);
+          heap.push({ x:hx, y:hy, z:hz, dx:rdx, dy:rdy, dz:rdz, Is:IrS, Ip:IrP,
+                      sx:r.sx, sy:r.sy, sz:r.sz,
+                      stack:r.stack.slice(), lastKeys:hit.group.map(g => g.key),
+                      lastTris:(()=>{const m={};for(const g of hit.group)m[g.key]=g.tri;return m;})(),
+                      bounces:r.bounces, maxBounce:r.maxBounce, lambda:r.lambda,
+                      branch:nb, u:r.u });
+        } else energyStat.untracked += Iref;
+      }
+      r.Is *= (1 - Rs); r.Ip *= (1 - Rp);
+      events.push({obj, x:hx, y:hy, z:hz, kind:'refract', exiting: entered.length === 0,
+        t1:Math.acos(Math.min(1,cosI))/DEG,
+        t2:Math.acos(Math.min(1,cosT))/DEG, n1, n2, Rs, Rp});
+      r.branch.hits.push({x:hx, y:hy, z:hz, I:(r.Is + r.Ip)/2, optic:true, oid:obj.id});
+      r.dx = nr*r.dx + (nr*cosI - cosT)*nx;
+      r.dy = nr*r.dy + (nr*cosI - cosT)*ny;
+      r.dz = nr*r.dz + (nr*cosI - cosT)*nz;
+      const dl = Math.sqrt(r.dx*r.dx + r.dy*r.dy + r.dz*r.dz) || 1;
+      r.dx /= dl; r.dy /= dl; r.dz /= dl;
+      r.stack = newStack;
+      if ((r.Is + r.Ip)/2 < thr){ energyStat.untracked += (r.Is + r.Ip)/2; break; }
+    }
+  }
+  return branches;
+}
+
+/* ---------- 2D üretilen ışını 3D poza kaldır ---------- */
+function e3dLiftRay(o, ray){
+  const M = e3dExtraM(o);
+  const rel = e3dApply(M, ray.x - o.x, ray.y - o.y, 0);
+  const d3 = e3dApply(M, ray.dx, ray.dy, 0);
+  return { x: o.x + rel[0], y: o.y + rel[1], z: (o.zOff || 0) + rel[2],
+           dx: d3[0], dy: d3[1], dz: d3[2] };
+}
+
+/* ---------- 3D modda tam sahne izlemesi (traceAll'ın ileri-mod yolu) ---------- */
+function traceAll3D(){
+  const t0 = performance.now();
+  const ents = e3dScene(state.objects);
+  lastEvents = []; lastScreenHits = [];
+  energyStat = { emitted:0, absorbed:0, screen:0, escaped:0, untracked:0 };
+  for (const o of state.objects)
+    if (o.type === 'screen' && o._img3d) o._img3d.fill(0), o._img3dN = 0;
+  const rays = [];
+  let treeCounter = 0;
+  for (const o of state.objects){
+    if (o.type !== 'source' || o.on === false) continue;
+    const a = o.rot*DEG;
+    const dx = Math.cos(a), dy = Math.sin(a);
+    const px = -Math.sin(a), py = Math.cos(a);
+    const N = Math.max(1, Math.round(o.rays));
+    const samples = o.lightMode === 'white'
+      ? spectralSamples(effectiveSpectralK())
+      : [{ lambda: o.lambda, c: wavelengthToRGB(o.lambda) }];
+    for (let i = 0; i < N; i++){
+      const k = i - (N-1)/2;
+      const rayTree = ++treeCounter;
+      let ox = o.x + dx*24, oy = o.y + dy*24, rdx = dx, rdy = dy;
+      if (o.mode === 'parallel'){ ox += px*k*o.spacing; oy += py*k*o.spacing; }
+      else { const fa = a + k*o.fanAngle*DEG; rdx = Math.cos(fa); rdy = Math.sin(fa); }
+      const p3 = e3dLiftRay(o, {x:ox, y:oy, dx:rdx, dy:rdy});
+      /* Tur B: başlangıç ortam yığını 3D nokta-içinde-katı testiyle —
+         eğik kaynak / z≠0 başlangıç / cam içinde doğan ışın doğru kurulur */
+      const st0 = stack3DAt(ents, p3.x, p3.y, p3.z);
+      for (const sm of samples){
+        const br = { pts:[{x:p3.x, y:p3.y, z:p3.z}], I:[], color:sm.c, hex:rgbToHex(sm.c),
+                     lambda:sm.lambda, thickness:o.thickness, srcId:o.id,
+                     primary:true, hits:[], is0:1, ip0:1,
+                     nseg:[], u0:0, tree:rayTree, b0:0, maxB:o.maxBounce };
+        rays.push({ x:p3.x, y:p3.y, z:p3.z, dx:p3.dx, dy:p3.dy, dz:p3.dz,
+                    Is:1, Ip:1, sx:0, sy:0, sz:1,
+                    stack:st0.slice(), lastKeys:[], bounces:0,
+                    maxBounce:o.maxBounce, lambda:sm.lambda, branch:br, u:0 });
+        energyStat.emitted += 1;
+      }
+    }
+  }
+  /* Tur B: cisimler 3D modda optik eksene DİK duran 2B yüzeylerdir
+     (projektördeki slayt gibi) — F harfi hem enine hem düşey uzanır ve
+     perdede 2 BOYUTLU görüntü olarak çözülür. Kendi 3D yayıcısı örnekler;
+     yoğun görüntü geçişi aşağıda denseImagePass3D ile koşar. */
+  for (const o of state.objects){
+    if (o.type !== 'body' || o.on === false) continue;
+    for (const r of emit3DBodyRays(o, ents, o.points, o.raysPerPoint)){
+      r.branch.tree = ++treeCounter;
+      rays.push(r);
+      energyStat.emitted += 1;
+    }
+  }
+  lastBranches = trace3DScene(rays, ents);
+  denseImagePass3D(ents);                    /* Tur B: perdede 2B görüntü + ölçüm */
+  if (state.highlight && !lastBranches.some(b => b.tree === state.highlight.tree))
+    state.highlight = null;
+  lastTraces = lastBranches.filter(b => b.primary)
+    .map(b => ({ pts:b.pts, hits:b.hits, color:b.hex, thickness:b.thickness }));
+  lastTraceMs = performance.now() - t0;
+  if (state.dragging && lastTraceMs > 15) perfSlow = true;
+  updateAngleReadout();
+  updateEnergyBadge();
+  updateAllOffHint();
+  if (state.highlight) updateSelReadout();
+}
+
+/* =====================================================================
+   2e. TUR B — 3D CİSİM YAYICISI ve PERDEDE 2B GÖRÜNTÜ
+   3D modda cisim, optik eksene DİK duran düz bir yüzeydir: F harfi hem
+   enine (yerel y) hem düşey (z) uzanır; mum/ok düşey bir çizgidir. Her
+   örnek nokta, en yakın elemanın açıklığını (enine + düşey) kaplayan bir
+   KONİYE Fibonacci sarmalıyla ışın yayar; perde çarpmaları (lx, ly)
+   olarak birikir ve görüntü perdede 2 boyutlu çözülür. Ölçülen düşey ve
+   enine büyütme, örnek koordinatı ↔ perde (ly, lx) eşleşmesinin doğrusal
+   uyumundan (fit) gelir — formül değil, gerçek izleme ölçümüdür.
+   ===================================================================== */
+function bodyGlyphSamples3D(o, P){
+  /* Döner: [{t: enine (yerel y, mm), h: düşey (EKSEN MERKEZLİ, mm), hex, I}]
+     Not: cisim düşeyde optik eksene ortalanır (h = 0 eksen düzlemi) —
+     görüntü kuran elemanlar z = 0 kesit düzleminde merkezlidir. */
+  const H = o.height, out = [];
+  if (o.shape === 'letterF'){
+    const th = Math.max(1.6, H*0.11), w = H*0.55;
+    /* 3D görsel glyph ile birebir: dikey çubuk + üst çubuk + orta çubuk */
+    const bars = [
+      { x0:-w/2,    y0:0,        x1:-w/2,   y1:H        },
+      { x0:-w/2,    y0:H - th/2, x1: w/2,   y1:H - th/2 },
+      { x0:-w*0.43, y0:H*0.45,   x1: w*0.29, y1:H*0.45  },
+    ];
+    const lens_ = bars.map(b => Math.hypot(b.x1 - b.x0, b.y1 - b.y0));
+    const total = lens_.reduce((a, v) => a + v, 0);
+    for (let bi = 0; bi < bars.length; bi++){
+      const b = bars[bi];
+      const n = Math.max(2, Math.round(P*lens_[bi]/total));
+      for (let i = 0; i < n; i++){
+        const u = i/(n - 1);
+        out.push({ t: b.x0 + (b.x1 - b.x0)*u,
+                   h: (b.y0 + (b.y1 - b.y0)*u) - H/2,
+                   hex: o.color, I: 0.9 });
+      }
+    }
+    return out;
+  }
+  const N = Math.max(2, Math.round(P));
+  for (let i = 0; i < N; i++){
+    const u = i/(N - 1), pr = bodyProfile(o, u);
+    out.push({ t: 0, h: H*u - H/2, hex: pr.hex, I: pr.I });
+  }
+  return out;
+}
+/* Hedef elemanın düşey yarı açıklığı (koninin düşey yarıçapı) */
+function targetVertHalf(q){
+  if (q.type === 'lens') return lensSolid(q).h;
+  if (q.type === 'cmirror') return q.aperture/2;
+  if (q.type === 'aperture') return q.gap/2;
+  return 36;                                   /* ayna/perde levha yarı boyu */
+}
+function emit3DBodyRays(o, ents, P, M, opts){
+  const rays = [];
+  const target = nearestAimTarget(o);
+  const samples = bodyGlyphSamples3D(o, Math.max(2, Math.round(P)));
+  const spec = o.lightMode === 'white' ? spectralSamples((opts && opts.K) || 3) : null;
+  const nM = Math.max(1, Math.round(M));
+  const M3 = e3dExtraM(o);
+  for (let si = 0; si < samples.length; si++){
+    const sp = samples[si];
+    const w2 = localToWorld(o, 0, sp.t);
+    const rel = e3dApply(M3, w2.x - o.x, w2.y - o.y, sp.h);
+    const px = o.x + rel[0], py = o.y + rel[1], pz = (o.zOff || 0) + rel[2];
+    /* nişan: hedef merkezine; koni, hedefin enine + düşey açıklığını kaplar */
+    let ax = Math.cos((o.rot || 0)*DEG), ay = Math.sin((o.rot || 0)*DEG), az = 0;
+    let th = Math.max(2, o.coneAngle)*DEG/2;
+    if (target){
+      const dx0 = target.x - px, dy0 = target.y - py, dz0 = (target.zOff || 0) - pz;
+      const dist = Math.hypot(dx0, dy0, dz0) || 1;
+      ax = dx0/dist; ay = dy0/dist; az = dz0/dist;
+      let thH = 0;
+      for (const rp of elementRimPoints(target)){
+        const d1x = rp.x - px, d1y = rp.y - py;
+        const l1 = Math.hypot(d1x, d1y, dz0) || 1;
+        thH = Math.max(thH, Math.acos(Math.max(-1, Math.min(1,
+          (d1x*ax + d1y*ay + dz0*az)/l1))));
+      }
+      const thV = Math.atan2(targetVertHalf(target), dist);
+      th = Math.max(0.02, Math.max(thH, thV)*0.98);
+    }
+    /* nişan eksenine dik ortonormal taban */
+    let e1x = -ay, e1y = ax, e1z = 0;
+    let l1 = Math.hypot(e1x, e1y, e1z);
+    if (l1 < 1e-6){ e1x = 1; e1y = 0; e1z = 0; l1 = 1; }
+    e1x /= l1; e1y /= l1; e1z /= l1;
+    const e2x = ay*e1z - az*e1y, e2y = az*e1x - ax*e1z, e2z = ax*e1y - ay*e1x;
+    const st0 = stack3DAt(ents, px, py, pz);
+    const cols = spec || [{ lambda:o.lambda, c:hexToRGBobj(sp.hex) }];
+    for (let j = 0; j < nM; j++){
+      /* Fibonacci sarmalı: koni katı açısını iki eksende dengeli örnekler */
+      const rr = th*Math.sqrt((j + 0.5)/nM), ph = j*2.399963;
+      const ox_ = Math.cos(ph)*rr, oy_ = Math.sin(ph)*rr;
+      let dx = ax + e1x*ox_ + e2x*oy_, dy = ay + e1y*ox_ + e2y*oy_, dz = az + e1z*ox_ + e2z*oy_;
+      const dl = Math.hypot(dx, dy, dz) || 1;
+      dx /= dl; dy /= dl; dz /= dl;
+      for (const cm of cols){
+        const br = { pts:[{x:px, y:py, z:pz}], I:[], color:cm.c, hex:rgbToHex(cm.c),
+                     lambda:cm.lambda, thickness:(opts && opts.thickness) || o.thickness,
+                     srcId:o.id, primary:true, hits:[], is0:sp.I, ip0:sp.I,
+                     nseg:[], u0:0, tree:0, b0:0, maxB:o.maxBounce,
+                     bodyId:o.id, ptIdx:si, ptH:sp.h, ptT:sp.t, ptHex:sp.hex };
+        rays.push({ x:px, y:py, z:pz, dx, dy, dz, Is:sp.I, Ip:sp.I,
+                    sx:0, sy:0, sz:1, stack:st0.slice(), lastKeys:[],
+                    bounces:0, maxBounce:o.maxBounce, lambda:cm.lambda,
+                    branch:br, u:0 });
+      }
+    }
+  }
+  return rays;
+}
+/* ---------- yoğun görüntü geçişi (3D) + ölçüm ---------- */
+let image3DStats = [];            /* [{screenId, bodyId, m, mH, height, real, hits, mTheo}] */
+function stats3DFor(screenId){ return image3DStats.filter(s => s.screenId === screenId); }
+function denseImagePass3D(ents){
+  image3DStats = [];
+  if (state.physicsMode !== '3d') return;
+  const bodies = state.objects.filter(o => o.type === 'body' && o.on !== false);
+  const screens = state.objects.filter(o => o.type === 'screen');
+  if (!bodies.length || !screens.length) return;
+  const qkey = imageQualityKey();              /* sürüklerken daima 'low' */
+  const useDense = !!qkey && screens.some(s => s.showImage !== false);
+  const Q = IMG_QUALITY[qkey || 'low'];
+  const P = useDense ? Math.min(84, Q.P) : 16;
+  const M = useDense ? Math.min(40, Q.M) : 12;
+  const rays = [];
+  for (const o of bodies)
+    for (const r of emit3DBodyRays(o, ents, P, M, { K:3 })) rays.push(r);
+  if (!rays.length) return;
+  const svE = energyStat, svH = lastScreenHits;
+  energyStat = { emitted:0, absorbed:0, screen:0, escaped:0, untracked:0 };
+  lastScreenHits = [];
+  let branches;
+  try {
+    branches = trace3DScene(rays, ents, {
+      fresnel:false, thr:0.02, branchCap:4, segCap:200000, events:[] });
+  } finally { energyStat = svE; lastScreenHits = svH; }
+  /* ölçüm: her (cisim, perde) çifti için düşey ve enine büyütme fit'i */
+  for (const scr of screens){
+    for (const o of bodies){
+      const groups = new Map(), ends = new Map();
+      for (const b of branches){
+        if (b.bodyId !== o.id) continue;
+        for (const hh of b.hits){
+          if (!hh.screen || hh.oid !== scr.id) continue;
+          let g = groups.get(b.ptIdx);
+          if (!g) groups.set(b.ptIdx, g = { h:b.ptH, t:b.ptT, ly:[], lx:[] });
+          g.ly.push(hh.ly); g.lx.push(hh.lx);
+        }
+        if (b.end && b.hits.some(x => x.optic)){
+          let e = ends.get(b.ptIdx);
+          if (!e) ends.set(b.ptIdx, e = []);
+          e.push(b.end);
+        }
+      }
+      const med = a => { const s = a.slice().sort((x,y) => x - y); return s[Math.floor(s.length/2)]; };
+      const fit = (xs, ys) => {
+        const n = xs.length;
+        const mx = xs.reduce((a,v) => a+v, 0)/n, my = ys.reduce((a,v) => a+v, 0)/n;
+        let sxy = 0, sxx = 0;
+        for (let i = 0; i < n; i++){ sxy += (xs[i]-mx)*(ys[i]-my); sxx += (xs[i]-mx)**2; }
+        return sxx > 1e-9 ? sxy/sxx : null;
+      };
+      const hV = [], yV = [], hT = [], yT = [];
+      let nHit = 0;
+      for (const [, g] of groups){
+        if (g.ly.length < 2) continue;
+        hV.push(g.h); yV.push(med(g.ly));
+        hT.push(g.t); yT.push(med(g.lx));
+        nHit += g.ly.length;
+      }
+      if (hV.length < 3) continue;
+      const m = fit(hV, yV);
+      if (m == null) continue;
+      const mH = fit(hT, yT);                 /* enine (ayna) büyütme — F testi */
+      /* gerçek/sanal: çıkış ışınlarının x–z (düşey) düzleminde kesişimi */
+      let ahead = 0, tot = 0;
+      for (const [, list] of ends){
+        if (list.length < 3) continue;
+        const cr = raysCrossing(list.map(r => ({ x:r.x, y:(r.z || 0), dx:r.dx, dy:(r.dz || 0) })));
+        if (cr){ tot++; if (cr.real) ahead++; }
+      }
+      /* teorik m (ince mercek, cisme en yakın mercek üzerinden) */
+      let mTheo = null;
+      const lens = state.objects.filter(q => q.type === 'lens')
+        .sort((a, b) => Math.abs(a.x - o.x) - Math.abs(b.x - o.x))[0];
+      if (lens){
+        const d_o = Math.hypot(lens.x - o.x, lens.y - o.y);
+        const d_i = Math.hypot(scr.x - lens.x, scr.y - lens.y);
+        if (d_o > 1e-6 && d_i > 1e-6) mTheo = -d_i/d_o;
+      }
+      image3DStats.push({ screenId:scr.id, bodyId:o.id, m, mH,
+                          height: Math.abs(m)*o.height, hits:nHit,
+                          real: tot ? ahead >= tot/2 : true, mTheo, pts:hV.length });
+    }
+  }
+}
+
+/* ---------- tek ışın ölçüm API'si (parite / astigmatizm testleri) ---------- */
+function e3dTraceRay(origin, dir, lambda, opts){
+  const ents = e3dScene(state.objects);
+  const saveE = energyStat, saveH = lastScreenHits;
+  energyStat = { emitted:0, absorbed:0, screen:0, escaped:0, untracked:0 };
+  lastScreenHits = [];
+  const events = [];
+  const dl = Math.hypot(dir.x, dir.y, dir.z || 0) || 1;
+  const br = { pts:[{x:origin.x, y:origin.y, z:origin.z || 0}], I:[], color:{r:1,g:1,b:1},
+               hex:'#ffffff', lambda: lambda || LAMBDA_D, thickness:1, srcId:0,
+               primary:true, hits:[], is0:1, ip0:1, nseg:[], u0:0, tree:0, b0:0, maxB:60 };
+  trace3DScene([{ x:origin.x, y:origin.y, z:origin.z || 0,
+                  dx:dir.x/dl, dy:dir.y/dl, dz:(dir.z || 0)/dl,
+                  Is:1, Ip:1, sx:0, sy:0, sz:1,
+                  /* D-2: başlangıç ortam yığını gerçek sahneden kurulur —
+                     camın İÇİNDE doğan ışın 'dışarıdan geliyor' sanılmasın
+                     (ürün yolu traceAll3D zaten böyle yapıyordu). */
+                  stack: stack3DAt(ents, origin.x, origin.y, origin.z || 0),
+                  lastKeys:[], lastTris:{},
+                  bounces:0, maxBounce:60, lambda: lambda || LAMBDA_D, branch:br, u:0 }],
+    ents, Object.assign({ fresnel:false, thr:1e-7, events, noDeposit:true }, opts || {}));
+  energyStat = saveE; lastScreenHits = saveH;
+  const P = br.pts;
+  let exitPt = null, exitDir = null;
+  if (P.length >= 2){
+    const A = P[P.length-2], B = P[P.length-1];
+    const l = Math.hypot(B.x-A.x, B.y-A.y, B.z-A.z) || 1;
+    exitPt = { x:A.x, y:A.y, z:A.z };
+    exitDir = { x:(B.x-A.x)/l, y:(B.y-A.y)/l, z:(B.z-A.z)/l };
+  }
+  return { pts:P, exitPt, exitDir,
+           events: events.map(e => ({ kind:e.kind, tir:!!e.tir, n1:e.n1, n2:e.n2,
+                                      t1:e.t1, t2:e.t2, Rs:e.Rs, Rp:e.Rp,
+                                      x:e.x, y:e.y, z:e.z, objId:e.obj && e.obj.id })) };
+}
+
+/* =====================================================================
+   FİZİK MODU ANAHTARI — 2D kesit (varsayılan) ↔ 3D ileri mod
+   ===================================================================== */
+function setPhysicsModeSilent(pm){
+  state.physicsMode = pm === '3d' ? '3d' : '2d';
+  syncPhysicsModeUI();
+}
+function syncPhysicsModeUI(){
+  const on = state.physicsMode === '3d';
+  const btn = document.getElementById('btnMode3D');
+  if (btn) btn.classList.toggle('active', on);
+  const tv = document.getElementById('topviewBadge');
+  if (tv) tv.classList.toggle('show', on);
+  const bm = document.getElementById('badge3dMain');
+  if (bm) bm.innerHTML = on
+    ? bm.innerHTML.replace(/3D önizleme[^<]*/, '3D fizik modu — ışınlar hacimde izlenir')
+    : bm.innerHTML.replace(/3D fizik modu[^<]*/, '3D önizleme — fizik 2D kesitte hesaplanır');
+  /* Tur B: 2D'ye özel araçlar ileri modda pasif + GEREKÇE ROZETİ.
+     Cetvel/açı ölçüsü/otomatik ölçüler (ve onlarla kurulan bağlı ölçüler,
+     sürücü ölçü) 2D kesit düzleminde tanımlıdır — 3D hacimde tek bir kesit
+     yoktur. Düğme başlığına gerekçe eklenir, köşesine "2D" rozeti çizilir. */
+  const REASON_2D = ' — 2D kesit modunda kullanılabilir';
+  for (const id of ['btnRuler','btnAngle','btnDims']){
+    const b = document.getElementById(id);
+    if (!b) continue;
+    if (!b.dataset.baseTitle) b.dataset.baseTitle = b.title;
+    b.disabled = on;
+    b.title = on ? b.dataset.baseTitle + REASON_2D : b.dataset.baseTitle;
+    if (on) b.dataset.reason = '2D'; else delete b.dataset.reason;
+  }
+  if (typeof syncFileMenu3D === 'function') syncFileMenu3D();
+  if (on && (state.tool === 'ruler' || state.tool === 'angle') && typeof setTool === 'function')
+    setTool('select');
+  const sw = document.getElementById('btnMode3D');
+  if (sw) sw.title = on ? 'İleri 3D fizik modu AÇIK — kapatmak için tıklayın'
+                        : 'İleri 3D fizik modu: ışınlar hacimde izlenir (eğim/yükseklik)';
+}
+function setPhysicsMode(on){
+  if (on === (state.physicsMode === '3d')) return;
+  if (on){
+    commitChange();
+    state.physicsMode = '3d';
+    syncPhysicsModeUI();
+    setViewMode(true);                          // açılınca 3D görünüme geç
+    markDirty(); buildPanel();
+    if (settingsPanel && settingsPanel.classList.contains('open')) buildSettingsPanel();
+    return;
+  }
+  const finish = () => {
+    state.physicsMode = '2d';
+    syncPhysicsModeUI();
+    markDirty(); buildPanel();
+    if (settingsPanel && settingsPanel.classList.contains('open')) buildSettingsPanel();
+  };
+  if (hasOutOfPlanePose()){
+    const v3 = hasVerts3D();
+    showModal('2D kesit moduna dön',
+      'Sahnede düzlem dışı poz (eğim / yatış / yükseklik)' +
+      (v3 ? ' veya bağımsız 3D köşe düzenlemesi' : '') + ' olan nesneler var. ' +
+      '2D kesit fiziği bu pozları temsil edemez.' +
+      (v3 ? '<br><b>3D köşe düzenlemeleri de sıfırlanacak.</b>' : '') + '<br><br>' +
+      '<b>Eğimler ve yükseklikler sıfırlansın mı?</b>',
+      [
+        { label:'Vazgeç', test:'flatten-cancel', cb(){
+            syncPhysicsModeUI();
+            if (typeof settingsPanel !== 'undefined' && settingsPanel.classList.contains('open'))
+              buildSettingsPanel();
+          } },
+        { label:'Düzleştir ve 2D moda geç', cls:'danger', test:'flatten-ok', cb(){
+            commitChange();
+            flattenPose();
+            finish();
+          } },
+      ]);
+    return;
+  }
+  commitChange();
+  finish();
+}
+</script>
+
 <script>
 "use strict";
 /* =====================================================================
@@ -3884,10 +5032,11 @@ function renderScene(g, W, H, view, pal, pixRatio, mode){
 
   /* ---- otomatik ölçüler ---- */
   lastDims = [];
-  if (state.settings.autoDims) drawAutoDims(g, pal, s);
+  /* 2.0: 2D ölçüm/bilgi katmanları KESİT modasına aittir; ileri modda pasif */
+  if (state.settings.autoDims && state.physicsMode !== '3d') drawAutoDims(g, pal, s);
 
   /* ---- Final 1.2: kırınım sınırı bilgi katmanı (yalnız açıkken) ---- */
-  if (state.settings.showDiffraction) drawDiffractionLayer(g, pal, s, mode);
+  if (state.settings.showDiffraction && state.physicsMode !== '3d') drawDiffractionLayer(g, pal, s, mode);
 
   /* ---- ölçüler (cetvel + kenara bağlı + açı) ---- */
   for (const o of state.objects){
@@ -5313,6 +6462,7 @@ function setDragTarget(tx, ty){
     const l = worldToLocal(pointer.obj, tx, ty);
     pointer.obj.verts[pointer.vertIdx].x = l.x;
     pointer.obj.verts[pointer.vertIdx].y = l.y;
+    onCrossSectionEdited(pointer.obj);      /* Tur B: 3D köşeler kesitten türetilir */
   } else if (pointer.mode === 'gdrag' && pointer.group){
     const g = pointer.group, dx = tx - g.sx, dy = ty - g.sy;
     for (const it of g.items){
@@ -5421,6 +6571,7 @@ function applyFixChip(next){
   } else if (f.kind === 'vertex'){
     const l = worldToLocal(f.obj, f.ref.x + next.dx, f.ref.y + next.dy);
     f.obj.verts[f.vi].x = l.x; f.obj.verts[f.vi].y = l.y;
+    onCrossSectionEdited(f.obj);            /* Tur B */
     f.dx = next.dx; f.dy = next.dy;
   } else if (f.kind === 'rot'){
     for (const it of f.items) if (!it.o.locked) it.o.rot = normDeg(it.rot0 + next.dDeg);
@@ -5592,6 +6743,12 @@ function hitDimLabel(wx, wy){
   return null;
 }
 function openDimEdit(o, clientX, clientY){
+  /* Tur B: sürücü ölçü 2D kesit aracıdır — ileri modda gerekçeyle reddet */
+  if (state.physicsMode === '3d'){
+    if (typeof flashStatus === 'function')
+      flashStatus('Sürücü ölçü 2D kesit modunda kullanılabilir');
+    return;
+  }
   hideFixChip(); hideDimEdit();
   const info = dimDriveInfo(o);
   if (!info) return;
@@ -6396,6 +7553,7 @@ canvas.addEventListener('pointermove', e => {
     const l = worldToLocal(pointer.obj, t.x, t.y);
     pointer.obj.verts[pointer.vertIdx].x = l.x;
     pointer.obj.verts[pointer.vertIdx].y = l.y;
+    onCrossSectionEdited(pointer.obj);      /* Tur B: 3D köşeler kesitten türetilir */
     markDirty();
   } else if (pointer.mode === 'rotate' && pointer.obj){
     let ang = Math.atan2(w.y - pointer.obj.y, w.x - pointer.obj.x)/DEG + 90;
@@ -7101,6 +8259,26 @@ function tintRow(o, label){
   return wrap;
 }
 
+/* 2.0: seçili nesnenin 3D yönelimi — YALNIZ ileri modda görünür.
+   sliderRow'un rozeti zaten yazılabilir sayı kutusudur (numBox deseni). */
+function appendOrientation3DSection(o){
+  panelBody.appendChild(el('div','group-title','3D Yönelim'));
+  panelBody.appendChild(sliderRow({
+    label:'Eğim (öne-arkaya)', min:-60, max:60, step:0.5, testId:'tilt-p',
+    get:() => o.tiltP || 0, set:v => { o.tiltP = v; }, fmt:v => v.toFixed(1)+'°'
+  }));
+  panelBody.appendChild(sliderRow({
+    label:'Yatış (optik eksen)', min:-180, max:180, step:1, testId:'tilt-r',
+    get:() => o.tiltR || 0, set:v => { o.tiltR = v; }, fmt:v => v.toFixed(0)+'°'
+  }));
+  panelBody.appendChild(sliderRow({
+    label:'Yükseklik (masadan)', min:-100, max:100, step:1, testId:'z-off',
+    get:() => o.zOff || 0, set:v => { o.zOff = v; }, fmt:v => fmtLen(v, true)
+  }));
+  panelBody.appendChild(el('div','info-note',
+    'Eğim ve yatış ışınları kesit düzleminin dışına taşır; fizik 3D motorla hacimde izlenir. ' +
+    '2D tuval bu sırada üstten izdüşüm gösterir.'));
+}
 function buildPanel(){
   panelBody.innerHTML = '';
   liveControls = {}; posCardEl = null;
@@ -7120,6 +8298,8 @@ function buildPanel(){
   else if (o.type === 'body') buildBodyPanel(o);
   else if (o.type === 'screen') buildScreenPanel(o);
   else buildSimplePanel(o);
+  if (state.physicsMode === '3d' && o.type !== 'measure' && o.type !== 'ameasure')
+    appendOrientation3DSection(o);
   updateSelReadout();
   updatePosCard();
 }
@@ -7951,6 +9131,34 @@ function buildScreenPanel(o){
   const card = el('div','img-card');
   card.dataset.test = 'screen-image-card';
   panelBody.appendChild(card);
+  if (state.physicsMode === '3d'){
+    /* Tur B: ileri modda perde 2 BOYUTLU görüntü biriktirir (3D çarpmalardan);
+       ölçüm, yoğun 3D geçişin düşey (h ↔ ly) doğrusal uyumundan gelir. */
+    const st3 = (typeof stats3DFor === 'function' ? stats3DFor(o.id) : [])[0];
+    if (!st3){
+      card.innerHTML = '<div class="img-none">Perdeye 3D görüntü düşmüyor. Sahneye bir <b>cisim</b> ' +
+        'ekleyin ve perdeyi görüntü düzlemine yaklaştırın. İleri modda görüntü perdede ' +
+        '<b>2 boyutlu</b> çözülür (F harfi şekliyle görünür).</div>';
+    } else {
+      const rows3 = [
+        ['Ölçülen düşey büyütme m', st3.m.toFixed(3) + (st3.m < 0 ? '  (ters)' : '  (düz)')],
+        ['Ölçülen enine büyütme', st3.mH == null ? '—' : st3.mH.toFixed(3) + (st3.mH < 0 ? '  (aynalanmış)' : '')],
+        ['Ölçülen görüntü boyu (düşey)', fmtLen(st3.height)],
+        ['Teorik m = −d<sub>i</sub>/d<sub>o</sub>', st3.mTheo == null ? '—' : st3.mTheo.toFixed(3)],
+        ['Görüntü türü', st3.real ? 'Gerçek (ışınlar kesişiyor)' : 'Sanal (geri uzantılar)'],
+        ['Çarpan ışın', String(st3.hits)],
+      ];
+      card.innerHTML = rows3.map(r => `<div class="img-row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('') +
+        '<div class="img-note">3D modda perde görüntüsü <b>2 boyutludur</b>: F harfi gibi cisimler ' +
+        'perdede şekliyle — gerçek görüntüde <b>ters ve aynalanmış</b> — çözülür. Doku 3D görünümde ' +
+        'perdenin üzerindedir; ölçüm düşey eksendedir.</div>';
+    }
+    panelBody.appendChild(el('div','info-note',
+      '“Perdeyi odağa getir” taraması 2D kesit modunda kullanılabilir.'));
+    panelBody.appendChild(makePosCard());
+    addDeleteButton(o);
+    return;
+  }
   const f = stripFor(o.id);
   if (!f || f.strip.m == null){
     card.innerHTML = '<div class="img-none">Perdeye görüntü düşmüyor. Sahneye bir <b>cisim</b> ekleyin, ' +
@@ -8039,6 +9247,15 @@ function buildSettingsPanel(){
   body.appendChild(segRow('Birim', [['mm','mm'],['cm','cm']],
     () => S.unit, v => { S.unit = v; buildPanel(); }, 'set-unit'));
 
+  body.appendChild(el('div','group-title','Fizik Modu (2.0)'));
+  body.appendChild(switchRow('İleri 3D fizik modu',
+    () => state.physicsMode === '3d', v => setPhysicsMode(v), 'set-mode3d'));
+  body.appendChild(el('div','info-note',
+    'Açıkken ışınlar <b>hacimde</b> izlenir: nesnelere eğim (öne-arkaya), yatış ve yükseklik ' +
+    'verilebilir; eğik elemanlarda astigmatizm gibi düzlem dışı etkiler gerçek izlemeden çıkar. ' +
+    'Kapalıyken (varsayılan) fizik 2D kesitte hesaplanır. 2D ölçüm araçları (cetvel/açı/otomatik ' +
+    'ölçüler) ve kırınım katmanı yalnız kesit modunda çalışır.'));
+
   body.appendChild(el('div','group-title','Fizik'));
   body.appendChild(switchRow('Fresnel kısmi yansıma',
     () => S.fresnel, v => S.fresnel = v, 'set-fresnel'));
@@ -8105,13 +9322,20 @@ function buildSettingsPanel(){
   body.appendChild(switchRow('Kenar uzunlukları (seçili çokgen)',
     () => S.showEdgeLens, v => { S.showEdgeLens = v; buildPanel(); }, 'set-showedgelens'));
 
-  /* Final 1.2: kırınım sınırı bilgi katmanı */
+  /* Final 1.2: kırınım sınırı bilgi katmanı — Tur B: ileri 3D modda pasif,
+     gerekçe açıkça yazılır (kırınım hesabı 2D kesit varsayar). */
   body.appendChild(el('div','group-title','Kırınım Sınırı (bilgi katmanı)'));
+  if (state.physicsMode === '3d'){
+    body.appendChild(el('div','info-note',
+      '<b>Kırınım katmanı 2D kesit modunda kullanılabilir</b> — kırınım hesabı ' +
+      '2D kesit varsayar; 3D hacim izlemesinde tek bir kesit düzlemi yoktur.'));
+  } else {
   body.appendChild(switchRow('Kırınım sınırını göster',
     () => S.showDiffraction, v => { S.showDiffraction = v; buildPanel(); }, 'set-diffraction'));
   body.appendChild(selectRow('Referans dalga boyu λ',
     [[450,'450 nm (mavi)'],[550,'550 nm (varsayılan)'],[587,'587 nm (d)'],[650,'650 nm (kırmızı)'],['src','Kaynaktan al']],
     () => S.diffLambda, v => { S.diffLambda = (v === 'src' ? 'src' : +v); buildPanel(); }, 'set-difflambda'));
+  }
   body.appendChild(el('div','info-note',
     'Katman fizik motorunu değiştirmez; Airy diski, Rayleigh/Abbe sınırları ve en keskin açıklık ' +
     'sahnedeki gerçek geometriden ve izleme verisinden TÜRETİLİR. Ayrıntı: Fizik → Kırınım sınırı.'));
@@ -8120,9 +9344,11 @@ function buildSettingsPanel(){
   body.appendChild(el('div','info-note',`Geri alma derinliği: <b>${history.MAX} adım</b> (bellekte tutulur).`));
   body.appendChild(el('div','group-title','Hakkında'));
   body.appendChild(el('div','info-note',
-    '<b>AI Light — Final 1.6</b><br>Gerçek geometrik optik motoru: her yüzeyde Snell yasası ve tam yansıma; ' +
+    '<b>AI Light 2.0</b><br>Gerçek geometrik optik motoru: her yüzeyde Snell yasası ve tam yansıma; ' +
     'Fresnel kısmi yansıma (Rs/Rp), Beer-Lambert soğurma, Cauchy dispersiyonu (n_d + Abbe V_d), ' +
     'küresel yüzeylerde gerçek ışın-yay kesişimi. Mercek odak işaretleri gerçek izlemeden paraksiyel odakla yerleştirilir.<br><br>' +
+    '<b>İleri 3D fizik modu (2.0):</b> ışınlar hacimde izlenir — eğik elemanlarda astigmatizm, ' +
+    'gerçek 3D köşe düzenleme ve perdede 2 boyutlu görüntü. Ayrıntı: <b>? → Bölüm 14</b>.<br><br>' +
     '<b>Model sınırı:</b> Bu simülatör geometrik optik varsayar (a ≫ λ); kırınım ve girişim modellenmiyor. ' +
     'Modelin nerede yetersiz kaldığını sayısal olarak görmek için: <b>Fizik → Kırınım sınırı</b>.<br><br>' +
     '<b>Çevrimdışı:</b> Tek dosya, sıfır ağ isteği — Three.js gömülüdür. ' +
@@ -8327,6 +9553,8 @@ document.getElementById('btnPhysics').addEventListener('click', () => {
 });
 document.getElementById('btnDrawerClose').addEventListener('click', () => drawerEl.classList.remove('open'));
 
+document.getElementById('btnMode3D').addEventListener('click',
+  () => setPhysicsMode(state.physicsMode !== '3d'));
 function syncDimsButton(){
   document.getElementById('btnDims').classList.toggle('active', state.settings.autoDims);
 }
@@ -8362,8 +9590,24 @@ document.getElementById('btnDims').addEventListener('click', () => {
 /* ---------- DOSYA MENÜSÜ (Aç / Kaydet / Dışa Aktar) ---------- */
 const fileMenu = document.getElementById('fileMenu');
 function hideFileMenu(){ fileMenu.classList.remove('show'); }
+/* Tur B: DXF 2 boyutlu bir çizim formatıdır — ileri 3D modda pasif madde +
+   gerekçe ipucu; kullanıcı STL'ye yönlendirilir (STL gerçek mesh'i verir). */
+function syncFileMenu3D(){
+  const on = state.physicsMode === '3d';
+  const dxf = fileMenu && fileMenu.querySelector('[data-export="dxf"]');
+  if (!dxf) return;
+  dxf.disabled = on;
+  dxf.classList.toggle('dim2d', on);
+  const small = dxf.querySelector('small');
+  if (small){
+    if (!small.dataset.base) small.dataset.base = small.textContent;
+    small.textContent = on ? 'DXF 2D’dir — 3D modda STL kullanın' : small.dataset.base;
+  }
+  dxf.title = on ? 'DXF 2D’dir — 3D modda STL kullanın' : '';
+}
 document.getElementById('btnFile').addEventListener('click', e => {
   e.stopPropagation();
+  syncFileMenu3D();
   fileMenu.classList.toggle('show');
 });
 fileMenu.addEventListener('click', e => {
@@ -8388,12 +9632,45 @@ document.getElementById('fileInput').addEventListener('change', e => {
   if (!f) return;
   const rd = new FileReader();
   rd.onload = () => {
-    try { commitChange(); restoreScene(rd.result); }
+    try { openSceneText(rd.result); }
     catch(err){ console.warn('Sahne dosyası okunamadı:', err.message); }
   };
   rd.readAsText(f);
   e.target.value = '';
 });
+/* 2.0: dosya açma akışı — v5 + physicsMode kararı.
+   · Eski (v<5) dosyalar: poz alanı yoktur → 2D açılır (değişiklik yok).
+   · v5, physicsMode='3d' → doğrudan 3D modda açılır.
+   · v5, düzlem dışı poz VAR ama mod '2d' (ve şu an 2D moddayız) →
+     kullanıcıya seçim: "3D modda aç" / "Düzleştirerek aç". */
+function openSceneText(text){
+  const d = JSON.parse(text);
+  const objs = d.objects || [];
+  const oop = hasOutOfPlanePose(objs);        /* Tur B: 3D köşe düzenlemeleri dahil */
+  const filePm = d.physicsMode === '3d' ? '3d' : '2d';
+  const openWith = pm => {
+    commitChange();
+    d.physicsMode = pm;
+    restoreScene(JSON.stringify(d));
+    if (pm === '3d') setViewMode(true);
+  };
+  if (oop && filePm === '2d' && state.physicsMode !== '3d'){
+    showModal('Düzlem dışı sahne',
+      'Bu dosyada eğim / yükseklik (3D poz) verisi var, ancak dosya 2D kesit modunda kaydedilmiş. ' +
+      'Nasıl açılsın?<br><br><b>3D modda aç:</b> pozlar korunur, ileri 3D fizik modu açılır.<br>' +
+      '<b>Düzleştirerek aç:</b> tüm eğimler ve yükseklikler sıfırlanır, 2D kesit modunda açılır.',
+      [
+        { label:'Düzleştirerek aç', test:'open-flat', cb(){
+            for (const o of objs){ o.zOff = 0; o.tiltP = 0; o.tiltR = 0;
+                                   delete o.vertsTop; delete o.vertsBot; }
+            openWith('2d');
+          } },
+        { label:'3D modda aç', cls:'', test:'open-3d', cb(){ openWith('3d'); } },
+      ]);
+    return;
+  }
+  openWith(oop ? '3d' : filePm);
+}
 function downloadBlob(name, blob){
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -8519,16 +9796,71 @@ const PRESETS = {
     const e = makeScreen(430, 0); e.length = 400;
     return [s, arrow, obj, eye, e];
   },
+  /* ---- Tur B: 3D İLERİ MOD KURULUMLARI (seçilince mod otomatik açılır) ----
+     Eğik mercek: prototip B tablosu θ=30 satırı — teğetsel odak ≈ 71.3 mm,
+     sagital ≈ 94.2 mm; perde teğetsel odakta durur, iki odak çizgisi
+     perde taranarak görülebilir. */
+  p3dAstig(){
+    const s = makeSource(-174, 0);
+    s.mode = 'parallel'; s.rays = 9; s.spacing = 4.5; s.lambda = 550; s.maxBounce = 16;
+    const L = makeLens('convex', 0, 0);
+    L.R1 = 100; L.R2 = -100; L.thickness = 10; L.diameter = 50;
+    L.nd = 1.5; L.n = 1.5; L.Vd = 55; L.tiltP = 30;
+    const e = makeScreen(71, 0); e.length = 120;
+    return [s, L, e];
+  },
+  /* Yatık (tiltR=45) flint prizma: dispersiyon düzlemi döner → perdede tayf
+     çizgisi EĞİK durur — 2D kesitin gösteremeyeceği bir 3D etki. */
+  p3dTayf(){
+    const p = makePoly('prism', 0, 0);
+    p.nd = 1.62; p.n = 1.62; p.Vd = 36; p.T10 = 0.96; p.tiltR = 45;
+    const s = makeSource(-324, 94);
+    s.rot = -24.1; s.mode = 'parallel'; s.rays = 2; s.spacing = 7;
+    s.lightMode = 'white'; s.maxBounce = 12;
+    const e = makeScreen(370, 115); e.rot = 24; e.length = 300;
+    return [s, p, e];
+  },
+  /* F harfi 2f dışında (d_o=240, f≈100 → d_i≈171, m≈−0.71): perdede TERS ve
+     AYNALANMIŞ, 2 boyutlu çözülmüş F — 2D kesitte imkânsız olan görüntü. */
+  p3dFharf(){
+    const b = makeBody('letterF', -240, 0);
+    b.height = 30; b.points = 11; b.raysPerPoint = 12; b.color = '#ffd54a';
+    const L = imgLens100(0, 0); L.diameter = 56; L.thickness = 10;
+    const e = makeScreen(171, 0); e.length = 140; e.showImage = true; e.imgQuality = 'high';
+    return [b, L, e];
+  },
+  /* Eğik cam levha yakınsayan demette astigmatizm üretir (işaret sınavının
+     görsel hâli): perdede odak çizgileri ayrışır. */
+  p3dLevha(){
+    const s = makeSource(-174, 0);
+    s.mode = 'parallel'; s.rays = 9; s.spacing = 4.5; s.lambda = 550; s.maxBounce = 20;
+    const L = makeLens('convex', 0, 0);
+    L.R1 = 100; L.R2 = -100; L.thickness = 10; L.diameter = 50; L.nd = 1.5; L.n = 1.5;
+    const p = makePoly('slab', 42, 0); p.tiltP = 40; p.nd = 1.52; p.n = 1.52;
+    const e = makeScreen(112, 0); e.length = 120;
+    return [s, L, p, e];
+  },
 };
 function loadPreset(key){
   if (!PRESETS[key]) return;
   commitChange();
+  /* Tur B: "p3d…" kurulumları ileri 3D modu OTOMATİK açar. 3D moddayken bir
+     2D kurulum seçilirse düzleştirme onayı SORULMAZ — sahne zaten baştan
+     kurulur; mod sessizce 2D'ye döner. */
+  const want3D = key.startsWith('p3d');
+  const modeChanged = want3D !== (state.physicsMode === '3d');
+  if (modeChanged) setPhysicsModeSilent(want3D ? '3d' : '2d');
   state.objects = PRESETS[key]().map(normalizeObject);
   selectObject(null);
   state.view.zoom = 1;
   state.view.panX = canvas.clientWidth/2;
   state.view.panY = canvas.clientHeight/2;
   markDirty();
+  if (modeChanged){
+    if (want3D) setViewMode(true);
+    else if (three.active) setViewMode(false);
+    if (settingsPanel && settingsPanel.classList.contains('open')) buildSettingsPanel();
+  }
 }
 document.getElementById('presetSelect').addEventListener('change', e => loadPreset(e.target.value));
 
@@ -8606,12 +9938,17 @@ function init3D(){
     /* Final 1.4 — ÖNCELİK SIRASI:
        köşe tutamacı > döndürme halkası > nesne gövdesi > boşluk (orbit).
        Pan yalnız orta tuş / Shift+sol; menü sağ tuş → çakışma yok. */
-    const hIdx = pick3DHandle(e);
-    if (hIdx >= 0){
+    const hu = pick3DHandle(e);
+    if (hu){
       const so = getSelected();
+      if (hu.face){
+        /* Tur B: üst/alt yüzey köşesi — bağımsız 3D sürükleme */
+        three.dragV = { idx:hu.vi, face:hu.face };
+        tweakBegin(); mode = 'vertex'; return;
+      }
       /* Final 1.6: kilit referansı = köşenin BAŞLANGIÇ dünya konumu */
-      three.dragV = { idx:hIdx,
-        ref: so ? localToWorld(so, so.verts[hIdx].x, so.verts[hIdx].y) : null };
+      three.dragV = { idx:hu.vi,
+        ref: so ? localToWorld(so, so.verts[hu.vi].x, so.verts[hu.vi].y) : null };
       tweakBegin(); mode = 'vertex'; return;
     }
     /* Shift ÇAKIŞMASI çözümü: tutamaç/halka/nesne üzerindeyken Shift "15°
@@ -8742,7 +10079,11 @@ function hover3DCursor(e){
   if (!three.active || !three.renderer || !window.THREE) return;
   if (three.dragV || three.dragM || three.dragR) return;
   let c = 'grab';
-  if (pick3DHandle(e) >= 0){
+  /* 2.0 DÜZELTMESİ: pick3DHandle artık indis değil, tutamacın userData'sını
+     (yoksa null) döndürüyor. Eski `>= 0` kontrolü burada kalmıştı ve JS'te
+     `null >= 0` TRUE olduğu için imleç her zaman bu dala girip 'grab'de
+     kilitleniyordu — nesne/halka/kilit imleçleri hiç çalışmıyordu. */
+  if (pick3DHandle(e)){
     c = 'grab';
   } else {
     const sel = getSelected();
@@ -9025,15 +10366,34 @@ function set3DHandles(){
   const y = objPlaneY(o);
   /* Köşe tutamaçları (yalnız çokgen) — en yüksek öncelik */
   if (o.type === 'poly'){
-    const w = polyWorldVerts(o);
-    for (let i = 0; i < w.length; i++){
-      const m = new T.Mesh(new T.SphereGeometry(7, 14, 10),
-        new T.MeshBasicMaterial({ color:0xffb84d, depthTest:false, transparent:true, opacity:0.95 }));
-      m.position.set(w[i].x, y, -w[i].y);
-      m.renderOrder = 10;
-      m.userData.vi = i;
-      g.add(m);
-      three.handles.push(m);
+    if (state.physicsMode === '3d'){
+      /* Tur B: ÜST ve ALT yüzey köşeleri BAĞIMSIZ 3D tutamaçlar — konumlar
+         nesnenin pozuyla (_rotM ile aynı zincir) dönüştürülür; eğik/yatık
+         nesnede tutamaç mesh köşesinin tam üzerindedir. */
+      for (let i = 0; i < o.verts.length; i++){
+        for (const face of ['top', 'bot']){
+          const c = poly3DCorner(o, i, face);
+          const m = new T.Mesh(new T.SphereGeometry(6.2, 14, 10),
+            new T.MeshBasicMaterial({ color: face === 'top' ? 0xffb84d : 0x4dd2ff,
+              depthTest:false, transparent:true, opacity:0.95 }));
+          m.position.set(c.x, 28 + c.z, -c.y);
+          m.renderOrder = 10;
+          m.userData.vi = i; m.userData.face = face;
+          g.add(m);
+          three.handles.push(m);
+        }
+      }
+    } else {
+      const w = polyWorldVerts(o);
+      for (let i = 0; i < w.length; i++){
+        const m = new T.Mesh(new T.SphereGeometry(7, 14, 10),
+          new T.MeshBasicMaterial({ color:0xffb84d, depthTest:false, transparent:true, opacity:0.95 }));
+        m.position.set(w[i].x, y, -w[i].y);
+        m.renderOrder = 10;
+        m.userData.vi = i;
+        g.add(m);
+        three.handles.push(m);
+      }
     }
   }
   /* Final 1.4: DÖNDÜRME HALKASI — masa düzleminde (y ekseni etrafında).
@@ -9156,16 +10516,17 @@ function mouse3DNdc(e){
   return { x:((e.clientX - r.left)/r.width)*2 - 1, y:-((e.clientY - r.top)/r.height)*2 + 1 };
 }
 function pick3DHandle(e){
-  if (!three.handles.length) return -1;
+  if (!three.handles.length) return null;
   const T = window.THREE;
   const n = mouse3DNdc(e);
   three.raycaster.setFromCamera(new T.Vector2(n.x, n.y), three.camera);
   const hits = three.raycaster.intersectObjects(three.handles);
-  return hits.length ? hits[0].object.userData.vi : -1;
+  return hits.length ? hits[0].object.userData : null;
 }
 function drag3DHandle(e){
   const o = getSelected();
   if (!o || o.type !== 'poly' || o.locked) return;
+  if (three.dragV && three.dragV.face){ drag3DFaceHandle(e, o); return; }
   const y = objPlaneY(o);
   const p = pointerOnPlane3D(e, y);
   if (!p){ showPlaneHint(); return; }
@@ -9174,8 +10535,42 @@ function drag3DHandle(e){
   const l = worldToLocal(o, t.x, t.y);
   o.verts[three.dragV.idx].x = l.x;
   o.verts[three.dragV.idx].y = l.y;
+  onCrossSectionEdited(o);                 /* Tur B: 3D köşeler kesitten türetilir */
   set3DAxisLock(y);
   apply3DLockCursor('grabbing');
+  markDirty();
+}
+/* Tur B: üst/alt yüzey köşesi sürükleme.
+   Varsayılan: köşenin KENDİ yüksekliğindeki tabana paralel düzlemde x/z.
+   Shift: kameraya bakan düşey düzlemde yalnız yükseklik (y). */
+function drag3DFaceHandle(e, o){
+  ensureVerts3D(o);
+  const dv = three.dragV;
+  const arr = dv.face === 'top' ? o.vertsTop : o.vertsBot;
+  const v = arr[dv.idx];
+  const cur = poly3DCorner(o, dv.idx, dv.face);
+  const T = window.THREE;
+  if (e.shiftKey){
+    const n = mouse3DNdc(e);
+    three.raycaster.setFromCamera(new T.Vector2(n.x, n.y), three.camera);
+    const camDir = new T.Vector3();
+    three.camera.getWorldDirection(camDir);
+    camDir.y = 0;
+    if (camDir.lengthSq() < 1e-6) return;
+    camDir.normalize();
+    const plane = new T.Plane().setFromNormalAndCoplanarPoint(
+      camDir, new T.Vector3(cur.x, 28 + cur.z, -cur.y));
+    const hp = new T.Vector3();
+    if (!three.raycaster.ray.intersectPlane(plane, hp)) return;
+    const wz = Math.max(-140, Math.min(140, hp.y - 28));
+    const l = poly3DCornerFromWorld(o, cur.x, cur.y, wz);
+    v.x = l.x; v.y = l.y; v.z = l.z;
+  } else {
+    const p = pointerOnPlane3D(e, 28 + cur.z);
+    if (!p){ showPlaneHint(); return; }
+    const l = poly3DCornerFromWorld(o, snapPos(p.x), snapPos(p.y), cur.z);
+    v.x = l.x; v.y = l.y; v.z = l.z;
+  }
   markDirty();
 }
 function tint3D(hex, fallback){
@@ -9351,7 +10746,7 @@ function addBeamEnvelopes3D(T, g, light){
     const N = Math.min(A.pts.length, B.pts.length);
     if (N < 2) continue;
     const pos = new Float32Array((N-1)*6*3);
-    const idxOf = (p) => [p.x, 28, -p.y];
+    const idxOf = (p) => [p.x, 28 + (p.z || 0), -p.y];
     let w = 0;
     for (let i = 0; i < N-1; i++){
       const q = [idxOf(A.pts[i]), idxOf(B.pts[i]), idxOf(B.pts[i+1]),
@@ -9398,18 +10793,57 @@ function rebuild3D(){
     const d = o.depth || 56;
     const mark0 = g.children.length;   // Final 1.3: bu nesneye ait mesh aralığının başı
     if (o.type === 'poly'){
-      const sh = new T.Shape();
-      o.verts.forEach((v,i) => i ? sh.lineTo(v.x, v.y) : sh.moveTo(v.x, v.y));
-      sh.closePath();
-      const geo = new T.ExtrudeGeometry(sh, { depth:d, bevelEnabled:false });
-      geo.rotateX(-Math.PI/2);
-      const m = new T.Mesh(geo, glassMat(o));
-      const s = o.scale || 1;
-      m.scale.set(s, 1, s);
-      m.rotation.y = o.rot*DEG;
-      m.position.set(o.x, 0, -o.y);
-      g.add(m);
-      addEdges(T, g, geo, m);
+      if (o.vertsTop || o.vertsBot){
+        /* Tur B: bağımsız 3D köşeler — mesh, FİZİKLE AYNI köşe kümesinden
+           dünya koordinatında (poz dahil) kurulur; poz bloğu atlar (baked). */
+        const N = o.verts.length, TT = [], BB = [];
+        for (let i = 0; i < N; i++){
+          TT.push(poly3DCorner(o, i, 'top'));
+          BB.push(poly3DCorner(o, i, 'bot'));
+        }
+        const V = [];
+        const pushV = w => V.push(w.x, 28 + w.z, -w.y);
+        const pushTri = (a, b, c) => { pushV(a); pushV(b); pushV(c); };
+        for (let i = 0; i < N; i++){
+          const j = (i+1)%N;
+          pushTri(BB[i], BB[j], TT[j]); pushTri(BB[i], TT[j], TT[i]);
+        }
+        for (const [arr, W3] of [[o.vertsBot || o.verts, BB], [o.vertsTop || o.verts, TT]]){
+          for (const [a, b, c] of triangulatePoly(arr.map(v => ({ x:v.x, y:v.y }))))
+            pushTri(W3[a], W3[b], W3[c]);
+        }
+        const geo = new T.BufferGeometry();
+        geo.setAttribute('position', new T.Float32BufferAttribute(V, 3));
+        geo.computeVertexNormals();
+        const m = new T.Mesh(geo, glassMat(o));
+        m.userData.baked = true;
+        g.add(m);
+        const E = [];
+        const pushE = (a, b) => E.push(a.x, 28 + a.z, -a.y, b.x, 28 + b.z, -b.y);
+        for (let i = 0; i < N; i++){
+          const j = (i+1)%N;
+          pushE(TT[i], TT[j]); pushE(BB[i], BB[j]); pushE(TT[i], BB[i]);
+        }
+        const eg = new T.BufferGeometry();
+        eg.setAttribute('position', new T.Float32BufferAttribute(E, 3));
+        const ln = new T.LineSegments(eg, new T.LineBasicMaterial({
+          color: light ? 0x4a7fb8 : 0x96d7ff, transparent:true, opacity:0.6 }));
+        ln.userData.baked = true;
+        g.add(ln);
+      } else {
+        const sh = new T.Shape();
+        o.verts.forEach((v,i) => i ? sh.lineTo(v.x, v.y) : sh.moveTo(v.x, v.y));
+        sh.closePath();
+        const geo = new T.ExtrudeGeometry(sh, { depth:d, bevelEnabled:false });
+        geo.rotateX(-Math.PI/2);
+        const m = new T.Mesh(geo, glassMat(o));
+        const s = o.scale || 1;
+        m.scale.set(s, 1, s);
+        m.rotation.y = o.rot*DEG;
+        m.position.set(o.x, 0, -o.y);
+        g.add(m);
+        addEdges(T, g, geo, m);
+      }
     }
     else if (o.type === 'lens'){
       /* DÖNEL katı — STL "dönel" ile tutarlı */
@@ -9441,6 +10875,31 @@ function rebuild3D(){
       m.rotation.y = o.rot*DEG;
       m.position.set(o.x, 28, -o.y);
       g.add(m);
+      /* 2.0: ileri modda perde, 3D çarpmalardan biriken 2B görüntüyü
+         DOKULU gösterir (ayrıntılı panel entegrasyonu: Tur B). */
+      if (o.type === 'screen' && state.physicsMode === '3d' && o.showImage !== false && o._img3d && o._img3dN){
+        const res = E3D_SCR_RES;
+        let mx = 1e-9;
+        for (let i = 0; i < o._img3d.length; i++) if (o._img3d[i] > mx) mx = o._img3d[i];
+        const data = new Uint8Array(res*res*4);
+        for (let i = 0; i < res*res; i++){
+          data[i*4]   = Math.round(255*Math.pow(o._img3d[i*3]  /mx, 0.62));
+          data[i*4+1] = Math.round(255*Math.pow(o._img3d[i*3+1]/mx, 0.62));
+          data[i*4+2] = Math.round(255*Math.pow(o._img3d[i*3+2]/mx, 0.62));
+          data[i*4+3] = 255;
+        }
+        const tex = new T.DataTexture(data, res, res, T.RGBAFormat);
+        tex.needsUpdate = true;
+        for (const side of [1, -1]){
+          const pg = new T.PlaneGeometry(o.length, 2*E3D_SCR_HALFH);
+          pg.rotateY(side > 0 ? Math.PI/2 : -Math.PI/2);
+          const pm = new T.Mesh(pg, new T.MeshBasicMaterial({ map:tex, toneMapped:false }));
+          pm.rotation.y = o.rot*DEG;
+          const a = o.rot*DEG;
+          pm.position.set(o.x + Math.cos(a)*3.6*side, 28, -o.y + Math.sin(a)*3.6*side);
+          g.add(pm);
+        }
+      }
     }
     else if (o.type === 'aperture'){
       for (const [a,b] of apertureLocalSegs(o)){
@@ -9477,23 +10936,35 @@ function rebuild3D(){
       /* Final 1.9: cisim 3D'de de tanınabilir olsun — mumda gövde + alev,
          okta koni, F harfinde ince çubuklar. Fizik yine 2D kesitte. */
       const col = new T.Color(o.color || '#ffd54a');
+      /* Tur B: 3D fizik modunda cisim, optik eksene DÜŞEY ORTALANIR —
+         fizik yayıcısı (bodyGlyphSamples3D) h = 0'ı eksen düzlemi sayar. */
+      const yb = state.physicsMode === '3d' ? 28 - o.height/2 : 0;
       if (o.shape === 'candle'){
         const bw = Math.max(4, o.height*0.20), bh = o.height*0.60;
         const body = new T.Mesh(new T.CylinderGeometry(bw/2, bw/2, bh, 16),
           new T.MeshPhongMaterial({ color:0xf3e3bd, shininess:20 }));
-        body.position.set(o.x, bh/2, -o.y);
+        body.position.set(o.x, yb + bh/2, -o.y);
         g.add(body);
         const flame = new T.Mesh(new T.SphereGeometry(bw*0.42, 14, 12),
           new T.MeshBasicMaterial({ color:0xffb02e, transparent:true, opacity:0.92 }));
         flame.scale.set(1, o.height*0.34/(bw*0.84), 1);
-        flame.position.set(o.x, bh + o.height*0.17, -o.y);
+        flame.position.set(o.x, yb + bh + o.height*0.17, -o.y);
         g.add(flame);
       } else if (o.shape === 'letterF'){
         const t = Math.max(1.6, o.height*0.11), w = o.height*0.55;
         const mat = new T.MeshPhongMaterial({ color:col });
+        const in3d = state.physicsMode === '3d';
         const bar = (lx, ly, sx, sy) => {
-          const m = new T.Mesh(new T.BoxGeometry(sx, sy, t), mat);
-          m.position.set(o.x + lx, ly, -o.y);
+          /* Tur B: 3D fizik modunda F, nişan eksenine DİK düzlemde durur —
+             enine koordinat yerel +y (fizik yayıcısıyla birebir). */
+          const m = in3d
+            ? new T.Mesh(new T.BoxGeometry(t, sy, sx), mat)
+            : new T.Mesh(new T.BoxGeometry(sx, sy, t), mat);
+          if (in3d){
+            const wl = localToWorld(o, 0, lx);
+            m.rotation.y = (o.rot || 0)*DEG;
+            m.position.set(wl.x, yb + ly, -wl.y);
+          } else m.position.set(o.x + lx, yb + ly, -o.y);
           g.add(m);
         };
         bar(-w/2, o.height/2, t, o.height);
@@ -9502,7 +10973,7 @@ function rebuild3D(){
       } else {
         const geo = new T.ConeGeometry(Math.max(3, o.height*0.14), o.height, 12);
         const m = new T.Mesh(geo, new T.MeshPhongMaterial({ color:col }));
-        m.position.set(o.x, o.height/2, -o.y);
+        m.position.set(o.x, yb + o.height/2, -o.y);
         g.add(m);
       }
     }
@@ -9510,6 +10981,29 @@ function rebuild3D(){
        için objId etiketi. Seçiliyse ayrıca belirgin bir kontur eklenir. */
     const selected = state.selIds.includes(o.id);
     const upto = g.children.length;
+    /* 2.0: düzlem dışı poz — bu nesnenin TÜM mesh'leri masa düzlemi pivotu
+       (o.x, 28, −o.y) etrafında döndürülür ve zOff kadar kaldırılır.
+       Poz sıfırken hiçbir şey değişmez (eski görünüm birebir). */
+    if ((o.zOff || 0) !== 0 || (o.tiltP || 0) !== 0 || (o.tiltR || 0) !== 0){
+      const R = e3dPoseM(o), Rz0 = [Math.cos(o.rot*DEG), -Math.sin(o.rot*DEG), 0,
+                                    Math.sin(o.rot*DEG),  Math.cos(o.rot*DEG), 0, 0, 0, 1];
+      /* Mesh'ler rot'u zaten kendi rotation.y'lerinde taşır → yalnız EK dönüş */
+      const E = e3dMul(R, [Rz0[0], Rz0[3], 0, Rz0[1], Rz0[4], 0, 0, 0, 1]); // R·Rz(−rot)
+      const M4 = new T.Matrix4().set(
+         E[0],  E[2], -E[1], 0,
+         E[6],  E[8], -E[7], 0,
+        -E[3], -E[5],  E[4], 0,
+         0, 0, 0, 1);
+      const q = new T.Quaternion().setFromRotationMatrix(M4);
+      const pivot = new T.Vector3(o.x, 28, -o.y);
+      for (let i = mark0; i < upto; i++){
+        const c = g.children[i];
+        if (c.userData.baked) continue;       /* Tur B: dünya koordinatında kurulu */
+        c.position.sub(pivot).applyMatrix4(M4).add(pivot);
+        c.position.y += (o.zOff || 0);
+        c.quaternion.premultiply(q);
+      }
+    }
     const box = selected ? new T.Box3() : null;
     for (let i = mark0; i < upto; i++){
       const c = g.children[i];
@@ -9573,7 +11067,7 @@ function rebuild3D(){
     if (I0 < 0.04) continue;
     const bDim = b.bodyId != null ? (bodyDim3.get(b.bodyId) || 1) : 1;
     const col = new T.Color(b.color.r, b.color.g, b.color.b);
-    const pts = b.pts.map(p => new T.Vector3(p.x, 28, -p.y));
+    const pts = b.pts.map(p => new T.Vector3(p.x, 28 + (p.z || 0), -p.y));
     /* Kümülatif OPTİK YOL u = Σ n_i·Δl_i — dal başlangıcında b.u0 KORUNUR
        (dallanmada faz sürekliliği için şart). Akış kapalıyken de hesaplanır:
        böylece anahtar açıldığında geometri yeniden kurulmadan desen belirir. */
@@ -9582,7 +11076,8 @@ function rebuild3D(){
     uArr[0] = U;
     for (let i = 0; i < b.pts.length-1; i++){
       const dxl = b.pts[i+1].x - b.pts[i].x, dyl = b.pts[i+1].y - b.pts[i].y;
-      U += ((b.nseg && b.nseg[i]) || 1) * Math.hypot(dxl, dyl);
+      const dzl = (b.pts[i+1].z || 0) - (b.pts[i].z || 0);
+      U += ((b.nseg && b.nseg[i]) || 1) * Math.hypot(dxl, dyl, dzl);
       uArr[i+1] = U;
     }
     const obj = makeRayLine(T, pts, uArr, col,
@@ -9596,7 +11091,7 @@ function rebuild3D(){
       const sp = new T.Mesh(new T.SphereGeometry(h.screen?4.4:2.4, 10, 8),
         new T.MeshBasicMaterial({ color:col, transparent:true, opacity:0.9*ii,
           blending: light ? T.NormalBlending : T.AdditiveBlending }));
-      sp.position.set(h.x, 28, -h.y);
+      sp.position.set(h.x, 28 + (h.z || 0), -h.y);
       g.add(sp);
     }
   }
@@ -9953,8 +11448,100 @@ function sampleLensOutline(o){
   for (let k = 0; k <= N; k++){ const y = h - 2*h*k/N; pts.push({ x:gm.xf(y), y }); }
   return pts;
 }
+/* ---------------------------------------------------------------------
+   Tur B: İLERİ 3D MODDA STL, nesnelerin GERÇEK ağını dışa aktarır —
+   poz (rot/tiltP/tiltR/zOff) ve bağımsız 3D köşe düzenlemeleri dahil.
+   Fizik dünya koordinatları kullanılır; STL çerçevesi: (x, −y, z+28)
+   (tabla z=0 düzleminde, CAD y-yukarı dönüşümü korunur).
+   --------------------------------------------------------------------- */
+function stlFacetRaw(out, a, b, c){
+  const ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2];
+  const vx = c[0]-a[0], vy = c[1]-a[1], vz = c[2]-a[2];
+  let nx = uy*vz-uz*vy, ny = uz*vx-ux*vz, nz = ux*vy-uy*vx;
+  const len = Math.hypot(nx, ny, nz);
+  if (len < 1e-9) return;
+  nx /= len; ny /= len; nz /= len;
+  const f = v => v.toFixed(4);
+  out.push(` facet normal ${f(nx)} ${f(ny)} ${f(nz)}`, '  outer loop',
+    `   vertex ${f(a[0])} ${f(a[1])} ${f(a[2])}`,
+    `   vertex ${f(b[0])} ${f(b[1])} ${f(b[2])}`,
+    `   vertex ${f(c[0])} ${f(c[1])} ${f(c[2])}`,
+    '  endloop', ' endfacet');
+}
+function cmirrorOutline2D(o){
+  const half = Math.asin(Math.min(0.995, (o.aperture/2)/o.R));
+  const base = o.concave ? 0 : Math.PI;
+  const Cl = o.concave ? -o.R : o.R;
+  const backR = o.concave ? o.R + 4 : o.R - 4;
+  const pts = [], M = 16;
+  for (let k = 0; k <= M; k++){ const a = base - half + 2*half*k/M; pts.push({x:Cl + Math.cos(a)*o.R, y:Math.sin(a)*o.R}); }
+  for (let k = M; k >= 0; k--){ const a = base - half + 2*half*k/M; pts.push({x:Cl + Math.cos(a)*backR, y:Math.sin(a)*backR}); }
+  return pts;
+}
+function stl3DScene(out, mode){
+  const W = (o, p) => {                         /* nesne çerçevesi → STL */
+    const w = e3dApply(e3dPoseM(o), p[0], p[1], p[2]);
+    return [o.x + w[0], -(o.y + w[1]), (o.zOff || 0) + w[2] + 28];
+  };
+  const extrudeLocal = (o, pts, d2) => {        /* kesit ±d2, pozlu prizma */
+    const tris = triangulatePoly(pts);
+    const Vt = pts.map(p => W(o, [p.x, p.y,  d2]));
+    const Vb = pts.map(p => W(o, [p.x, p.y, -d2]));
+    for (const [a, b, c] of tris){
+      stlFacetRaw(out, Vb[a], Vb[c], Vb[b]);
+      stlFacetRaw(out, Vt[a], Vt[b], Vt[c]);
+    }
+    for (let i = 0; i < pts.length; i++){
+      const j = (i+1)%pts.length;
+      stlFacetRaw(out, Vb[i], Vb[j], Vt[j]);
+      stlFacetRaw(out, Vb[i], Vt[j], Vt[i]);
+    }
+  };
+  for (const o of state.objects){
+    if (o.type === 'poly'){
+      /* fizik ağının kendisi: yüzey-yerel (x_s,y_s,z_s) → nesne (z_s,x_s,y_s) */
+      const t = e3dExtrudePoly(o).tri;
+      for (let i = 0; i < t.length; i += 9)
+        stlFacetRaw(out,
+          W(o, [t[i+2], t[i],   t[i+1]]),
+          W(o, [t[i+5], t[i+3], t[i+4]]),
+          W(o, [t[i+8], t[i+6], t[i+7]]));
+    }
+    else if (o.type === 'lens' || o.type === 'cmirror'){
+      if (mode === 'revolve'){
+        const prof = o.type === 'lens' ? lensProfile(o) : cmirrorProfile(o);
+        const N = 48;
+        const P = (p, th) => W(o, [p.x, p.r*Math.cos(th), p.r*Math.sin(th)]);
+        for (let i = 0; i < prof.length-1; i++){
+          const p1 = prof[i], p2 = prof[i+1];
+          for (let j = 0; j < N; j++){
+            const t1 = 2*Math.PI*j/N, t2 = 2*Math.PI*(j+1)/N;
+            stlFacetRaw(out, P(p1, t1), P(p2, t1), P(p2, t2));
+            stlFacetRaw(out, P(p1, t1), P(p2, t2), P(p1, t2));
+          }
+        }
+      } else {
+        const pts = o.type === 'lens' ? sampleLensOutline(o) : cmirrorOutline2D(o);
+        extrudeLocal(o, pts, (o.depth || 56)/2);
+      }
+    }
+    else if (o.type === 'mirror' || o.type === 'screen'){
+      const w2 = o.type === 'mirror' ? 2 : 3, h = o.length/2;
+      extrudeLocal(o, [{x:-w2,y:-h},{x:w2,y:-h},{x:w2,y:h},{x:-w2,y:h}], 36);
+    }
+    else if (o.type === 'aperture'){
+      for (const [a, b] of apertureLocalSegs(o))
+        extrudeLocal(o, [{x:-2.5,y:a.y},{x:2.5,y:a.y},{x:2.5,y:b.y},{x:-2.5,y:b.y}], 36);
+    }
+  }
+}
 function stlFromScene(mode){
   const out = ['solid ailight'];
+  if (state.physicsMode === '3d'){
+    stl3DScene(out, mode);
+    out.push('endsolid ailight');
+    return out.join('\n');
+  }
   for (const o of state.objects){
     const d = o.depth || 56;
     if (o.type === 'poly'){
@@ -10006,6 +11593,7 @@ function stlFromScene(mode){
    ===================================================================== */
 function init(){
   resizeCanvas();
+  syncPhysicsModeUI();               // 2.0: mod rozetleri/araç durumları
   state.view.panX = canvas.clientWidth/2;
   state.view.panY = canvas.clientHeight/2;
   new ResizeObserver(() => { resizeCanvas(); resize3D(); }).observe(document.getElementById('stage'));
@@ -10291,11 +11879,13 @@ window.AILight = {
    - retraceNow(), lastTraceMs, energy: enerji muhasebesi.
    ===================================================================== */
 window.AILightTest = {
-  version: 'AI Light Final 1.9',
+  version: 'AI Light 2.0',
   setScene(json){
     const d = typeof json === 'string' ? JSON.parse(json) : json;
     restoreScene(JSON.stringify({
       format:'ailight-scene', version:FORMAT_VERSION,
+      /* 2.0: test sahnesi mod belirtmemişse MEVCUT mod korunur */
+      physicsMode: d.physicsMode || state.physicsMode,
       objects: d.objects || [],
       settings: Object.assign({}, state.settings, d.settings || {}),
     }));
@@ -10393,6 +11983,62 @@ window.AILightTest = {
   retraceNow(){ traceAll(); return lastTraceMs; },
   get lastTraceMs(){ return lastTraceMs; },
   get energy(){ return Object.assign({}, energyStat); },
+  /* ---- 2.0 (Tur A): ileri mod + 3D motor test yüzeyi ---- */
+  get physicsMode(){ return state.physicsMode; },
+  setPhysicsMode(pm){ setPhysicsModeSilent(pm); markDirty(); buildPanel(); },
+  setPhysicsModeUI(on){ setPhysicsMode(!!on); },       // diyaloglu (kullanıcı yolu)
+  hasOutOfPlanePose(){ return hasOutOfPlanePose(); },
+  flattenPose(){ flattenPose(); markDirty(); },
+  /* Tek 3D ışın: {pts, exitPt, exitDir, events} — parite & astigmatizm testleri */
+  trace3D(origin, dir, lambda, opts){ return e3dTraceRay(origin, dir, lambda, opts); },
+  /* B2 köprü doğrulaması: iki motorun n(λ) değerleri aynı kaynaktan gelmeli */
+  n2D(id, lambda){
+    const o = state.objects.find(q => q.id === id);
+    return o ? glassN(o, lambda) : 1;
+  },
+  n3D(id, lambda){
+    const o = state.objects.find(q => q.id === id);
+    return o ? e3dIndexAt(o, lambda) : 1;
+  },
+  screenImage3D(id){
+    const o = state.objects.find(q => q.id === id);
+    if (!o || !o._img3d) return null;
+    return { res: E3D_SCR_RES, n: o._img3dN || 0,
+             sum: o._img3d.reduce((a, v) => a + v, 0) };
+  },
+  /* ---- 2.0 (Tur B): 3D köşe düzenleme + perde/STL test yüzeyi ---- */
+  handles3DInfo(){
+    if (!three.renderer) return [];
+    const r = three.renderer.domElement.getBoundingClientRect();
+    return three.handles.map(h => {
+      const v = h.position.clone().project(three.camera);
+      return { vi: h.userData.vi, face: h.userData.face || 'mid',
+               x: r.left + (v.x*0.5 + 0.5)*r.width,
+               y: r.top + (-v.y*0.5 + 0.5)*r.height };
+    });
+  },
+  project3D(x, y, z){
+    if (!three.renderer) return null;
+    const r = three.renderer.domElement.getBoundingClientRect();
+    const v = new THREE.Vector3(x, 28 + z, -y).project(three.camera);
+    return { x: r.left + (v.x*0.5 + 0.5)*r.width,
+             y: r.top + (-v.y*0.5 + 0.5)*r.height };
+  },
+  corner3D(id, i, face){
+    const o = state.objects.find(q => q.id === id);
+    return o ? poly3DCorner(o, i, face) : null;
+  },
+  ensureVerts3D(id){
+    const o = state.objects.find(q => q.id === id);
+    if (o && o.type === 'poly'){ ensureVerts3D(o); markDirty(); }
+  },
+  screenStats3D(id){ return stats3DFor(id).map(s => Object.assign({}, s)); },
+  insideSolid3D(id, x, y, z){
+    const o = state.objects.find(q => q.id === id);
+    return o ? insideSolid3D(o, x, y, z) : false;
+  },
+  stl(mode){ return stlFromScene(mode || 'revolve'); },
+  dxf(){ return dxfFromScene(); },
 };
 </script>
 </body>
