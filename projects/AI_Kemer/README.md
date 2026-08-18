@@ -4,7 +4,7 @@ Farklı kemer tiplerini parametrelerle 2B ve 3B olarak modelleyen, tarayıcıda 
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_Kemer/
 
-<img src="../../assets/shot-kemer.png" alt="Kemerler 3D" width="100%" />
+<img src="../../assets/demo/demo-kemer.gif" alt="Kemerler 3D" width="100%" />
 
 ## Özellikler
 

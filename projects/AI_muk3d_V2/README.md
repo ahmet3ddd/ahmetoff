@@ -4,7 +4,7 @@ Mukarnas (sarkıt tavan süslemesi) tiplerini parametrik olarak 2B ve 3B modelle
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V2/
 
-<img src="../../assets/shot-muk3d.png" alt="Mukarnas 3D v2" width="100%" />
+<img src="../../assets/demo/demo-muk3d.gif" alt="Mukarnas 3D v2" width="100%" />
 
 ## v2'de yeni: Fillet (kenar yuvarlatma)
 

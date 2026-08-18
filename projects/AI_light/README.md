@@ -4,7 +4,7 @@ Mercek, ayna, prizma ve diyaframlarla optik düzenekler kuran; ışın izlerini,
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_light/
 
-<img src="../../assets/shot-light.png" alt="AI Light — Beyaz ışığın prizmada tayfa ayrışması" width="100%" />
+<img src="../../assets/demo/demo-light.gif" alt="AI Light — Beyaz ışığın prizmada tayfa ayrışması" width="100%" />
 
 ## Ne yapar
 

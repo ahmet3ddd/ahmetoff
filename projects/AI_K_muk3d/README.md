@@ -4,7 +4,7 @@ Köşe mukarnaslarını üçgen plan üzerinden parametrik olarak 2B ve 3B kurgu
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_K_muk3d/
 
-<img src="../../assets/shot-kmuk3d.png" alt="Köşe Mukarnas" width="100%" />
+<img src="../../assets/demo/demo-kmuk3d.gif" alt="Köşe Mukarnas" width="100%" />
 
 ## Özellikler
 

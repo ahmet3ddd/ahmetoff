@@ -132,6 +132,7 @@ Osmanlı Türkçesini sıfırdan öğreten uygulama. Elifbânın 33 harfinden ba
 ahmetoff/
 ├── index.html      → Tüm projeleri listeleyen açılış sayfası
 ├── assets/         → Açılış sayfası ve README görselleri
+│   └── demo/       → Her projenin kısa kullanım GIF'i
 ├── projects/       → Her bağımsız proje kendi klasöründe
 │   ├── AI_muk3d_V2/               Mukarnas 3D — güncel sürüm (v2)
 │   ├── AI_muk3d/                  Mukarnas 3D — önceki sürüm (v1, arşiv)

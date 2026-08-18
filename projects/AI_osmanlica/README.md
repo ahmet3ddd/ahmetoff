@@ -4,7 +4,7 @@ Osmanlı Türkçesini sıfırdan öğreten, tarayıcıda çalışan bir uygulama
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_osmanlica/
 
-<img src="../../assets/shot-osmanlica.png" alt="Elifbâ — Osmanlıca Öğren" width="100%" />
+<img src="../../assets/demo/demo-osmanlica.gif" alt="Elifbâ — Osmanlıca Öğren" width="100%" />
 
 ## Özet
 

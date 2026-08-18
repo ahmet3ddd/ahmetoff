@@ -4,7 +4,7 @@ Mukarnas püskül (sarkıt) yapılarının çok katmanlı, parametrik 3D modelle
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_Puskul/
 
-<img src="../../assets/shot-puskul.png" alt="Püskül 3D" width="100%" />
+<img src="../../assets/demo/demo-puskul.gif" alt="Püskül 3D" width="100%" />
 
 ## Özellikler
 

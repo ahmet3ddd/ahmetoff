@@ -4,7 +4,7 @@ STL modelleri FDM baskıya göndermeden önce denetleyen, tarayıcıda çalışa
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_3Dprint_model_kontrol/
 
-<img src="../../assets/shot-3dprint.png" alt="3D Print Model Kontrol" width="100%" />
+<img src="../../assets/demo/demo-3dprint.gif" alt="3D Print Model Kontrol" width="100%" />
 
 ## Ne yapar
 

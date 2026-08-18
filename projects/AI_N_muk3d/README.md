@@ -4,7 +4,7 @@ Niş (kavsara) mukarnaslarını açıklık, asaba ve sıra parametreleriyle 2B v
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_N_muk3d/
 
-<img src="../../assets/shot-nmuk3d.png" alt="Niş Mukarnas" width="100%" />
+<img src="../../assets/demo/demo-nmuk3d.gif" alt="Niş Mukarnas" width="100%" />
 
 ## Ne yapar
 

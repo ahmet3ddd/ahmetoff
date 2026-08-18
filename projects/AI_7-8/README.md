@@ -4,7 +4,7 @@ Geleneksel yedi-sekiz geçme desenlerini parametrelerle 2B ve 3B üreten, taray�
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_7-8/
 
-<img src="../../assets/shot-7-8.png" alt="Yedi-Sekiz (7-8)" width="100%" />
+<img src="../../assets/demo/demo-7-8.gif" alt="Yedi-Sekiz (7-8)" width="100%" />
 
 ## Özellikler
 
