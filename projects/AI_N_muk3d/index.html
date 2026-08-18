@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Niş Mukarnas - (web)</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="mukarnas">
+    <header class="topbar">
+        <h1><a class="topbar-home" href="../../">Mukkap3D</a> &mdash; Nis Mukarnas</h1>
+        <div class="topbar-actions">
+            <button id="btn-help" type="button" title="Nas&#305;l kullan&#305;l&#305;r">?</button>
+            <button id="btn-reset" type="button">S&#305;f&#305;rla</button>
+            <button id="btn-fit-camera" type="button">Kamera</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-project-open" type="button">A&ccedil;</button>
+            <button id="btn-project-save" type="button">Kaydet</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-export-stl" type="button">STL</button>
+            <button id="btn-export-dxf" type="button">DXF</button>
+            <button id="btn-export-png" type="button">PNG</button>
+        </div>
+    </header>
+
+    <main class="layout">
+        <aside class="sidebar">
+            <section class="panel">
+                <h2>Kaynak</h2>
+                <p class="hint-inline"><code>docs/mukkap-10_V1.ms</code><br />3Ddizayn &rarr; Nis Mukarnas</p>
+            </section>
+
+            <section class="panel">
+                <h2>A&ccedil;&#305;kl&#305;k (Line yerine)</h2>
+                <div class="field">
+                    <label for="param-aciklik">A&ccedil;&#305;kl&#305;k (p1&ndash;p2)</label>
+                    <input id="param-aciklik" type="number" value="100" min="1" step="1" />
+                </div>
+                <p class="hint-inline">Max&apos;te 2 vertex&apos;li line se&ccedil;imi; burada toplam uzunluk.</p>
+            </section>
+
+            <section class="panel">
+                <h2>Asaba</h2>
+                <div class="field">
+                    <label for="param-asaba-adet">Asaba adedi</label>
+                    <input id="param-asaba-adet" type="number" value="1" min="1" max="50" step="1" />
+                </div>
+                <div class="field">
+                    <label for="param-sira">S&#305;ra adedi</label>
+                    <input id="param-sira" type="number" value="1" min="1" max="50" step="1" />
+                </div>
+                <p class="hint-inline">S&#305;ra, asaba adedi &gt; 1 iken aktif (script ile ayn&#305;).</p>
+                <div class="field">
+                    <label for="param-asaba-h">Asaba h</label>
+                    <input id="param-asaba-h" type="number" value="0" min="0" step="0.5" />
+                </div>
+                <div class="field">
+                    <label for="param-toplam-h">Toplam H</label>
+                    <input id="param-toplam-h" type="number" value="0" min="0" step="0.5" />
+                </div>
+                <div class="field">
+                    <label for="param-asaba-derinlik">Asaba derinlik</label>
+                    <input id="param-asaba-derinlik" type="number" value="0" min="0" step="0.5" />
+                </div>
+                <div class="field">
+                    <label for="param-toplam-derinlik">Toplam derinlik</label>
+                    <input id="param-toplam-derinlik" type="number" value="0" min="0" step="0.5" />
+                </div>
+                <p class="hint-inline">Derinlik = A1.5 ile Y=0 aras&#305;ndaki dik mesafe; toplam = asaba derinli&#287;i &times; s&#305;ra. Alanlar her zaman kullan&#305;lan &ouml;l&ccedil;&uuml;y&uuml; g&ouml;sterir; 0 girilirse otomati&#287;e (asa &ouml;l&ccedil;&uuml;s&uuml;) d&ouml;ner.</p>
+                <div class="field">
+                    <label for="param-derinlik">Yanak derinlik</label>
+                    <input id="param-derinlik" type="number" value="0" min="0" step="0.5" />
+                </div>
+                <p class="hint-inline">Yanak: ardi&#351;ik h&uuml;crelerin birle&#351;im kenar&#305;ndan (A2.1&ndash;A2.2, A3.1&ndash;A3.2 &hellip;) &minus;Y y&ouml;n&uuml;ne ilerleyen d&uuml;&#351;ey y&uuml;zey (0 = yok).</p>
+                <label class="radio">
+                    <input id="param-altin-oran" type="checkbox" checked />
+                    Alt&#305;n oran (chk1, &#966; &asymp; 1.618)
+                </label>
+                <label class="radio">
+                    <input id="param-show-b" type="checkbox" checked />
+                    B mod&uuml;l&uuml;n&uuml; g&ouml;ster (simetri)
+                </label>
+                <label class="radio">
+                    <input id="param-show-labels" type="checkbox" />
+                    3D k&ouml;&#351;e etiketleri (A1.3 &hellip;)
+                </label>
+                <div class="readout">
+                    X (asa): <span id="readout-x">&mdash;</span><br />
+                    Asaba h: <span id="readout-h">&mdash;</span><br />
+                    Simetri: <span id="readout-sim">&mdash;</span>
+                </div>
+                <p class="hint-inline">A: ilk s&#305;ran&#305;n y&uuml;z&uuml; Y=0 (model +Y'ye uzar), taban Z=0 (model +Z'ye y&uuml;kselir). B: Symmetry (flip), ayna X=0.</p>
+            </section>
+
+            <section class="panel panel-footer">
+                <p id="status-text" class="hint">&mdash;</p>
+            </section>
+        </aside>
+
+        <section class="viewports">
+            <div class="viewport viewport-2d active">
+                <div class="viewport-title">2D (g&ouml;r&uuml;n&uuml;&#351; / plan)</div>
+                <div id="view2d" class="view2d-container"></div>
+            </div>
+            <div class="viewport viewport-3d">
+                <div class="viewport-title">3D (Z yukar&#305;)</div>
+                <div id="view3d" class="view3d-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="help-overlay" class="help-overlay" hidden>
+        <div class="help-modal">
+            <div class="help-header">
+                <h2>Nas&#305;l kullan&#305;l&#305;r</h2>
+                <button id="btn-help-close" type="button">&times;</button>
+            </div>
+            <div class="help-body">
+                <p><strong>Kaynak:</strong> <code>docs/mukkap-10_V1.ms</code> (K&ouml;&#351;eli Mukarnas). Eski mukkap-1/2/3/10 ve se&ccedil;im scriptleri kald&#305;r&#305;ld&#305;.</p>
+                <h3>&Ouml;l&ccedil;&uuml;ler</h3>
+                <ul>
+                    <li><strong>A&ccedil;&#305;kl&#305;k:</strong> Line uzunlu&#287;u (aciklik). Modelin X&minus; ve X+ u&ccedil;lar&#305; aras&#305;ndaki <em>toplam geni&#351;li&#287;e e&#351;ittir</em>; de&#287;i&#351;tirince model an&#305;nda yeniden &uuml;retilir ve 3D kamera ayn&#305; oranda &ouml;l&ccedil;eklenir (bak&#305;&#351; a&ccedil;&#305;n&#305;z bozulmaz).</li>
+                    <li><strong>Asaba / S&#305;ra:</strong> Script spinner mant&#305;&#287;&#305;. S&#305;ra, asaba adedini a&#351;amaz.</li>
+                    <li><strong>Asaba h / Toplam H:</strong> Y&uuml;kseklik. Hangisini elle girerseniz o belirleyicidir, di&#287;eri ondan t&uuml;retilir (toplam = asaba h &times; asaba adedi). Alanlar her zaman &ccedil;izimde kullan&#305;lan &ouml;l&ccedil;&uuml;y&uuml; g&ouml;sterir.</li>
+                    <li><strong>Alt&#305;n oran:</strong> A&ccedil;&#305;kken asaba h = asa &times; 1,618 ve H alanlar&#305; kilitli. Kapat&#305;nca elle girdi&#287;iniz de&#287;erler geri gelir &mdash; oran a&ccedil;&#305;kken saklan&#305;r, kaybolmaz.</li>
+                    <li><strong>Asaba derinlik / Toplam derinlik:</strong> Y eksenindeki derinlik; <strong>A1.5 ile Y=0 aras&#305;ndaki dik mesafe</strong>. Toplam = asaba derinli&#287;i &times; s&#305;ra. Y&uuml;kseklikle ayn&#305; mant&#305;k: hangisini girerseniz o belirleyici. <strong>0</strong> girilirse otomati&#287;e d&ouml;ner ve asa &ouml;l&ccedil;&uuml;s&uuml;n&uuml; izler (durum sat&#305;r&#305;nda &quot;otomatik&quot; yazar).</li>
+                    <li><strong>Yanak derinlik:</strong> Her h&uuml;crenin &ouml;n y&uuml;z &uuml;&ccedil;geninin iki dik kenar&#305; (Ai.1&rarr;Ai.2 d&uuml;&#351;ey, Ai.2&rarr;Ai.3 yatay) &minus;Y y&ouml;n&uuml;ne bu kadar s&uuml;p&uuml;r&uuml;l&uuml;r. <strong>0 = yanak yok.</strong></li>
+                    <li><strong>B mod&uuml;l&uuml;:</strong> Simetri (flip); ayna <strong>X = 0</strong>. 3D/2D&apos;de mor d&uuml;zlem g&ouml;sterilir. A&ccedil;&#305;kken ayna d&uuml;zlemine tam oturan y&uuml;zeyler &ccedil;izilmez (birbirine yap&#305;&#351;an &ccedil;ift y&uuml;zey olu&#351;maz).</li>
+                    <li><strong>3D k&ouml;&#351;e no.:</strong> Varsay&#305;lan kapal&#305;; &quot;3D k&ouml;&#351;e etiketleri&quot; kutusuyla a&ccedil;&#305;l&#305;r. A1.3 = A mod&uuml;l&uuml; 1. h&uuml;cre, k&ouml;&#351;e 3; B1.3 = ayn&#305; h&uuml;crenin simetri kopyas&#305;.</li>
+                </ul>
+
+                <h3>Sahnedeki yerle&#351;im</h3>
+                <ul>
+                    <li>&#304;lk s&#305;ran&#305;n y&uuml;z&uuml; <strong>Y = 0</strong> d&uuml;zlemindedir, model <strong>+Y</strong> y&ouml;n&uuml;ne uzar; sonraki s&#305;ralar arkaya dizilir.</li>
+                    <li>Taban <strong>Z = 0</strong> zeminine oturur, model <strong>+Z</strong> y&ouml;n&uuml;ne y&uuml;kselir; asaba/s&#305;ra artt&#305;k&ccedil;a a&#351;a&#287;&#305; sarkmaz.</li>
+                    <li>Simetri d&uuml;zlemi <strong>X = 0</strong>; model a&ccedil;&#305;kl&#305;&#287;&#305;n yar&#305;s&#305; kadar iki yana yay&#305;l&#305;r.</li>
+                </ul>
+
+                <h3>Otomatik &uuml;retilen y&uuml;zeyler</h3>
+                <ul>
+                    <li><strong>Yatay &uuml;&ccedil;genler:</strong> H&uuml;crenin &uuml;st hizas&#305;ndaki yatay &uuml;&ccedil;gen hi&ccedil;bir kopyada &ccedil;izilmez. Taban &uuml;&ccedil;geni ise yaln&#305;z zemine (Z=0) oturan h&uuml;crelerde &ccedil;izilmez, yukar&#305;daki h&uuml;crelerde durur.</li>
+                    <li><strong>Arka duvar:</strong> S&#305;ra adedi asaba adedinden az oldu&#287;unda son s&#305;ran&#305;n arkas&#305;nda zeminden &uuml;st katmana kadar bir a&ccedil;&#305;kl&#305;k kal&#305;r; bu tek par&ccedil;a bir duvarla kapat&#305;l&#305;r (&uuml;zerinde &ccedil;izgi g&ouml;sterilmez). S&#305;ra = asaba iken a&ccedil;&#305;kl&#305;k olu&#351;maz, duvar da &uuml;retilmez.</li>
+                </ul>
+
+                <h3>G&ouml;r&uuml;n&uuml;&#351;ler</h3>
+                <ul>
+                    <li><strong>G&ouml;r&uuml;n&uuml;&#351; (X-Z):</strong> Ekran&#305;n d&uuml;&#351;ey ekseni <strong>Z</strong> (mavi), yatay ekseni <strong>X</strong> (k&#305;rm&#305;z&#305;).</li>
+                    <li><strong>Plan (X-Y):</strong> D&uuml;&#351;ey eksen <strong>Y</strong> (ye&#351;il). Model koordinatlar&#305;yla ayn&#305;; &ouml;nizleme d&ouml;nd&uuml;r&uuml;lmez.</li>
+                    <li>Eksen renkleri 3D&apos;deki eksen g&ouml;stergesiyle ayn&#305;d&#305;r: X k&#305;rm&#305;z&#305;, Y ye&#351;il, Z mavi.</li>
+                </ul>
+
+                <h3>Proje kaydet / a&ccedil;</h3>
+                <ul>
+                    <li><strong>Kaydet:</strong> T&uuml;m parametreleri <code>.json</code> dosyas&#305;na yazar. Windows&apos;un kendi kaydetme penceresi a&ccedil;&#305;l&#305;r, konumu siz se&ccedil;ersiniz.</li>
+                    <li><strong>A&ccedil;:</strong> Kaydedilmi&#351; projeyi geri y&uuml;kler; t&uuml;m alanlar ve &ccedil;izim eski haline d&ouml;ner.</li>
+                    <li>Sayfa <code>file://</code> ile (dosyaya &ccedil;ift t&#305;klayarak) a&ccedil;&#305;ld&#305;&#287;&#305;nda Chrome konum se&ccedil;me penceresine izin vermez; bu durumda Kaydet dosyay&#305; &#304;ndirilenler klas&ouml;r&uuml;ne indirir, A&ccedil; ise normal dosya se&ccedil;me kutusunu g&ouml;sterir. Pencerenin a&ccedil;&#305;lmas&#305; i&ccedil;in sayfay&#305; yerel bir sunucudan (&ouml;rn. <code>localhost</code>) a&ccedil;&#305;n.</li>
+                </ul>
+
+                <h3>Export</h3>
+                <ul>
+                    <li><strong>STL / DXF / PNG</strong> &mdash; &uuml;st ara&ccedil; &ccedil;ubu&#287;u. PNG, o an se&ccedil;ili olan g&ouml;r&uuml;n&uuml;m&uuml; (2D veya 3D) al&#305;r.</li>
+                    <li><strong>DXF katmanlar&#305;:</strong> MUK_3D (3D model, 3DFACE), MUK_ELEV (g&ouml;r&uuml;n&uuml;&#351; 2D), MUK_PLAN (plan 2D, g&ouml;r&uuml;n&uuml;&#351;&uuml;n alt&#305;na yerle&#351;ir). Arka duvar ve yanak y&uuml;zeyleri kat&#305; geometri olarak MUK_3D i&ccedil;inde yer al&#305;r.</li>
+                </ul>
+
+                <h3>Durum sat&#305;r&#305;</h3>
+                <p>Sol altta: asaba/s&#305;ra, modelin X geni&#351;li&#287;i (a&ccedil;&#305;kl&#305;&#287;a e&#351;it olmal&#305;), toplam y&uuml;kseklik, kullan&#305;lan derinlik, yerle&#351;im kayd&#305;rmas&#305;, h&uuml;cre say&#305;s&#305; ve varsa arka duvar / yanak paneli say&#305;s&#305;.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/three.min.js"></script>
+    <script src="vendor/OrbitControls.js"></script>
+    <script src="js/mukarnas-geom.js"></script>
+    <script src="js/viewer-2d.js"></script>
+    <script src="js/viewer-3d.js"></script>
+    <script src="js/export-stl.js"></script>
+    <script src="js/export-dxf.js"></script>
+    <script src="js/export-png.js"></script>
+    <script src="js/project-io.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

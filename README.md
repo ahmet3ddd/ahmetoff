@@ -25,7 +25,7 @@
 
 | Bölüm | Projeler |
 |---|---|
-| **[Mimari Geometri](#mimari-geometri)** | Mukarnas 3D · Köşe Mukarnas · Püskül 3D · Kemerler 3D · Yedi-Sekiz |
+| **[Mimari Geometri](#mimari-geometri)** | Mukarnas 3D · Köşe Mukarnas · Niş Mukarnas · Püskül 3D · Kemerler 3D · Yedi-Sekiz |
 | **[Üretim ve Analiz](#üretim-ve-analiz)** | AI Light · 3D Print Model Kontrol |
 | **[Öğrenme](#öğrenme)** | Elifbâ — Osmanlıca Öğren |
 
@@ -52,6 +52,17 @@ Köşe mukarnaslarını üçgen plan (P1-P2-P3) üzerinden kurgular. Eşkenar/di
 <img src="assets/shot-kmuk3d.png" alt="Köşe Mukarnas" width="100%" />
 
 [▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_K_muk3d/) · [Kaynak](projects/AI_K_muk3d)
+
+### Niş Mukarnas
+Niş (kavsara) mukarnaslarını tek bir açıklık ölçüsüyle kurgular: asaba ve sıra adedine göre hücreler kademelenir, X = 0 düzleminde aynalanan simetri modülüyle form tamamlanır.
+
+Yükseklik ve derinlikte çift yönlü ölçü mantığı vardır — *asaba h* ile *toplam H*'den hangisini girerseniz o belirleyici olur, diğeri ondan türetilir; derinliğe 0 girilirse otomatiğe döner. Altın oran seçeneği asaba yüksekliğini asa ölçüsünün φ ≈ 1,618 katına sabitler. Sıra adedi asaba adedinden azken arkada kalan açıklık tek parça duvarla kapatılır; yanak derinliği verildiğinde düşey yanak yüzeyleri üretilir.
+
+DXF çıktısı üç katman içerir: `MUK_3D` (3DFACE), `MUK_ELEV` (görünüş), `MUK_PLAN` (plan). Three.js uygulamanın içinde geldiği için çevrimdışı çalışır.
+
+<img src="assets/shot-nmuk3d.png" alt="Niş Mukarnas" width="100%" />
+
+[▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_N_muk3d/) · [Kaynak](projects/AI_N_muk3d)
 
 ### Püskül 3D
 Mukarnas püskül (sarkıt) yapılarını çok katmanlı modeller. Katman yönetimi, hücre tipi atama, katmanlar arası geçiş yüzeyleri ve JSON kaydet/yükle.
@@ -125,6 +136,7 @@ ahmetoff/
 │   ├── AI_muk3d_V2/               Mukarnas 3D — güncel sürüm (v2)
 │   ├── AI_muk3d/                  Mukarnas 3D — önceki sürüm (v1, arşiv)
 │   ├── AI_K_muk3d/                Köşe Mukarnas
+│   ├── AI_N_muk3d/                Niş Mukarnas
 │   ├── AI_Puskul/                 Püskül 3D
 │   ├── AI_Kemer/                  Kemerler 3D
 │   ├── AI_7-8/                    Yedi-Sekiz
@@ -136,7 +148,7 @@ ahmetoff/
 
 ## Teknoloji
 
-Tümü saf HTML/CSS/JavaScript. Mimari geometri araçları 3B görselleştirme için [Three.js](https://threejs.org) kullanır (CDN üzerinden). AI Light, 3D Print Model Kontrol ve Elifbâ tamamen kendi kendine yeter; dış bağımlılıkları yoktur ve çevrimdışı çalışırlar.
+Tümü saf HTML/CSS/JavaScript. Mimari geometri araçları 3B görselleştirme için [Three.js](https://threejs.org) kullanır (CDN üzerinden). Niş Mukarnas, AI Light, 3D Print Model Kontrol ve Elifbâ tamamen kendi kendine yeter; dış bağımlılıkları yoktur ve çevrimdışı çalışırlar (Niş Mukarnas Three.js'i kendi içinde taşır).
 
 Hiçbir projede sunucu tarafı yoktur — veri toplanmaz, hiçbir dosya yüklenmez.
 
