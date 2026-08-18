@@ -91,6 +91,16 @@
     display:block; width:100%; height:158px; object-fit:cover; object-position:right center;
     border-bottom:1px solid var(--line); background:#0e1013;
   }
+  .shotWrap{position:relative; line-height:0}
+  .playHint{
+    position:absolute; right:9px; bottom:11px; z-index:2;
+    font-size:10.5px; font-weight:700; letter-spacing:.04em;
+    padding:3px 8px; border-radius:99px; color:#fff;
+    background:rgba(12,14,18,.62); backdrop-filter:blur(3px);
+    opacity:.85; transition:opacity .18s ease; pointer-events:none;
+  }
+  .shotWrap.playing .playHint{opacity:0}
+  @media (hover:none){ .playHint{display:none} }
   .body{padding:16px 18px 18px; display:flex; flex-direction:column; flex:1}
   .titleRow{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px}
   .card h3{font-size:17px; margin:0; letter-spacing:-.01em; font-weight:700}
@@ -153,7 +163,11 @@
     <div class="grid">
 
       <article class="card">
-        <img class="shot" src="assets/shot-muk3d.png" alt="Mukarnas 3D" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-muk3d.png" preload="none" muted loop playsinline
+                 aria-label="Mukarnas 3D — kısa tanıtım" data-mp4="assets/vid/muk3d.mp4" data-webm="assets/vid/muk3d.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>Mukarnas 3D</h3><span class="ver">v2</span></div>
           <p>Mukarnas hücrelerini parametrik 3B modeller; v2 ile kenarlara fillet uygulanabiliyor.</p>
@@ -169,7 +183,11 @@
       </article>
 
       <article class="card">
-        <img class="shot" src="assets/shot-kmuk3d.png" alt="Köşe Mukarnas" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-kmuk3d.png" preload="none" muted loop playsinline
+                 aria-label="Köşe Mukarnas — kısa tanıtım" data-mp4="assets/vid/kmuk3d.mp4" data-webm="assets/vid/kmuk3d.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>Köşe Mukarnas</h3></div>
           <p>Köşe mukarnaslarını üçgen plan üzerinden kurgular; asaba sayısıyla kademelenir.</p>
@@ -184,7 +202,11 @@
       </article>
 
       <article class="card">
-        <img class="shot" src="assets/shot-nmuk3d.png" alt="Niş Mukarnas" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-nmuk3d.png" preload="none" muted loop playsinline
+                 aria-label="Niş Mukarnas — kısa tanıtım" data-mp4="assets/vid/nmuk3d.mp4" data-webm="assets/vid/nmuk3d.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>Niş Mukarnas</h3><span class="ver new">Yeni</span></div>
           <p>Niş (kavsara) mukarnaslarını açıklık, asaba ve sıra parametreleriyle kurgular; yanak ve arka duvar yüzeyleri otomatik üretilir.</p>
@@ -199,7 +221,11 @@
       </article>
 
       <article class="card">
-        <img class="shot" src="assets/shot-puskul.png" alt="Püskül 3D" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-puskul.png" preload="none" muted loop playsinline
+                 aria-label="Püskül 3D — kısa tanıtım" data-mp4="assets/vid/puskul.mp4" data-webm="assets/vid/puskul.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>Püskül 3D</h3></div>
           <p>Çok katmanlı püskül (sarkıt) yapıları; hücre tipi atama ve geçiş yüzeyleri.</p>
@@ -214,7 +240,11 @@
       </article>
 
       <article class="card">
-        <img class="shot" src="assets/shot-kemer.png" alt="Kemerler 3D" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-kemer.png" preload="none" muted loop playsinline
+                 aria-label="Kemerler 3D — kısa tanıtım" data-mp4="assets/vid/kemer.mp4" data-webm="assets/vid/kemer.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>Kemerler 3D</h3></div>
           <p>Tek merkezli teğet ve penci kemer tiplerini parametrelerle 3B modeller.</p>
@@ -229,7 +259,11 @@
       </article>
 
       <article class="card">
-        <img class="shot" src="assets/shot-7-8.png" alt="Yedi-Sekiz" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-7-8.png" preload="none" muted loop playsinline
+                 aria-label="Yedi-Sekiz — kısa tanıtım" data-mp4="assets/vid/7-8.mp4" data-webm="assets/vid/7-8.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>Yedi-Sekiz (7-8)</h3></div>
           <p>Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle üretir.</p>
@@ -254,7 +288,11 @@
     <div class="grid">
 
       <article class="card">
-        <img class="shot" src="assets/shot-light.png" alt="AI Light" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-light.png" preload="none" muted loop playsinline
+                 aria-label="AI Light — kısa tanıtım" data-mp4="assets/vid/light.mp4" data-webm="assets/vid/light.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>AI Light</h3><span class="ver">v2.0</span></div>
           <p>Geometrik optik simülatörü: ışın izleme, gerçek/sanal görüntü, tayf ayrışması. 3D fizik modunda ışınlar hacimde izlenir — astigmatizm ve dönen tayf gibi etkiler çıkar.</p>
@@ -269,7 +307,11 @@
       </article>
 
       <article class="card">
-        <img class="shot" src="assets/shot-3dprint.png" alt="3D Print Model Kontrol" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-3dprint.png" preload="none" muted loop playsinline
+                 aria-label="3D Print Model Kontrol — kısa tanıtım" data-mp4="assets/vid/3dprint.mp4" data-webm="assets/vid/3dprint.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>3D Print Model Kontrol</h3></div>
           <p>STL modellerde FDM et kalınlığını ölçer, basılamaz bölgeleri renklendirir; onarım ve ölçek düzeltme yapar.</p>
@@ -294,7 +336,11 @@
     <div class="grid">
 
       <article class="card">
-        <img class="shot" src="assets/shot-osmanlica.png" alt="Elifbâ" />
+        <div class="shotWrap">
+          <video class="shot" poster="assets/shot-osmanlica.png" preload="none" muted loop playsinline
+                 aria-label="Elifbâ — kısa tanıtım" data-mp4="assets/vid/osmanlica.mp4" data-webm="assets/vid/osmanlica.webm"></video>
+          <span class="playHint" aria-hidden="true">&#9654; oynat</span>
+        </div>
         <div class="body">
           <div class="titleRow"><h3>Elifbâ — Osmanlıca Öğren</h3></div>
           <p>Osmanlı Türkçesini sıfırdan öğretir: 17 ünite, 73 ders, aralıklı tekrar ve yazı tahtası.</p>
@@ -316,5 +362,41 @@
     <span>© 2026 ahmetoff · MIT Lisansı</span>
     <span><a href="https://github.com/ahmet3ddd/ahmetoff">GitHub'da görüntüle</a></span>
   </footer>
+<script>
+(function(){
+  var wraps = Array.prototype.slice.call(document.querySelectorAll('.shotWrap'));
+  var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var lessMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function load(v){
+    if (v.src) return;
+    var mp4 = v.getAttribute('data-mp4'), webm = v.getAttribute('data-webm');
+    v.src = v.canPlayType('video/mp4; codecs="avc1.42E01E"') ? mp4 : webm;
+  }
+  function play(w){ var v=w.querySelector('video'); load(v); var pr=v.play(); if(pr&&pr.catch)pr.catch(function(){}); w.classList.add('playing'); }
+  function stop(w){ var v=w.querySelector('video'); v.pause(); w.classList.remove('playing'); }
+
+  if (canHover) {
+    wraps.forEach(function(w){
+      var card = w.closest('.card') || w;
+      card.addEventListener('mouseenter', function(){ play(w); });
+      card.addEventListener('mouseleave', function(){ stop(w); });
+      card.addEventListener('focusin', function(){ play(w); });
+      card.addEventListener('focusout', function(){ stop(w); });
+    });
+  } else if (!lessMotion && 'IntersectionObserver' in window) {
+    // Dokunmatikte ayni anda tek kart oynasin: en cok gorunen hangisiyse o.
+    var ratio = new Map();
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ ratio.set(e.target, e.intersectionRatio); });
+      var best = null, bestR = 0.55;
+      ratio.forEach(function(r, w){ if (r > bestR) { bestR = r; best = w; } });
+      wraps.forEach(function(w){ if (w !== best) stop(w); });
+      if (best) play(best);
+    }, { threshold: [0, 0.25, 0.5, 0.6, 0.75, 0.9, 1] });
+    wraps.forEach(function(w){ io.observe(w); });
+  }
+})();
+</script>
 </body>
 </html>
