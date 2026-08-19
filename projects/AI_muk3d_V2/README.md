@@ -1,6 +1,10 @@
-# Mukarnas 3D — v2
+# Mukarnas 3D — v2 (önceki sürüm)
 
-Mukarnas (sarkıt tavan süslemesi) tiplerini parametrik olarak 2B ve 3B modelleyen, tarayıcıda çalışan tasarım aracı. **Bu, aracın güncel sürümüdür.**
+> **Bu, aracın önceki sürümüdür.** Güncel sürüm için: **[Mukarnas 3D v3](../AI_muk3d_V3)** → [canlı demo](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V3/)
+>
+> v3, **Yaprak** tipinde Düzenleme modundaki A–F yükseklik ayarlarının yanlış köşeleri taşıması sorununu düzeltiyor. Bu sürümde o hata var.
+
+Mukarnas (sarkıt tavan süslemesi) tiplerini parametrik olarak 2B ve 3B modelleyen, tarayıcıda çalışan tasarım aracı.
 
 **▶ Canlı demo:** https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V2/
 
@@ -34,8 +38,9 @@ Kurulum gerekmez. `index.html` dosyasını tarayıcıda aç (3B için internet b
 
 | Sürüm | Klasör | Durum |
 |---|---|---|
-| **v2** | `AI_muk3d_V2` | Güncel — fillet desteği eklendi |
-| v1 | [`AI_muk3d`](../AI_muk3d) | Arşiv — fillet öncesi hâli, çalışır durumda korunuyor |
+| **v3** | [`AI_muk3d_V3`](../AI_muk3d_V3) | Güncel — Yaprak düzenleme düzeltmesi |
+| v2 | `AI_muk3d_V2` | Bu sürüm — fillet desteği eklendi |
+| v1 | [`AI_muk3d`](../AI_muk3d) | Arşiv — fillet öncesi hâli |
 
 v1'i denemek isterseniz: [canlı demo](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d/)
 
@@ -45,4 +50,4 @@ Saf HTML/CSS/JavaScript + [Three.js](https://threejs.org) r147.
 
 ---
 
-← [Tüm projeler](../../)
+← [Tüm projeler](../../) · [Güncel sürüme geç (v3)](../AI_muk3d_V3)

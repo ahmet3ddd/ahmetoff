@@ -91,7 +91,7 @@
     display:block; width:100%; height:158px; object-fit:cover; object-position:right center;
     border-bottom:1px solid var(--line); background:#0e1013;
   }
-  .shotWrap{position:relative; line-height:0}
+  .shotWrap{position:relative; line-height:0; cursor:pointer}
   .playHint{
     position:absolute; right:9px; bottom:11px; z-index:2;
     font-size:10.5px; font-weight:700; letter-spacing:.04em;
@@ -100,7 +100,6 @@
     opacity:.85; transition:opacity .18s ease; pointer-events:none;
   }
   .shotWrap.playing .playHint{opacity:0}
-  @media (hover:none){ .playHint{display:none} }
   .body{padding:16px 18px 18px; display:flex; flex-direction:column; flex:1}
   .titleRow{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px}
   .card h3{font-size:17px; margin:0; letter-spacing:-.01em; font-weight:700}
@@ -169,16 +168,16 @@
           <span class="playHint" aria-hidden="true">&#9654; oynat</span>
         </div>
         <div class="body">
-          <div class="titleRow"><h3>Mukarnas 3D</h3><span class="ver">v2</span></div>
-          <p>Mukarnas hücrelerini parametrik 3B modeller; v2 ile kenarlara fillet uygulanabiliyor.</p>
+          <div class="titleRow"><h3>Mukarnas 3D</h3><span class="ver new">v3</span></div>
+          <p>Mukarnas hücrelerini parametrik 3B modeller; kenarlara fillet uygulanabiliyor. v3 ile Yaprak düzenleme ayarları düzeltildi.</p>
           <div class="meta">
             <div class="actions">
-              <a class="btn primary" href="projects/AI_muk3d_V2/index.html">Aç &rarr;</a>
-              <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_muk3d_V2">Kaynak</a>
+              <a class="btn primary" href="projects/AI_muk3d_V3/index.html">Aç &rarr;</a>
+              <a class="btn ghost" href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_muk3d_V3">Kaynak</a>
             </div>
-            <span class="date">6 Ağu</span>
+            <span class="date">19 Ağu</span>
           </div>
-          <p class="prev">Önceki sürüm: <a href="projects/AI_muk3d/index.html">v1'i aç</a> · <a href="https://github.com/ahmet3ddd/ahmetoff/tree/main/projects/AI_muk3d">kaynağı</a></p>
+          <p class="prev">Önceki sürümler: <a href="projects/AI_muk3d_V2/index.html">v2</a> · <a href="projects/AI_muk3d/index.html">v1</a></p>
         </div>
       </article>
 
@@ -208,7 +207,7 @@
           <span class="playHint" aria-hidden="true">&#9654; oynat</span>
         </div>
         <div class="body">
-          <div class="titleRow"><h3>Niş Mukarnas</h3><span class="ver new">Yeni</span></div>
+          <div class="titleRow"><h3>Niş Mukarnas</h3></div>
           <p>Niş (kavsara) mukarnaslarını açıklık, asaba ve sıra parametreleriyle kurgular; yanak ve arka duvar yüzeyleri otomatik üretilir.</p>
           <div class="meta">
             <div class="actions">
@@ -365,27 +364,56 @@
 <script>
 (function(){
   var wraps = Array.prototype.slice.call(document.querySelectorAll('.shotWrap'));
+  if (!wraps.length) return;
   var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   var lessMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function load(v){
     if (v.src) return;
     var mp4 = v.getAttribute('data-mp4'), webm = v.getAttribute('data-webm');
-    v.src = v.canPlayType('video/mp4; codecs="avc1.42E01E"') ? mp4 : webm;
+    var okMp4 = v.canPlayType && v.canPlayType('video/mp4; codecs="avc1.42E01E"');
+    v.src = okMp4 ? mp4 : (webm || mp4);
   }
-  function play(w){ var v=w.querySelector('video'); load(v); var pr=v.play(); if(pr&&pr.catch)pr.catch(function(){}); w.classList.add('playing'); }
-  function stop(w){ var v=w.querySelector('video'); v.pause(); w.classList.remove('playing'); }
+  function play(w){
+    var v = w.querySelector('video');
+    load(v);
+    w.classList.add('playing');
+    var pr = v.play();
+    if (pr && pr.catch) pr.catch(function(){
+      // Oynatma engellendiyse ipucunu geri goster
+      w.classList.remove('playing');
+    });
+  }
+  function stop(w){
+    var v = w.querySelector('video');
+    v.pause();
+    w.classList.remove('playing');
+  }
 
+  // 1) Her cihazda: karta dokunmak / tiklamak oynatir-durdurur.
+  //    (Fare yoksa, "hareketi azalt" aciksa ya da otomatik oynatma
+  //     engellenmisse tek calisan yol bu.)
+  wraps.forEach(function(w){
+    w.addEventListener('click', function(e){
+      e.preventDefault();
+      var v = w.querySelector('video');
+      if (v.paused) play(w); else stop(w);
+    });
+  });
+
+  // 2) Fare varsa: uzerine gelince oynasin.
   if (canHover) {
     wraps.forEach(function(w){
-      var card = w.closest('.card') || w;
-      card.addEventListener('mouseenter', function(){ play(w); });
-      card.addEventListener('mouseleave', function(){ stop(w); });
-      card.addEventListener('focusin', function(){ play(w); });
-      card.addEventListener('focusout', function(){ stop(w); });
+      var card = w.parentNode;
+      while (card && card.className.indexOf('card') === -1) card = card.parentNode;
+      var host = card || w;
+      host.addEventListener('mouseenter', function(){ play(w); });
+      host.addEventListener('mouseleave', function(){ stop(w); });
     });
-  } else if (!lessMotion && 'IntersectionObserver' in window) {
-    // Dokunmatikte ayni anda tek kart oynasin: en cok gorunen hangisiyse o.
+  }
+
+  // 3) Fare yoksa ve hareket kisitlamasi yoksa: ekrana gelen kart oynasin (tek tane).
+  if (!canHover && !lessMotion && 'IntersectionObserver' in window) {
     var ratio = new Map();
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(e){ ratio.set(e.target, e.intersectionRatio); });

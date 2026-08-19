@@ -35,16 +35,18 @@
 
 Geleneksel mimari formları parametrelerle modelleyen araçlar. 2B plan ve 3B görünüm eş zamanlı çalışır; sonuç **DXF**, **STL** veya **PNG** olarak dışa aktarılır. 3B görselleştirme [Three.js](https://threejs.org) ile yapılır.
 
-### Mukarnas 3D `v2`
+### Mukarnas 3D `v3`
 Mukarnas (sarkıt tavan süslemesi) hücrelerini — Badem, Yaprak, Fitil, Kaz Ayağı — parametrik olarak 3B modeller. Çizim ve düzenleme modları, plan üçgeni girişi, otomatik asaba hesabı.
 
-**v2'de yeni:** 7–8 ve 16–17 kenarlarına yay şeklinde **fillet** uygulanabiliyor; yay yan duvarlara yatırılıp komşu yüzeyler yeniden örülüyor. Boyut otomatik hesaplanır, segment sayısı yay çözünürlüğünü belirler.
+**v3'te yeni:** **Yaprak** tipinde Düzenleme modundaki A–F yükseklik ayarları yanlış köşeleri taşıyordu. Segment listeleri kaynak (weld öncesi) köşe indekslerine göre yeniden yazıldı; artık her segment yalnızca kendi üst Z kademesindeki köşeleri taşıyor, ayna tarafı da birlikte hareket ediyor.
+
+**v2'de gelen:** 7–8 ve 16–17 kenarlarına yay şeklinde **fillet** uygulanabiliyor; yay yan duvarlara yatırılıp komşu yüzeyler yeniden örülüyor.
 
 <img src="assets/shot-muk3d.png" alt="Mukarnas 3D v2" width="100%" />
 
-[▶ Aç (v2)](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V2/) · [Kaynak](projects/AI_muk3d_V2)
+[▶ Aç (v3)](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V3/) · [Kaynak](projects/AI_muk3d_V3)
 
-<sub>Önceki sürüm: [v1'i aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d/) · [kaynağı](projects/AI_muk3d) — fillet öncesi hâli, çalışır durumda korunuyor.</sub>
+<sub>Önceki sürümler: [v2'yi aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V2/) ([kaynak](projects/AI_muk3d_V2)) — fillet var, Yaprak düzenleme hatası da var · [v1'i aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d/) ([kaynak](projects/AI_muk3d)) — fillet öncesi hâli. İkisi de çalışır durumda korunuyor.</sub>
 
 ### Köşe Mukarnas
 Köşe mukarnaslarını üçgen plan (P1-P2-P3) üzerinden kurgular. Eşkenar/dik üçgen veya özel koordinat şablonu; asaba sayısı arttıkça plan alt hücrelere bölünüp form kademelenir.
@@ -134,8 +136,9 @@ ahmetoff/
 ├── assets/         → Açılış sayfası ve README görselleri
 │   └── demo/       → Her projenin kısa kullanım GIF'i
 ├── projects/       → Her bağımsız proje kendi klasöründe
-│   ├── AI_muk3d_V2/               Mukarnas 3D — güncel sürüm (v2)
-│   ├── AI_muk3d/                  Mukarnas 3D — önceki sürüm (v1, arşiv)
+│   ├── AI_muk3d_V3/               Mukarnas 3D — güncel sürüm (v3)
+│   ├── AI_muk3d_V2/               Mukarnas 3D — önceki sürüm (v2, arşiv)
+│   ├── AI_muk3d/                  Mukarnas 3D — ilk sürüm (v1, arşiv)
 │   ├── AI_K_muk3d/                Köşe Mukarnas
 │   ├── AI_N_muk3d/                Niş Mukarnas
 │   ├── AI_Puskul/                 Püskül 3D

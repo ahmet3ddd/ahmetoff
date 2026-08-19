@@ -1,8 +1,8 @@
 # Mukarnas 3D — v1 (önceki sürüm)
 
-> **Bu, aracın önceki sürümüdür.** Güncel sürüm için: **[Mukarnas 3D v2](../AI_muk3d_V2)** → [canlı demo](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V2/)
+> **Bu, aracın ilk sürümüdür.** Güncel sürüm için: **[Mukarnas 3D v3](../AI_muk3d_V3)** → [canlı demo](https://ahmet3ddd.github.io/ahmetoff/projects/AI_muk3d_V3/)
 >
-> v2, 7–8 ve 16–17 kenarlarına yay şeklinde **fillet** (yuvarlatma) uygulayabiliyor. Bu sürümde o özellik yok.
+> Sonraki sürümler 7–8 ve 16–17 kenarlarına yay şeklinde **fillet** (yuvarlatma) uygulayabiliyor. Bu sürümde o özellik yok.
 
 Bu sürüm, karşılaştırma yapmak veya v1 ile üretilmiş çalışmaları yeniden açmak isteyenler için çalışır durumda korunuyor.
 
@@ -27,4 +27,4 @@ Saf HTML/CSS/JavaScript + [Three.js](https://threejs.org) r147.
 
 ---
 
-← [Tüm projeler](../../) · [Güncel sürüme geç (v2)](../AI_muk3d_V2)
+← [Tüm projeler](../../) · [Güncel sürüme geç (v3)](../AI_muk3d_V3) · [v2](../AI_muk3d_V2)
