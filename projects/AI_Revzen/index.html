@@ -117,12 +117,12 @@
                 </div>
                 <div class="field" id="row-oran">
                     <label for="p-oran">Filgözü Boy/En</label>
-                    <input id="p-oran" type="number" value="1.43" min="1.02" step="0.01" />
+                    <input id="p-oran" type="number" value="1.4142" min="1.02" step="0.001" />
                 </div>
                 <label class="check" id="row-oran-ref"
                        title="Referans çizimden ölçülen oran. İşaretliyken alan kilitli kalır.">
                     <input id="p-oran-ref" type="checkbox" checked />
-                    Referans oran (1,43)
+                    Referans oran (√2 ≈ 1,4142)
                 </label>
                 <div class="field">
                     <label for="p-ara">Ara Kalınlık</label>
@@ -242,20 +242,22 @@
                         <em>T.M.T. kemerin ta kendisidir</em> — üstte ve altta aynalanmış hâli:
                         merkezde <code>r = En⁄2</code> yarıçaplı bir yay, ardından uçlara
                         <em>teğet</em> doğrular. Geçiş açısı <code>t₀ = arcsin(En⁄Boy)</code>;
-                        varsayılan Boy⁄En = 1,43 için <code>t₀ = 44,43°</code>.
-                        Bu değerler <code>docs/Filgözü_Revzen.jpg</code> çiziminden ölçülerek
-                        türetildi (model ile çizim arasındaki sapma 1 pikselin altında).</li>
+                        referans çizimde teğet noktası <em>tam 45°</em>’tedir, bu da
+                        <code>Boy⁄En = 1⁄sin45° = √2 ≈ 1,4142</code> demektir (teğet parçasının
+                        uzunluğu da yarıçapa eşittir: <code>√(Boy⁄2)² − (En⁄2)² = En⁄2</code>).
+                        Değer <code>docs/Filgözü_Revzen.jpg</code> ve ölçülü CAD çiziminden
+                        doğrulandı — kapalı form olduğu için yuvarlama payı yoktur.</li>
                 </ul>
                 <ul>
                     <li><strong>Göz Çapı / Göz Eni:</strong> tek bir gözün genişliği.</li>
                     <li><strong>Filgözü Boy/En:</strong> yalnızca filgözünde etkin; şeklin
                         yükseklik⁄genişlik oranı. Büyüdükçe uçlar sivrilir.
-                        Altındaki <strong>Referans oran (1,43)</strong> kutusu işaretliyken
-                        alan bu değere kilitlenir — 1,43 keyfi bir varsayılan değil,
-                        <code>docs/Filgözü_Revzen.jpg</code> çiziminden ölçülen orandır
-                        (geçiş açısı 44,43°). Kendi oranınızı denemek için kutunun işaretini
+                        Altındaki <strong>Referans oran (√2 ≈ 1,4142)</strong> kutusu işaretliyken
+                        alan bu değere kilitlenir — √2 keyfi bir varsayılan değil,
+                        <code>docs/Filgözü_Revzen.jpg</code> çiziminin tam değeridir
+                        (geçiş açısı 45°). Kendi oranınızı denemek için kutunun işaretini
                         kaldırın; referansa dönmek için yeniden işaretleyin. Bu bir tek yönlü
-                        sıfırlamadır: işaretlemek yazdığınız değeri 1,43 ile değiştirir,
+                        sıfırlamadır: işaretlemek yazdığınız değeri √2 ile değiştirir,
                         <code>Ctrl+Z</code> ile geri alabilirsiniz.</li>
                     <li><strong>Ara Kalınlık:</strong> iki göz arasında kalan alçı bandı.
                         Yatay adım = En + Ara. <em>Satır adımı buna göre çözülür</em>: çapraz

@@ -20,7 +20,7 @@
         kalinlik: 10,
         gozForm: 'daire',
         gozCap: 12,
-        oran: 1.43,
+        oran: Geom.FILGOZU_ORAN,
         oranRef: true,
         gozAra: 4,
         kenar: 6,
@@ -82,9 +82,10 @@
         helpOverlay:  document.getElementById('help-overlay')
     };
 
-    // 1.43 keyfi bir varsayilan degil, referans cizimden olculen oran.
-    // Tek tanim geometri motorunda; buradan okunuyor.
-    const REF_ORAN = Geom.FILGOZU_ORAN;
+    // sqrt(2) keyfi bir varsayilan degil, olculu referans cizimin tam degeri
+    // (teget noktasi 45 derece). Tek tanim geometri motorunda; buradan okunuyor.
+    const REF_ORAN     = Geom.FILGOZU_ORAN;
+    const REF_ORAN_TXT = REF_ORAN.toFixed(4);   // alanda gosterilen kisaltilmis hali
 
     const SAYILAR = [
         [el.en,       'en',            0.001],
@@ -131,7 +132,7 @@
         }
         state.dizilim = el.dizilim.value || DEFAULTS.dizilim;
         state.oranRef = el.oranRef.checked;
-        if (state.oranRef) { state.oran = REF_ORAN; el.oran.value = REF_ORAN; }
+        if (state.oranRef) { state.oran = REF_ORAN; el.oran.value = REF_ORAN_TXT; }
         state.kes = el.kes.checked;
         state.renkliCam = el.cam.checked;
         for (let i = 0; i < el.radios.length; i++) {
@@ -147,7 +148,7 @@
         for (const [girdi, anahtar] of SAYILAR) girdi.value = state[anahtar];
         el.dizilim.value = state.dizilim;
         el.oranRef.checked = state.oranRef;
-        if (state.oranRef) { state.oran = REF_ORAN; el.oran.value = REF_ORAN; }
+        if (state.oranRef) { state.oran = REF_ORAN; el.oran.value = REF_ORAN_TXT; }
         el.kes.checked = state.kes;
         el.cam.checked = state.renkliCam;
         for (let i = 0; i < el.radios.length; i++) {
@@ -337,7 +338,7 @@
     // Geri almak icin Ctrl+Z var.
     el.oranRef.addEventListener('change', function () {
         state.oranRef = el.oranRef.checked;
-        if (state.oranRef) { state.oran = REF_ORAN; el.oran.value = REF_ORAN; }
+        if (state.oranRef) { state.oran = REF_ORAN; el.oran.value = REF_ORAN_TXT; }
         applyFormUI();
         scheduleRefresh(false);
         commit();

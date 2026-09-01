@@ -36,8 +36,12 @@
         grid:    'Düz'
     };
 
-    // Filgozu icin olculen referans oran (Filgözü_Revzen.jpg: 70 x 100 px)
-    const FILGOZU_ORAN = 1.43;
+    // Filgozu referans orani. Olculu CAD kurgusu (docs/Filgözü_Revzen.jpg ve
+    // 2026-09-01 tarihli olcu ekran goruntusu): r = En/2 dairesi + teget
+    // dogrular, teget noktasi tam 45 derecede ve teget parcasi = r.
+    // sin(t0) = En/Boy oldugundan t0 = 45 -> Boy/En = 1/sin45 = sqrt(2).
+    // Onceki 1.43 kaba piksel okumasiydi (70x100 px), %1.1 fazlaydi.
+    const FILGOZU_ORAN = Math.SQRT2;   // 1.4142135...
 
     const CAM_PALET = ['#c8452f', '#2f6fb0', '#3f8f5a', '#d9a334', '#7b4fa0', '#cfc9b8'];
 
@@ -165,7 +169,7 @@
     // Filgozu: tek merkezli yay + uclara teget dogrular.
     // Yani T.M.T. kemer kurgusunun ust/alt aynalanmis hali.
     //   a = W/2 (yaricap), b = H/2 (yari yukseklik), sin(t0) = a/b
-    // Referans cizimde H/W = 1.429 -> t0 = 44.43 derece (olcum sapmasi < 1 px).
+    // Referans cizimde H/W = sqrt(2) -> t0 = 45 derece (tam deger, yuvarlama yok).
     function filgozuPoly(cx, cy, W, H, quarter) {
         const a = W / 2;
         const b = Math.max(H / 2, a * 1.0005);

@@ -20,7 +20,9 @@ Pencere tipini, ölçüleri ve göz desenini verirsiniz; araç kemer profilini �
 | **Dairesel** | Oculus — En = Boy ise daire, değilse elips | — |
 | **Düz** | Kemersiz dikdörtgen | — |
 
-**İki göz formu.** *Daire* klasik yuvarlak gözdür. *Filgözü* ise sivri uçlu badem formu — kurgusu T.M.T. kemerin üstte ve altta aynalanmış hâlidir: merkezde bir yay, uçlara teğet doğrular. Geçiş açısı `t₀ = arcsin(En/Boy)`. Varsayılan 1,43 oranı keyfi değil, referans çizimden ölçülen değerdir (`t₀ = 44,43°`); *Referans oran* kutusunu kaldırıp kendi oranınızı deneyebilirsiniz.
+**İki göz formu.** *Daire* klasik yuvarlak gözdür. *Filgözü* ise sivri uçlu badem formu — kurgusu T.M.T. kemerin üstte ve altta aynalanmış hâlidir: merkezde `r = En/2` yarıçaplı bir yay, uçlara teğet doğrular. Geçiş açısı `t₀ = arcsin(En/Boy)`.
+
+Referans oran **√2 ≈ 1,4142**'dir ve bu ölçülmüş değil, *türetilmiş* bir sayıdır: referans çizimde teğet noktası tam **45°**'te durur, dolayısıyla `Boy/En = 1/sin 45° = √2`. Aynı kurgudan teğet parçasının uzunluğu da yarıçapa eşit çıkar (`√((Boy/2)² − (En/2)²) = En/2`). Kapalı form olduğu için yuvarlama payı yoktur. *Referans oran* kutusunu kaldırıp kendi oranınızı deneyebilirsiniz.
 
 **Desen çözümü.** Yatay adım göz eni ile ara kalınlığın toplamıdır; satır adımı ise *çözülerek* bulunur — çapraz komşuyla arada da tam olarak aynı kalınlık kalacak şekilde. Yani alçı bandı her yönde eşit kalınlıktadır. Şaşırtmalı, sık şaşırtmalı ve düz dizilim seçenekleri, desen kaydırma (X/Y) ve kenarlarda kesme vardır. Alt şeritte göz sayısı, kaç tanesinin kenardan kesildiği ve adım ölçüleri canlı okunur.
 
@@ -39,6 +41,10 @@ Kurulum gerekmez. Canlı demoyu açın ya da `index.html` dosyasını tarayıcı
 ## Kimler için
 
 Restorasyon ve rölöve çalışmaları, mimarlık eğitimi, geleneksel bezeme araştırmaları ve revzen desenini 3B baskı ya da CNC ile üretmek isteyenler.
+
+## Değişiklikler
+
+**1 Eylül 2026 — filgözü oranı düzeltildi.** Referans oran, çizimden kaba piksel okumasıyla alınan **1,43** yerine kapalı form değeri **√2 ≈ 1,4142** oldu (%1,1'lik sapma giderildi). Geçiş açısı 44,43° yerine tam 45°. Bu sürümden önce kaydettiğiniz projeler kendi oran değerleriyle açılmaya devam eder; referansa dönmek için *Referans oran* kutusunu yeniden işaretleyin.
 
 ## Dizin yapısı
 

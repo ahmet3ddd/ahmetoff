@@ -83,7 +83,7 @@ Tek Merkezli Teğet ve Penci kemer tiplerini parametrelerle 3B modeller.
 ### Revzen 3D
 Revzen-i menkûş — alçı ya da taş levhaya açılan gözlerin renkli camlarla doldurulduğu Osmanlı penceresi. Kemer profilini ve göz dizilimini parametrik olarak üretir.
 
-Beş pencere tipi: **Tam Kemerli (DK)**, **T.M.T. Kemerli** (tek merkezli teğet), **Penci Kemerli** (iki merkezli), **Dairesel** (oculus) ve **Düz**. Göz formu **daire** ya da **filgözü**; filgözünün kurgusu T.M.T. kemerin aynalanmış hâlidir. Satır adımı, çapraz komşuyla arada da aynı alçı kalınlığı kalacak şekilde çözülür — bant her yönde eşittir.
+Beş pencere tipi: **Tam Kemerli (DK)**, **T.M.T. Kemerli** (tek merkezli teğet), **Penci Kemerli** (iki merkezli), **Dairesel** (oculus) ve **Düz**. Göz formu **daire** ya da **filgözü**; filgözünün kurgusu T.M.T. kemerin aynalanmış hâlidir ve referans oranı **√2**'dir — teğet noktası tam 45°'te durduğu için `Boy/En = 1/sin 45°` çıkar. Satır adımı, çapraz komşuyla arada da aynı alçı kalınlığı kalacak şekilde çözülür — bant her yönde eşittir.
 
 Çerçeve ve panel derinlikleri ayrı verilir; çıktı **STL**, **DXF** veya **PNG**, proje JSON olarak saklanır.
 
