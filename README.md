@@ -25,7 +25,7 @@
 
 | Bölüm | Projeler |
 |---|---|
-| **[Mimari Geometri](#mimari-geometri)** | Mukarnas 3D · Köşe Mukarnas · Niş Mukarnas · Püskül 3D · Kemerler 3D · Yedi-Sekiz |
+| **[Mimari Geometri](#mimari-geometri)** | Mukarnas 3D · Köşe Mukarnas · Niş Mukarnas · Püskül 3D · Kemerler 3D · Revzen 3D · Yedi-Sekiz |
 | **[Üretim ve Analiz](#üretim-ve-analiz)** | AI Light · 3D Print Model Kontrol |
 | **[Öğrenme](#öğrenme)** | Elifbâ — Osmanlıca Öğren |
 
@@ -79,6 +79,17 @@ Tek Merkezli Teğet ve Penci kemer tiplerini parametrelerle 3B modeller.
 <img src="assets/shot-kemer.png" alt="Kemerler 3D" width="100%" />
 
 [▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_Kemer/) · [Kaynak](projects/AI_Kemer)
+
+### Revzen 3D
+Revzen-i menkûş — alçı ya da taş levhaya açılan gözlerin renkli camlarla doldurulduğu Osmanlı penceresi. Kemer profilini ve göz dizilimini parametrik olarak üretir.
+
+Beş pencere tipi: **Tam Kemerli (DK)**, **T.M.T. Kemerli** (tek merkezli teğet), **Penci Kemerli** (iki merkezli), **Dairesel** (oculus) ve **Düz**. Göz formu **daire** ya da **filgözü**; filgözünün kurgusu T.M.T. kemerin aynalanmış hâlidir. Satır adımı, çapraz komşuyla arada da aynı alçı kalınlığı kalacak şekilde çözülür — bant her yönde eşittir.
+
+Çerçeve ve panel derinlikleri ayrı verilir; çıktı **STL**, **DXF** veya **PNG**, proje JSON olarak saklanır.
+
+<img src="assets/shot-revzen.png" alt="Revzen 3D" width="100%" />
+
+[▶ Aç](https://ahmet3ddd.github.io/ahmetoff/projects/AI_Revzen/) · [Kaynak](projects/AI_Revzen)
 
 ### Yedi-Sekiz (7-8)
 Geleneksel yedi-sekiz geçme desenlerini V8 tipi parametrelerle üretir.
@@ -143,6 +154,7 @@ ahmetoff/
 │   ├── AI_N_muk3d/                Niş Mukarnas
 │   ├── AI_Puskul/                 Püskül 3D
 │   ├── AI_Kemer/                  Kemerler 3D
+│   ├── AI_Revzen/                 Revzen 3D
 │   ├── AI_7-8/                    Yedi-Sekiz
 │   ├── AI_light/                  AI Light — optik simülatörü
 │   ├── AI_3Dprint_model_kontrol/  3D Print Model Kontrol

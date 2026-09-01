@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Revzen 3D — web</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <header class="topbar">
+        <h1>Revzen 3D <span class="sub">— web sürümü</span></h1>
+        <div class="topbar-actions">
+            <button id="btn-help" type="button" title="Nasıl kullanılır">?</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-undo" type="button" class="ikon" title="Geri al (Ctrl+Z)">&#8630;</button>
+            <button id="btn-redo" type="button" class="ikon" title="İleri al (Ctrl+Y)">&#8631;</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-open" type="button" title="Proje aç (Ctrl+O)">Aç</button>
+            <button id="btn-save" type="button" title="Projeyi kaydet (Ctrl+S)">Kaydet</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-reset" type="button" title="Parametreleri sıfırla">Sıfırla</button>
+            <button id="btn-fit-camera" type="button" title="3D kamerayı nesneye oturt">Kamera</button>
+            <button id="btn-grid" type="button" class="acik"
+                    title="Zemin ızgarası ve taban düzlemi (G)">Izgara</button>
+            <span class="topbar-sep"></span>
+            <button id="btn-export-stl" type="button">STL</button>
+            <button id="btn-export-dxf" type="button">DXF</button>
+            <button id="btn-export-png" type="button">PNG</button>
+        </div>
+    </header>
+
+    <main class="layout">
+        <aside class="sidebar">
+
+            <section class="panel">
+                <h2>Pencere Tipi</h2>
+                <div class="type-list">
+                    <label class="type">
+                        <input type="radio" name="revzen-tipi" value="dk" />
+                        <svg viewBox="0 0 24 36" aria-hidden="true">
+                            <path d="M2,34 L2,12 A10,10 0 0 1 22,12 L22,34" />
+                        </svg>
+                        <span>Tam Kemerli <em>DK</em></span>
+                    </label>
+                    <label class="type">
+                        <input type="radio" name="revzen-tipi" value="tmt" checked />
+                        <svg viewBox="0 0 24 36" aria-hidden="true">
+                            <path d="M2,34 L2,13.5 A10,10 0 0 1 7,4.84 L12,2 L17,4.84 A10,10 0 0 1 22,13.5 L22,34" />
+                        </svg>
+                        <span>T.M.T. Kemerli <em>tek merkezli teğet</em></span>
+                    </label>
+                    <label class="type">
+                        <input type="radio" name="revzen-tipi" value="pk" />
+                        <svg viewBox="0 0 24 36" aria-hidden="true">
+                            <path d="M2,34 L2,13.8 A12,12 0 0 1 12,2 A12,12 0 0 1 22,13.8 L22,34" />
+                        </svg>
+                        <span>Penci Kemerli <em>iki merkezli</em></span>
+                    </label>
+                    <label class="type">
+                        <input type="radio" name="revzen-tipi" value="dairesel" />
+                        <svg viewBox="0 0 24 36" aria-hidden="true">
+                            <circle cx="12" cy="18" r="10" />
+                        </svg>
+                        <span>Dairesel <em>oculus / kandil</em></span>
+                    </label>
+                    <label class="type">
+                        <input type="radio" name="revzen-tipi" value="duz" />
+                        <svg viewBox="0 0 24 36" aria-hidden="true">
+                            <path d="M2,34 L2,2 L22,2 L22,34 Z" />
+                        </svg>
+                        <span>Düz <em>dikdörtgen</em></span>
+                    </label>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Ölçüler</h2>
+                <div class="field">
+                    <label for="p-en">En</label>
+                    <input id="p-en" type="number" value="120" min="1" step="1" />
+                </div>
+                <div class="field">
+                    <label for="p-boy">Boy</label>
+                    <input id="p-boy" type="number" value="200" min="1" step="1" />
+                </div>
+                <div class="field">
+                    <label for="p-kalinlik">Çerçeve Kalınlığı</label>
+                    <input id="p-kalinlik" type="number" value="10" min="0" step="0.5" />
+                </div>
+                <div class="readout">
+                    <span class="ro"><i>Kemer yüksekliği</i><b id="ro-rise">—</b></span>
+                    <span class="ro"><i>Etek kotu (y)</i><b id="ro-spring">—</b></span>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Göz Deseni</h2>
+                <div class="form-list">
+                    <label class="form">
+                        <input type="radio" name="goz-formu" value="daire" checked />
+                        <svg viewBox="0 0 20 28" aria-hidden="true">
+                            <circle cx="10" cy="14" r="8.5" />
+                        </svg>
+                        <span>Daire</span>
+                    </label>
+                    <label class="form">
+                        <input type="radio" name="goz-formu" value="filgozu" />
+                        <svg viewBox="0 0 20 28" aria-hidden="true">
+                            <path d="M18.5,14 A8.5,8.5 0 0 0 15.95,7.95 L10,2 L4.05,7.95 A8.5,8.5 0 0 0 4.05,20.05 L10,26 L15.95,20.05 A8.5,8.5 0 0 0 18.5,14 Z" />
+                        </svg>
+                        <span>Filgözü</span>
+                    </label>
+                </div>
+                <div class="field">
+                    <label for="p-cap" id="lbl-cap">Göz Çapı</label>
+                    <input id="p-cap" type="number" value="12" min="0" step="0.5" />
+                </div>
+                <div class="field" id="row-oran">
+                    <label for="p-oran">Filgözü Boy/En</label>
+                    <input id="p-oran" type="number" value="1.43" min="1.02" step="0.01" />
+                </div>
+                <label class="check" id="row-oran-ref"
+                       title="Referans çizimden ölçülen oran. İşaretliyken alan kilitli kalır.">
+                    <input id="p-oran-ref" type="checkbox" checked />
+                    Referans oran (1,43)
+                </label>
+                <div class="field">
+                    <label for="p-ara">Ara Kalınlık</label>
+                    <input id="p-ara" type="number" value="4" min="0" step="0.5" />
+                </div>
+                <div class="field">
+                    <label for="p-kenar">Kenar Boşluğu</label>
+                    <input id="p-kenar" type="number" value="6" min="0" step="0.5" />
+                </div>
+                <div class="field">
+                    <label for="p-kay-x">Kaydırma X / Y</label>
+                    <span class="ikili">
+                        <input id="p-kay-x" type="number" value="0" step="0.5" title="Yatay kaydırma (X)" />
+                        <input id="p-kay-y" type="number" value="0" step="0.5" title="Dikey kaydırma (Y)" />
+                    </span>
+                </div>
+                <div class="field">
+                    <label for="p-dizilim">Dizilim</label>
+                    <select id="p-dizilim">
+                        <option value="stagger" selected>Şaşırtmalı</option>
+                        <option value="tight">Şaşırtmalı (sık)</option>
+                        <option value="grid">Düz</option>
+                    </select>
+                </div>
+                <label class="check">
+                    <input id="p-kes" type="checkbox" checked />
+                    Kenarlarda kes
+                </label>
+                <label class="check">
+                    <input id="p-cam" type="checkbox" checked />
+                    Renkli cam
+                </label>
+                <div class="readout">
+                    <span class="ro"><i>Göz sayısı</i><b id="ro-goz">—</b></span>
+                    <span class="ro"><i>Bunun kesik olanı</i><b id="ro-kesik">—</b></span>
+                    <span class="ro"><i>Adım (yatay × satır)</i><b id="ro-pitch">—</b></span>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Derinlik (3D)</h2>
+                <div class="field">
+                    <label for="p-derinlik">Çerçeve Derinliği</label>
+                    <input id="p-derinlik" type="number" value="12" min="0.1" step="0.5" />
+                </div>
+                <div class="field">
+                    <label for="p-panel">Panel Derinliği</label>
+                    <input id="p-panel" type="number" value="4" min="0.1" step="0.5" />
+                </div>
+            </section>
+
+            <section class="panel panel-ref">
+                <h2>Referans</h2>
+                <div class="ref-img">
+                    <img src="assets/revzen-ornek.jpg" alt="Revzen örneği" />
+                </div>
+                <p class="hint">
+                    Kaynak MaxScript'ler: <code>revzen_DK-v1.ms</code>,
+                    <code>revzen_TMT-v1.ms</code>, <code>revzen_PK-v1.ms</code>
+                </p>
+            </section>
+        </aside>
+
+        <section class="viewports">
+            <div class="viewport viewport-2d">
+                <div class="viewport-title">2D Görünüm</div>
+                <div id="view2d" class="view2d-container"></div>
+            </div>
+            <div class="viewport viewport-3d">
+                <div class="viewport-title">3D Görünüm</div>
+                <div id="view3d" class="view3d-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="help-overlay" class="help-overlay" hidden>
+        <div class="help-modal">
+            <div class="help-header">
+                <h2>Revzen 3D — Nasıl Kullanılır</h2>
+                <button id="btn-help-close" type="button">&times;</button>
+            </div>
+            <div class="help-body">
+                <p><strong>Revzen</strong> (revzen-i menkûş), Osmanlı mimarisinde kullanılan,
+                alçı ya da taş bir levhaya açılan gözlerin renkli camlarla doldurulduğu
+                pencere türüdür. Bu araç, kemer profilini ve göz dizilimini parametrik
+                olarak üretir; 2D vektör ve 3D katı model olarak dışa aktarır.</p>
+
+                <p><strong>Açılış:</strong> <code>web/index.html</code> dosyasına çift tıklayın.
+                Three.js CDN üzerinden yüklenir; ilk açılışta internet bağlantısı gerekir.</p>
+
+                <h3>1. Pencere tipi</h3>
+                <ul>
+                    <li><strong>Tam Kemerli (DK):</strong> yarım daire. r = En⁄2, kemer yüksekliği = En⁄2.</li>
+                    <li><strong>T.M.T. Kemerli:</strong> tek merkezli teğet kemer. Tek merkezden r = En⁄2 yarıçapla
+                        0–60° ve 120–180° yayları çizilir, uçlardan tepe noktasına <em>teğet</em> doğrular gider.
+                        Yükseklik = (En⁄2) ⁄ cos30° = <code>En × 0,57735</code>.</li>
+                    <li><strong>Penci Kemerli:</strong> iki merkezli sivri kemer. Merkezler orta eksenden
+                        ±En⁄10 kaydırılır, r = 0,6 × En. Yükseklik = <code>En × 0,59161</code>
+                        (yay açısı 80,40593°).</li>
+                    <li><strong>Dairesel:</strong> oculus. En = Boy ise tam daire, değilse elips.</li>
+                    <li><strong>Düz:</strong> kemersiz dikdörtgen.</li>
+                </ul>
+
+                <h3>2. Ölçüler</h3>
+                <ul>
+                    <li><strong>En / Boy:</strong> pencere boşluğunun toplam genişlik ve yüksekliği.
+                        Orijin sol alt köşededir (0,0). Kemerli tiplerde <em>Boy, kemer yüksekliğinden küçük olamaz.</em></li>
+                    <li><strong>Çerçeve Kalınlığı:</strong> konturu dışa doğru öteler
+                        (MaxScript <code>applyOffset</code> karşılığı). 0 verilirse yalnızca kontur çizilir.</li>
+                </ul>
+
+                <h3>3. Göz deseni</h3>
+                <p><strong>Göz Formu</strong> iki türlüdür:</p>
+                <ul>
+                    <li><strong>Daire:</strong> klasik yuvarlak göz.</li>
+                    <li><strong>Filgözü:</strong> sivri uçlu badem formu. Kurgusu
+                        <em>T.M.T. kemerin ta kendisidir</em> — üstte ve altta aynalanmış hâli:
+                        merkezde <code>r = En⁄2</code> yarıçaplı bir yay, ardından uçlara
+                        <em>teğet</em> doğrular. Geçiş açısı <code>t₀ = arcsin(En⁄Boy)</code>;
+                        varsayılan Boy⁄En = 1,43 için <code>t₀ = 44,43°</code>.
+                        Bu değerler <code>docs/Filgözü_Revzen.jpg</code> çiziminden ölçülerek
+                        türetildi (model ile çizim arasındaki sapma 1 pikselin altında).</li>
+                </ul>
+                <ul>
+                    <li><strong>Göz Çapı / Göz Eni:</strong> tek bir gözün genişliği.</li>
+                    <li><strong>Filgözü Boy/En:</strong> yalnızca filgözünde etkin; şeklin
+                        yükseklik⁄genişlik oranı. Büyüdükçe uçlar sivrilir.
+                        Altındaki <strong>Referans oran (1,43)</strong> kutusu işaretliyken
+                        alan bu değere kilitlenir — 1,43 keyfi bir varsayılan değil,
+                        <code>docs/Filgözü_Revzen.jpg</code> çiziminden ölçülen orandır
+                        (geçiş açısı 44,43°). Kendi oranınızı denemek için kutunun işaretini
+                        kaldırın; referansa dönmek için yeniden işaretleyin. Bu bir tek yönlü
+                        sıfırlamadır: işaretlemek yazdığınız değeri 1,43 ile değiştirir,
+                        <code>Ctrl+Z</code> ile geri alabilirsiniz.</li>
+                    <li><strong>Ara Kalınlık:</strong> iki göz arasında kalan alçı bandı.
+                        Yatay adım = En + Ara. <em>Satır adımı buna göre çözülür</em>: çapraz
+                        komşuyla arada da tam olarak bu kalınlık kalacak şekilde. Yani bandın
+                        kalınlığı her yönde aynıdır (readout'ta “Adım (yatay × satır)”).</li>
+                    <li><strong>Desen Kaydırma (X / Y):</strong> göz ızgarasının pencere
+                        içindeki konumunu öteler. Normalde sütunlar pencere orta eksenine,
+                        en alttaki tam sıra da eşiğe oturur; bu iki alanla deseni istediğiniz
+                        yere kaydırırsınız. Bir <em>adım</em> kadar kaydırmak deseni aynı yere
+                        getirir (adım değerleri readout'ta yazar), dolayısıyla anlamlı aralık
+                        bir adımdır. Asıl işi, desenin kenarlara ve kemer başlığına nasıl
+                        oturduğunu — yani hangi gözlerin nereden kesileceğini — ayarlamaktır.
+                        Referans filgözü çiziminde desen pencere merkezinden yaklaşık
+                        %13 sağa kaymış durumdadır; o etkiyi bu alanla verebilirsiniz.</li>
+                    <li><strong>Kenar Boşluğu:</strong> desen alanı ile pencere konturu arasında
+                        bırakılan düz alçı bandı. 0 verilse bile göz eninin <em>%1,5'i</em> kadar
+                        saç teli bir bant korunur: sıfır kalınlıkta temas eden bir göz artık
+                        “delik” değil kontura açılan bir çentiktir ve hem katı modelin
+                        üçgenlemesini hem CAD boolean işlemini bozar.</li>
+                    <li><strong>Dizilim:</strong>
+                        <em>Şaşırtmalı</em> — sıralar yarım adım kaydırılır ve satır adımı,
+                        çapraz komşuyla arada da tam “Ara Kalınlık” kalacak şekilde çözülür;
+                        band her yönde eşit kalınlıktadır.
+                        <em>Şaşırtmalı (sık)</em> — referans filgözü çizimindeki sıkı örgü:
+                        satır adımı <code>Boy − Ara</code>'dır, sıralar daha çok geçişir ve
+                        çapraz band yatay banddan bir miktar incedir (referans çizimde 18,1'e
+                        karşı 21,3). Aynı alana daha çok göz sığar. Gözlerin çakışmaması için
+                        çapraz boşluğun Ara'nın yarısının altına düşmesine izin verilmez.
+                        <em>Düz</em> — kare ızgara, kaydırma yok.</li>
+                    <li><strong>Kenarlarda kes:</strong> açıkken kenara, kemer başlığına ve eşiğe
+                        denk gelen gözler <em>kırpılır</em> — referans filgözü çizimindeki gibi
+                        yarım gözler oluşur ve desen alanı dolar. Kapatılırsa yalnızca tamamı sığan
+                        gözler yerleştirilir. Tam gözün %4'ünden küçük kalan kırıntılar atılır.</li>
+                    <li><strong>Renkli cam:</strong> gözleri geleneksel cam paletiyle boyar; kapatılırsa
+                        gözler dıştan görüldüğü gibi koyu görünür.</li>
+                </ul>
+
+                <h3>4. Proje aç / kaydet</h3>
+                <p><strong>Kaydet</strong> tüm parametreleri bir <code>.json</code> dosyasına yazar,
+                <strong>Aç</strong> geri yükler. Tarayıcı destekliyorsa gerçek
+                <em>“Farklı Kaydet”</em> ve <em>“Aç”</em> pencereleri açılır, yani dosyanın
+                nereye yazılacağını / nereden okunacağını siz seçersiniz. Desteklemeyen
+                ortamlarda kaydetme indirme klasörüne düşer, açma ise dosya seçme
+                penceresiyle yapılır. Yüklenen dosya doğrulanır: tanınmayan alanlar
+                yok sayılır, aralık dışı değerler atlanır ve kaç alanın atlandığı bildirilir.</p>
+
+                <h3>5. Geri / ileri al</h3>
+                <p>Üst bardaki <strong>&#8630;</strong> ve <strong>&#8631;</strong> düğmeleri ya da
+                <code>Ctrl+Z</code> / <code>Ctrl+Y</code> (veya <code>Ctrl+Shift+Z</code>).
+                Son 100 adım tutulur. Bir alana yazarken her tuş vuruşu değil, alandan
+                çıktığınızda (ya da yazmayı bıraktıktan ~0,7 sn sonra) tek bir adım kaydedilir;
+                böylece geri alma sayı sayı değil, değişiklik değişiklik ilerler.
+                <em>Sıfırla</em> ve <em>Aç</em> da geri alınabilir.</p>
+
+                <h3>6. Görünümler</h3>
+                <p>Sol viewport <strong>2D</strong> (teknik çizim), sağ viewport <strong>3D</strong> (Three.js).
+                3D'de fareyle: <em>sol tuş</em> orbit, <em>orta tuş</em> pan, <em>tekerlek</em> zoom.
+                PNG kaydı için önce ilgili viewport'a tıklayın (sarı çerçeve aktif olur).</p>
+
+                <p><strong>Izgara</strong> düğmesi (kısayol <code>G</code>) 2D arka plan
+                ızgarasını, 3D zemin ızgarasını ve taban düzlemini birlikte kapatır.
+                Temiz bir ürün görünümü ve PNG çıkışı için kullanışlıdır. Eksen çizgileri
+                ile eşik (y=0) çizgisi açık kalır.</p>
+
+                <h3>7. Dışa aktarma</h3>
+                <ul>
+                    <li><strong>DXF:</strong> 2D vektör, R12/AC1009. Katmanlar:
+                        <code>REVZEN_DIS</code> (dış kontur), <code>REVZEN_IC</code> (iç kontur),
+                        <code>REVZEN_GOZ</code> (gözler). Kesilmemiş daireler gerçek
+                        <code>CIRCLE</code> nesnesi olarak yazılır; filgözü ve kenarda kırpılmış
+                        parçalar kapalı <code>POLYLINE</code> olur.</li>
+                    <li><strong>STL:</strong> 3D katı — extrude edilmiş çerçeve + gözleri delinmiş panel.
+                        Derinlikler "Derinlik (3D)" panelinden alınır.</li>
+                    <li><strong>PNG:</strong> aktif viewport'un görüntüsü.</li>
+                </ul>
+
+                <h3>8. 3ds Max DXF import</h3>
+                <p>Import penceresinde <strong>Weld vertices</strong> seçeneğini işaretleyin.
+                Gözler ayrı katmanda geldiği için <em>Layer</em> bazlı seçimle
+                tek seferde <code>ShapeMerge</code> ya da <code>Boolean</code> uygulayabilirsiniz.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js classic (UMD) - file:// uyumlu -->
+    <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/revzen-geometry.js"></script>
+    <script src="js/proje-io.js"></script>
+    <script src="js/revzen-mesh.js"></script>
+    <script src="js/viewer-2d.js"></script>
+    <script src="js/viewer-3d.js"></script>
+    <script src="js/export-stl.js"></script>
+    <script src="js/export-dxf.js"></script>
+    <script src="js/export-png.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
