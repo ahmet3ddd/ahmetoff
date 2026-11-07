@@ -26,7 +26,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.3.1"
+VERSION = "1.4.0"
 UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
 HOME = Path(os.environ.get("SECKI_HOME", Path.home() / ".secki-dublaj"))
 JOBS = HOME / "jobs"
@@ -208,53 +208,80 @@ def get_model(vid):
     return _model
 
 
-def gtx(text):
-    import urllib.parse
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+EDGE_UA = UA + " Edg/130.0.0.0"
+_ms = {"tok": None, "t": 0}
+
+
+def _get(url, headers=None, data=None):
     import urllib.request
-    url = ("https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t&q="
-           + urllib.parse.quote(text, safe=""))
-    req = urllib.request.Request(url, headers={
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"})
+    req = urllib.request.Request(url, data=data, headers=dict({"User-Agent": UA}, **(headers or {})))
     with urllib.request.urlopen(req, timeout=60) as r:
-        data = json.loads(r.read().decode("utf-8"))
-    return "".join(part[0] for part in data[0] if part and part[0])
+        return r.read().decode("utf-8")
+
+
+def tr_microsoft(lines):
+    if not _ms["tok"] or time.time() - _ms["t"] > 480:
+        _ms["tok"] = _get("https://edge.microsoft.com/translate/auth", {"User-Agent": EDGE_UA}).strip()
+        _ms["t"] = time.time()
+        if not _ms["tok"]:
+            raise RuntimeError("Microsoft çeviri anahtarı alınamadı")
+    body = json.dumps([{"Text": t} for t in lines]).encode()
+    res = json.loads(_get("https://api-edge.cognitive.microsofttranslator.com/translate?from=&to=tr&api-version=3.0",
+                          {"Authorization": "Bearer " + _ms["tok"], "Content-Type": "application/json",
+                           "User-Agent": EDGE_UA}, body))
+    return [r["translations"][0]["text"] for r in res]
+
+
+def tr_google(lines):
+    import urllib.parse
+    out = []
+    for t in lines:
+        data = json.loads(_get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t&q="
+                               + urllib.parse.quote(t, safe="")))
+        out.append("".join(p[0] for p in data[0] if p and p[0]))
+    return out
+
+
+def tr_google2(lines):
+    import urllib.parse
+    q = "&".join("q=" + urllib.parse.quote(t, safe="") for t in lines)
+    data = json.loads(_get("https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=auto&tl=tr&" + q))
+    return [d[0] if isinstance(d, list) else d for d in data]
+
+
+PROVIDERS = [("microsoft", tr_microsoft, 50), ("google", tr_google2, 20), ("google-gtx", tr_google, 1)]
+_good = {"name": None}
 
 
 def translate(texts):
-    """Google Çeviri; satırlar toplu çevrilir, sayı tutmazsa tek tek."""
-    out, batch, size, fails = [], [], 0, 0
-    last_err = [""]
-
-    def flush():
-        nonlocal batch, size, fails
-        if not batch:
-            return
+    """Sırayla Microsoft (Edge), Google denenir; çalışan sağlayıcı hatırlanır."""
+    texts = [t.replace("\n", " ") for t in texts]
+    errs = []
+    order = sorted(PROVIDERS, key=lambda p: p[0] != _good["name"])
+    for name, fn, size in order:
         try:
-            res = gtx("\n".join(batch)).split("\n")
-            if len(res) != len(batch):
-                raise ValueError("satır sayısı tutmadı")
-        except Exception:
-            res = []
-            for t in batch:
-                try:
-                    res.append(gtx(t))
-                except Exception as e:
-                    fails += 1
-                    last_err[0] = repr(e)[:200]
-                    log("çeviri hatası:", e)
-                    res.append(t)
-        out.extend(r.strip() for r in res)
-        batch, size = [], 0
-
-    for t in texts:
-        if size + len(t) > 1200:
-            flush()
-        batch.append(t.replace("\n", " "))
-        size += len(t) + 1
-    flush()
-    if texts and fails > len(texts) / 2:
-        raise RuntimeError("Google Çeviri'ye ulaşılamadı: " + last_err[0])
-    return out
+            out = []
+            for i in range(0, len(texts), size):
+                chunk = texts[i:i + size]
+                for attempt in range(3):
+                    try:
+                        res = fn(chunk)
+                        break
+                    except Exception as e:
+                        if attempt == 2 or "429" not in str(e):
+                            raise
+                        time.sleep(4 * (attempt + 1))
+                if len(res) != len(chunk):
+                    raise ValueError("satır sayısı tutmadı")
+                out.extend((r or "").strip() for r in res)
+            _good["name"] = name
+            log("çeviri:", name, len(texts), "satır")
+            return out
+        except Exception as e:
+            errs.append(f"{name}: {str(e)[:120]}")
+            log("çeviri sağlayıcısı başarısız:", name, e)
+    raise RuntimeError("Çeviri yapılamadı (" + "; ".join(errs) + ")")
 
 
 # ---------------------------------------------------------------- seslendirme
