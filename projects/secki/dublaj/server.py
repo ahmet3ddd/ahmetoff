@@ -26,7 +26,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
 HOME = Path(os.environ.get("SECKI_HOME", Path.home() / ".secki-dublaj"))
 JOBS = HOME / "jobs"
@@ -211,10 +211,10 @@ def get_model(vid):
 def gtx(text):
     import urllib.parse
     import urllib.request
-    body = urllib.parse.urlencode({"q": text}).encode()
-    req = urllib.request.Request(
-        "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t",
-        data=body, headers={"User-Agent": "Mozilla/5.0", "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"})
+    url = ("https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t&q="
+           + urllib.parse.quote(text, safe=""))
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"})
     with urllib.request.urlopen(req, timeout=60) as r:
         data = json.loads(r.read().decode("utf-8"))
     return "".join(part[0] for part in data[0] if part and part[0])
@@ -223,6 +223,7 @@ def gtx(text):
 def translate(texts):
     """Google Çeviri; satırlar toplu çevrilir, sayı tutmazsa tek tek."""
     out, batch, size, fails = [], [], 0, 0
+    last_err = [""]
 
     def flush():
         nonlocal batch, size, fails
@@ -239,19 +240,20 @@ def translate(texts):
                     res.append(gtx(t))
                 except Exception as e:
                     fails += 1
+                    last_err[0] = repr(e)[:200]
                     log("çeviri hatası:", e)
                     res.append(t)
         out.extend(r.strip() for r in res)
         batch, size = [], 0
 
     for t in texts:
-        if size + len(t) > 3500:
+        if size + len(t) > 1200:
             flush()
         batch.append(t.replace("\n", " "))
         size += len(t) + 1
     flush()
     if texts and fails > len(texts) / 2:
-        raise RuntimeError("Google Çeviri'ye ulaşılamadı; çeviri yapılamadı.")
+        raise RuntimeError("Google Çeviri'ye ulaşılamadı: " + last_err[0])
     return out
 
 
