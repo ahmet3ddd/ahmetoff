@@ -269,7 +269,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
 <script>
 (() => {
 'use strict';
-const VERSION = '2026-11-07-7';
+const VERSION = '2026-11-07-8';
 const $ = s => document.querySelector(s);
 const API = 'https://www.googleapis.com/youtube/v3/';
 const NS = 'secki.';
@@ -617,7 +617,7 @@ function forceTR(p, fromApiChange){
 function closePlayer(){ dubClose(); $('#player').hidden = true; $('#frame').innerHTML = ''; cur = null; }
 
 /* ---------- Türkçe seslendirme (Seçki Dublaj servisi) ---------- */
-const dubS = {v: null, p: null, cues: null, audio: null, on: false, want: false, ours: false, timer: 0, poll: 0, st: null, idx: 0};
+const dubS = window.__dubS = {v: null, p: null, cues: null, audio: null, on: false, want: false, ours: false, timer: 0, poll: 0, st: null, idx: 0};
 function dubUrl(path){ return DUB.u.replace(/\/+$/, '') + path + (path.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(DUB.t); }
 async function dubApi(path, method){
   const r = await fetch(dubUrl(path), {method: method || 'GET', cache: 'no-store'});

@@ -26,7 +26,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
 HOME = Path(os.environ.get("SECKI_HOME", Path.home() / ".secki-dublaj"))
 JOBS = HOME / "jobs"
@@ -150,7 +150,8 @@ def youtube_turkish_subs(vid, info, work):
             log(vid, "altyazı indirilemedi:", e)
     cands = [(k, False) for k in subs if lang and k.lower().startswith(lang)]
     cands += [(k, False) for k in subs if (k, False) not in cands]
-    cands += [(k, True) for k in auto if k.endswith("-orig")]
+    cands += [(k, True) for k in auto if lang and k.lower() == lang + "-orig"]
+    cands += [(k, True) for k in auto if k.endswith("-orig") and (k, True) not in cands]
     cands += [(k, True) for k in auto if (k, True) not in cands and not k.lower().startswith("tr")][:1]
     for key, is_auto in cands[:3]:
         try:
