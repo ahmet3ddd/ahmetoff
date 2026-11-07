@@ -26,7 +26,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
+UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
 HOME = Path(os.environ.get("SECKI_HOME", Path.home() / ".secki-dublaj"))
 JOBS = HOME / "jobs"
 PORT = int(os.environ.get("SECKI_PORT", "8765"))
@@ -118,6 +119,8 @@ def youtube_turkish_subs(vid, info, work):
     """Önce elle yazılmış Türkçe, sonra YouTube'un otomatik Türkçesi."""
     subs = info.get("subtitles") or {}
     auto = info.get("automatic_captions") or {}
+    log(vid, "altyazılar:", list(subs)[:8], "otomatik:", "tr" in auto, len(auto))
+    write_status(vid, capinfo={"manual": list(subs)[:8], "auto_tr": "tr" in auto, "auto_n": len(auto)})
     manual = next((k for k in subs if k.lower().startswith("tr")), None)
     autok = next((k for k in auto if k.lower() == "tr" or k.lower().startswith("tr-")), None)
     for kind, key in (("manual", manual), ("auto", autok)):
@@ -141,21 +144,23 @@ def youtube_turkish_subs(vid, info, work):
 
 
 def whisper_subs(vid, info, work):
+    import numpy as np
     write_status(vid, step="Ses indiriliyor", progress=0.1)
-    run([YTDLP, "--no-warnings", "-f", "bestaudio/best", "-x", "--audio-format", "wav",
-         "--postprocessor-args", "ffmpeg:-ac 1 -ar 16000", "-o", str(work / "audio.%(ext)s"),
+    run([YTDLP, "--no-warnings", "-f", "bestaudio/best", "-o", str(work / "audio.%(ext)s"),
          f"https://www.youtube.com/watch?v={vid}"], timeout=1800)
-    wav = next(work.glob("audio*.wav"))
+    src = next(p for p in work.glob("audio.*") if not p.name.endswith(".part"))
+    raw_pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", str(src), "-ac", "1", "-ar", "16000", "-f", "f32le", "-"],
+                             capture_output=True, check=True).stdout
+    audio = np.frombuffer(raw_pcm, dtype=np.float32)
+    src.unlink(missing_ok=True)
+    model = get_model(vid)
     write_status(vid, step="Konuşma yazıya dökülüyor", progress=0.2)
-    from faster_whisper import WhisperModel
-    model = WhisperModel(WHISPER_MODEL, device="auto", compute_type="int8")
     dur = float(info.get("duration") or 1)
-    segs, winfo = model.transcribe(str(wav), vad_filter=True)
+    segs, winfo = model.transcribe(audio, vad_filter=True)
     raw = []
     for s in segs:
         raw.append({"s": s.start, "e": s.end, "t": s.text.strip()})
         write_status(vid, progress=round(0.2 + 0.4 * min(1, s.end / dur), 3))
-    wav.unlink(missing_ok=True)
     raw = [c for c in raw if c["t"]]
     if not raw:
         return [], "whisper"
@@ -166,6 +171,21 @@ def whisper_subs(vid, info, work):
     for c, t in zip(raw, texts):
         c["t"] = t
     return raw, "whisper"
+
+
+_model = None
+
+
+def get_model(vid):
+    global _model
+    if _model is None:
+        write_status(vid, step="Konuşma tanıma modeli hazırlanıyor (ilk seferde indirilir)", progress=0.15)
+        from faster_whisper import WhisperModel
+        try:
+            _model = WhisperModel(WHISPER_MODEL, device="auto", compute_type="int8")
+        except Exception:
+            _model = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
+    return _model
 
 
 def translate(texts):
@@ -316,7 +336,11 @@ def worker():
         vid = q.get()
         log("başladı", vid)
         t0 = time.time()
-        process(vid)
+        busy.set()
+        try:
+            process(vid)
+        finally:
+            busy.clear()
         log("bitti", vid, f"{time.time() - t0:.0f} sn")
 
 
@@ -454,11 +478,35 @@ class H(BaseHTTPRequestHandler):
         self.route("POST")
 
 
+busy = threading.Event()
+
+
+def self_update_loop():
+    import urllib.request
+    me = Path(__file__).resolve()
+    time.sleep(20)
+    while True:
+        try:
+            with urllib.request.urlopen(f"{UPDATE_URL}?v={int(time.time())}", timeout=30) as r:
+                new = r.read()
+            if new and new != me.read_bytes() and b"VERSION = " in new:
+                compile(new, str(me), "exec")
+                while busy.is_set() or not q.empty():
+                    time.sleep(10)
+                me.write_bytes(new)
+                log("yeni sürüm yüklendi, yeniden başlıyor")
+                os.execv(sys.executable, [sys.executable, str(me)])
+        except Exception as e:
+            log("güncelleme denetimi başarısız:", e)
+        time.sleep(3 * 3600)
+
+
 def main():
     if not TOKEN:
         sys.exit("Token yok: ~/.secki-dublaj/token dosyasını oluştur.")
     cleanup()
     threading.Thread(target=worker, daemon=True).start()
+    threading.Thread(target=self_update_loop, daemon=True).start()
     log(f"Seçki Dublaj {VERSION} 127.0.0.1:{PORT} üzerinde, ses: {VOICE}, whisper: {WHISPER_MODEL}")
     ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
 
