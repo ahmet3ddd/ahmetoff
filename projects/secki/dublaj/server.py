@@ -26,7 +26,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.4.2"
+VERSION = "1.5.0"
+DUB_VER = 2  # seslendirme yöntemi değişince artar; eski seslendirmeler yeniden üretilir
+MAX_TEMPO = 1.2
 UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
 HOME = Path(os.environ.get("SECKI_HOME", Path.home() / ".secki-dublaj"))
 JOBS = HOME / "jobs"
@@ -311,7 +313,7 @@ async def tts_all(groups, work, vid):
         async with sem:
             for attempt in range(3):
                 try:
-                    await edge_tts.Communicate(g["t"], VOICE, rate="+8%").save(str(path))
+                    await edge_tts.Communicate(g["t"], VOICE).save(str(path))
                     break
                 except Exception:
                     if attempt == 2:
@@ -325,11 +327,14 @@ async def tts_all(groups, work, vid):
     return await asyncio.gather(*(one(i, g) for i, g in enumerate(groups)))
 
 
+TRIM = ("silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.03,areverse,"
+        "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse")
+
+
 def decode(path, tempo=1.0):
     import numpy as np
-    cmd = ["ffmpeg", "-v", "error", "-i", str(path)]
-    if tempo > 1.01:
-        cmd += ["-filter:a", f"atempo={min(tempo, 2.0):.3f}"]
+    flt = TRIM + (f",atempo={tempo:.3f}" if tempo > 1.005 else "")
+    cmd = ["ffmpeg", "-v", "error", "-i", str(path), "-filter:a", flt]
     cmd += ["-f", "f32le", "-ac", "1", "-ar", str(SR), "-"]
     raw = subprocess.run(cmd, capture_output=True, check=True).stdout
     return np.frombuffer(raw, dtype=np.float32)
@@ -344,13 +349,21 @@ def build_dub(vid, cues, duration, work):
     total = int((max(duration, groups[-1]["e"]) + 8) * SR)
     track = np.zeros(total, dtype=np.float32)
     cursor = 0
+    prev_tempo = 1.0
     for i, (g, p) in enumerate(zip(groups, paths)):
         nxt = groups[i + 1]["s"] if i + 1 < len(groups) else g["e"] + 3
-        slot = max(0.6, nxt - g["s"])
+        start_t = max(g["s"], cursor / SR)          # geride kalmışsak geç başlarız
+        slot = max(0.6, nxt - start_t)
         clip = decode(p)
         need = len(clip) / SR
-        if need > slot * 1.02:
-            clip = decode(p, tempo=min(need / slot, 1.6))
+        # hedef hız: cümle bir sonraki cümleye kadar bitsin; ama en fazla MAX_TEMPO,
+        # ve bir önceki cümlenin hızından ani sıçrama olmasın (kulakta "birden hızlanma" etkisi)
+        target = max(1.0, min(MAX_TEMPO, need / slot))
+        tempo = min(target, prev_tempo + 0.08) if target > prev_tempo else max(target, prev_tempo - 0.08)
+        tempo = max(1.0, min(MAX_TEMPO, tempo))
+        if tempo > 1.005:
+            clip = decode(p, tempo=tempo)
+        prev_tempo = tempo
         start = max(int(g["s"] * SR), cursor)
         end = min(start + len(clip), total)
         track[start:end] += clip[: end - start]
@@ -373,7 +386,13 @@ def process(vid):
         lang = (info.get("language") or "").lower()
         write_status(vid, title=info.get("title"), duration=duration, lang=lang,
                      step="Türkçe altyazı aranıyor", progress=0.06)
-        cues, source = youtube_turkish_subs(vid, info, work)
+        old = read_status(vid) or {}
+        cues, source = None, None
+        cf = jdir(vid) / "cues.json"
+        if old.get("subs") and cf.exists():
+            cues, source = json.loads(cf.read_text()), old.get("source")
+        if not cues:
+            cues, source = youtube_turkish_subs(vid, info, work)
         if not cues:
             cues, source = whisper_subs(vid, info, work)
         if not cues:
@@ -384,7 +403,7 @@ def process(vid):
             write_status(vid, state="done", dub=False, step="Video zaten Türkçe", progress=1)
             return
         build_dub(vid, cues, duration, work)
-        write_status(vid, state="done", dub=True, step="Hazır", progress=1)
+        write_status(vid, state="done", dub=True, dub_ver=DUB_VER, step="Hazır", progress=1)
     except Exception as e:
         traceback.print_exc()
         msg = str(e)
@@ -408,11 +427,15 @@ def worker():
         log("bitti", vid, f"{time.time() - t0:.0f} sn")
 
 
+def outdated(st):
+    return bool(st.get("dub")) and st.get("dub_ver", 1) < DUB_VER
+
+
 def enqueue(vid, force=False):
     st = None if force else read_status(vid)
     if st and st.get("state") in ("queued", "working"):
         return st
-    if st and st.get("state") == "done" and (jdir(vid) / "cues.json").exists():
+    if st and st.get("state") == "done" and (jdir(vid) / "cues.json").exists() and not outdated(st):
         return st
     st = write_status(vid, state="queued", step="Sırada", progress=0, error=None)
     q.put(vid)
@@ -483,7 +506,10 @@ class H(BaseHTTPRequestHandler):
             if len(parts) == 2:
                 if method == "POST":
                     return self.send_json(enqueue(vid, force=(qs.get("force") or [""])[0] == "1"))
-                return self.send_json(read_status(vid) or {"id": vid, "state": "none"})
+                st = read_status(vid)
+                if st and st.get("state") == "done" and outdated(st):
+                    st = enqueue(vid)  # eski yöntemle yapılmış seslendirmeyi sessizce yenile
+                return self.send_json(st or {"id": vid, "state": "none"})
             if parts[2] == "cues.json":
                 return self.send_file(jdir(vid) / "cues.json", "application/json; charset=utf-8")
             if parts[2] == "dub.mp3":
