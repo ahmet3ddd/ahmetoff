@@ -88,6 +88,8 @@ main{padding-block:12px 40px}
 .subs{position:absolute;left:0;right:0;bottom:11%;padding:0 6%;text-align:center;pointer-events:none}
 .subs span{background:rgba(0,0,0,.8);color:#fff;font:600 clamp(14px,3.8vw,24px)/1.4 var(--f-body);padding:2px 8px;border-radius:4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .frame:fullscreen .subs span{font-size:clamp(20px,3vw,36px)}
+.tick{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;padding-block:0 8px;cursor:pointer}
+.tick input{width:20px;height:20px;accent-color:var(--accent);margin:0}
 .dub{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:2px 10px}
 .dub .st{color:var(--muted);font-size:13px;flex:1;min-width:0}
 .bar2{height:4px;background:var(--raised);border-radius:2px;overflow:hidden;margin-top:4px}
@@ -165,6 +167,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
         <button class="btn" id="pLater">Sonra izle</button>
         <button class="btn" id="pClose">Kapat</button>
       </div>
+      <label class="tick" id="pSubWrap"><input type="checkbox" id="pSubs" checked> Türkçe altyazı</label>
       <div class="dub" id="pDub" hidden>
         <button class="btn pri" id="pDubBtn" type="button">Türkçe seslendir</button>
         <button class="btn" id="pFull" type="button">Tam ekran</button>
@@ -269,7 +272,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
 <script>
 (() => {
 'use strict';
-const VERSION = '2026-11-07-8';
+const VERSION = '2026-11-07-9';
 const $ = s => document.querySelector(s);
 const API = 'https://www.googleapis.com/youtube/v3/';
 const NS = 'secki.';
@@ -294,6 +297,7 @@ let cache = store.get('cache', {});
 let details = store.get('details', {});
 let quota = store.get('quota', {day:'', used:0});
 let DUB = store.get('dub', null);
+let SUBS_ON = store.get('subsOn', true);
 
 const saveS = () => store.set('settings', S);
 const saveLists = () => { store.set('seen', [...seen].slice(-3000)); store.set('hidden', [...hidden].slice(-3000)); store.set('later', later); };
@@ -555,24 +559,27 @@ function openPlayer(v){
   $('#pNote').hidden = canEmbed;
   if (canEmbed){
     const f = document.createElement('iframe');
-    f.src = 'https://www.youtube.com/embed/' + encodeURIComponent(v.id) + '?autoplay=1&rel=0&playsinline=1&enablejsapi=1&cc_load_policy=1&cc_lang_pref=tr&hl=tr&origin=' + encodeURIComponent(location.origin);
+    f.src = 'https://www.youtube.com/embed/' + encodeURIComponent(v.id) + '?autoplay=1&rel=0&playsinline=1&enablejsapi=1&hl=tr' + (SUBS_ON ? '&cc_load_policy=1&cc_lang_pref=tr' : '') + '&origin=' + encodeURIComponent(location.origin);
     f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
     f.referrerPolicy = 'strict-origin-when-cross-origin'; f.title = v.title;
     fr.appendChild(f);
     const sub = document.createElement('div'); sub.className = 'subs'; sub.id = 'subs'; fr.appendChild(sub);
     const isTR = (d.lang||'').startsWith('tr');
-    $('#pTip').hidden = isTR;
+    $('#pTip').hidden = isTR || !SUBS_ON;
+    $('#pSubWrap').hidden = false; $('#pSubs').checked = SUBS_ON;
     dubOpen(v, isTR);
     loadYT().then(() => {
       if (!window.YT || !YT.Player || !f.isConnected) return;
       window.__seckiPlayer = new YT.Player(f, {events: {onReady: e => {
         if (cur !== v) return;
         dubS.p = e.target;
-        if (!isTR){ e.target._vlang = d.lang || ''; forceTR(e.target); }
+        e.target._vlang = d.lang || ''; e.target._isTR = isTR;
+        if (!SUBS_ON){ try { e.target.unloadModule('captions'); } catch(_){} }
+        else if (!isTR) forceTR(e.target);
       }}});
     });
   } else {
-    $('#pDub').hidden = true;
+    $('#pDub').hidden = true; $('#pSubWrap').hidden = true;
     $('#pNote').textContent = d.emb === false ? 'Bu videonun sahibi başka sitelerde oynatılmasını kapatmış. YouTube’da açabilirsin.' : 'Dosyadan açılan sayfada gömülü oynatıcı çalışmaz. YouTube’da aç düğmesi videoyu uygulamada başlatır.';
   }
   $('#player').hidden = false;
@@ -696,7 +703,9 @@ function dubStop(){
 function dubTick(){
   const p = dubS.p; if (!p || !p.getCurrentTime) return;
   let t, st; try { t = p.getCurrentTime(); st = p.getPlayerState(); } catch(e){ return; }
-  if (dubS.ours && dubS.cues){
+  const box0 = $('#subs');
+  if (!SUBS_ON){ if (box0 && box0._t){ box0._t = ''; box0.innerHTML = ''; } }
+  else if (dubS.ours && dubS.cues){
     const c = dubS.cues; let i = dubS.idx;
     if (!c[i] || c[i].s > t) i = 0;
     while (i < c.length - 1 && c[i + 1].s <= t) i++;
@@ -720,6 +729,18 @@ function dubClose(){
   Object.assign(dubS, {v: null, p: null, cues: null, audio: null, on: false, want: false, ours: false, st: null, idx: 0});
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 }
+$('#pSubs').onchange = e => {
+  SUBS_ON = e.target.checked; store.set('subsOn', SUBS_ON);
+  $('#pTip').hidden = !SUBS_ON || !!(window.__seckiPlayer && window.__seckiPlayer._isTR);
+  const p = window.__seckiPlayer; if (!p || !p.loadModule) return;
+  try {
+    if (!SUBS_ON) p.unloadModule('captions');
+    else if (!dubS.ours){
+      p.loadModule('captions');
+      if (!p._isTR){ p._trStarted = false; forceTR(p); }
+    }
+  } catch(_){}
+};
 $('#pDubBtn').onclick = () => {
   if (dubS.on) return dubStop();
   const st = dubS.st;
