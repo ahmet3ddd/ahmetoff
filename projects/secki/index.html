@@ -83,6 +83,17 @@ main{padding-block:12px 40px}
 .panel{background:var(--surface);width:100%;max-width:720px;border-radius:16px 16px 0 0;max-height:92vh;overflow:auto;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
 .player .frame{aspect-ratio:16/9;background:#000;width:100%;max-width:100%}
 .player iframe{width:100%;height:100%;border:0;display:block}
+.player .frame{position:relative}
+.frame:fullscreen{aspect-ratio:auto;width:100vw;height:100vh}
+.subs{position:absolute;left:0;right:0;bottom:11%;padding:0 6%;text-align:center;pointer-events:none}
+.subs span{background:rgba(0,0,0,.8);color:#fff;font:600 clamp(14px,3.8vw,24px)/1.4 var(--f-body);padding:2px 8px;border-radius:4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.frame:fullscreen .subs span{font-size:clamp(20px,3vw,36px)}
+.dub{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:2px 10px}
+.dub .st{color:var(--muted);font-size:13px;flex:1;min-width:0}
+.bar2{height:4px;background:var(--raised);border-radius:2px;overflow:hidden;margin-top:4px}
+.bar2 i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
+.code{font:12.5px/1.4 ui-monospace,Menlo,monospace;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;overflow-x:auto;white-space:nowrap;user-select:all}
+.ok{color:#3fb37f}
 .player .info{padding-block:12px 4px}
 .player h2{font-size:17px;margin:0 0 4px;line-height:1.3}
 .row{display:flex;gap:8px;flex-wrap:wrap;padding-block:12px}
@@ -154,6 +165,11 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
         <button class="btn" id="pLater">Sonra izle</button>
         <button class="btn" id="pClose">Kapat</button>
       </div>
+      <div class="dub" id="pDub" hidden>
+        <button class="btn pri" id="pDubBtn" type="button">Türkçe seslendir</button>
+        <button class="btn" id="pFull" type="button">Tam ekran</button>
+        <div class="st" id="pDubSt"></div>
+      </div>
       <div class="notice" id="pNote" hidden></div>
       <div class="sub" id="pTip" hidden>Türkçe altyazı kendiliğinden açılır. Açılmazsa oynatıcıda ⚙ → Altyazılar → Otomatik çevir → Türkçe. Videonun Türkçe seslendirmesi varsa ⚙ → Ses parçası menüsünde çıkar.</div>
     </div>
@@ -181,6 +197,19 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
       </ol>
       <div class="field"><input id="sKey" type="password" placeholder="AIza…" autocomplete="off"><button class="btn" id="sKeyShow" type="button">Göster</button></div>
       <div class="sub quota" id="sQuota"></div>
+    </div>
+
+    <div class="sec">
+      <h2>Türkçe seslendirme</h2>
+      <p>Altyazısı olmayan videolar için Türkçe altyazıyı ve Türkçe seslendirmeyi bilgisayarındaki Seçki Dublaj servisi hazırlar. Telefondan da çalışır; yalnızca bilgisayarın açık olması yeter.</p>
+      <div class="sub" id="dubState" style="margin-bottom:10px"></div>
+      <div class="grid2">
+        <div><label class="lbl" for="sDubUrl">Servis adresi</label><input class="inp" id="sDubUrl" placeholder="https://dublaj.ahmetoff.com" autocomplete="off"></div>
+        <div><label class="lbl" for="sDubTok">Servis anahtarı</label><input class="inp" id="sDubTok" type="password" autocomplete="off"></div>
+      </div>
+      <div class="row"><button class="btn" id="sDubTest" type="button">Bağlantıyı dene</button></div>
+      <p>Kurulum için bilgisayarındaki terminale bunu yapıştır:</p>
+      <div class="code" id="dubCmd">bash &lt;(curl -fsSL https://ahmetoff.com/ahmetoff/projects/secki/dublaj/install.sh)</div>
     </div>
 
     <div class="sec">
@@ -240,7 +269,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
 <script>
 (() => {
 'use strict';
-const VERSION = '2026-11-07-5';
+const VERSION = '2026-11-07-6';
 const $ = s => document.querySelector(s);
 const API = 'https://www.googleapis.com/youtube/v3/';
 const NS = 'secki.';
@@ -264,6 +293,7 @@ let later = store.get('later', []);
 let cache = store.get('cache', {});
 let details = store.get('details', {});
 let quota = store.get('quota', {day:'', used:0});
+let DUB = store.get('dub', null);
 
 const saveS = () => store.set('settings', S);
 const saveLists = () => { store.set('seen', [...seen].slice(-3000)); store.set('hidden', [...hidden].slice(-3000)); store.set('later', later); };
@@ -529,13 +559,20 @@ function openPlayer(v){
     f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
     f.referrerPolicy = 'strict-origin-when-cross-origin'; f.title = v.title;
     fr.appendChild(f);
+    const sub = document.createElement('div'); sub.className = 'subs'; sub.id = 'subs'; fr.appendChild(sub);
     const isTR = (d.lang||'').startsWith('tr');
     $('#pTip').hidden = isTR;
-    if (!isTR) loadYT().then(() => {
+    dubOpen(v, isTR);
+    loadYT().then(() => {
       if (!window.YT || !YT.Player || !f.isConnected) return;
-      window.__seckiPlayer = new YT.Player(f, {events: {onReady: e => { e.target._vlang = d.lang || ''; forceTR(e.target); }}});
+      window.__seckiPlayer = new YT.Player(f, {events: {onReady: e => {
+        if (cur !== v) return;
+        dubS.p = e.target;
+        if (!isTR){ e.target._vlang = d.lang || ''; forceTR(e.target); }
+      }}});
     });
   } else {
+    $('#pDub').hidden = true;
     $('#pNote').textContent = d.emb === false ? 'Bu videonun sahibi başka sitelerde oynatılmasını kapatmış. YouTube’da açabilirsin.' : 'Dosyadan açılan sayfada gömülü oynatıcı çalışmaz. YouTube’da aç düğmesi videoyu uygulamada başlatır.';
   }
   $('#player').hidden = false;
@@ -577,11 +614,143 @@ function forceTR(p, fromApiChange){
   };
   attempt(0);
 }
-function closePlayer(){ $('#player').hidden = true; $('#frame').innerHTML = ''; cur = null; }
+function closePlayer(){ dubClose(); $('#player').hidden = true; $('#frame').innerHTML = ''; cur = null; }
+
+/* ---------- Türkçe seslendirme (Seçki Dublaj servisi) ---------- */
+const dubS = {v: null, p: null, cues: null, audio: null, on: false, want: false, ours: false, timer: 0, poll: 0, st: null, idx: 0};
+function dubUrl(path){ return DUB.u.replace(/\/+$/, '') + path + (path.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(DUB.t); }
+async function dubApi(path, method){
+  const r = await fetch(dubUrl(path), {method: method || 'GET', cache: 'no-store'});
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) throw new Error('Servis anahtarı geçersiz. Tercihler’den kontrol et.');
+  if (!r.ok) throw new Error(j.error || 'Servis yanıt vermedi.');
+  return j;
+}
+const OFFLINE = 'Bilgisayarındaki Seçki Dublaj servisine ulaşılamadı. Bilgisayar kapalı ya da uykuda olabilir.';
+function dubSet(text, prog, btn){
+  $('#pDubSt').innerHTML = esc(text) + (prog != null ? `<div class="bar2"><i style="width:${Math.round(prog*100)}%"></i></div>` : '');
+  if (btn !== undefined){ $('#pDubBtn').hidden = !btn; if (btn) $('#pDubBtn').textContent = btn; }
+}
+function dubOpen(v, isTR){
+  dubClose();
+  dubS.v = v; dubS.st = null;
+  $('#pDub').hidden = isTR;
+  $('#pFull').hidden = true;
+  if (isTR) return;
+  if (!DUB || !DUB.u){ dubSet('Türkçe seslendirme için Tercihler’den Seçki Dublaj servisini kur.', null, false); return; }
+  dubSet('Seslendirme durumu kontrol ediliyor…', null, false);
+  dubS.timer = setInterval(dubTick, 250);
+  dubRefresh(true);
+  // YouTube'da hiç altyazı yoksa Türkçe altyazıyı servisten iste
+  setTimeout(() => {
+    if (dubS.v !== v || !dubS.p) return;
+    let list = []; try { list = dubS.p.getOption('captions', 'tracklist') || []; } catch(e){}
+    if (!list.length){ dubS.ours = true; if (!dubS.st || dubS.st.state === 'none' || dubS.st.state === 'error') dubRequest(false); }
+  }, 7000);
+}
+async function dubRefresh(first){
+  const v = dubS.v; if (!v) return;
+  let st;
+  try { st = await dubApi('/jobs/' + v.id); }
+  catch(e){ if (dubS.v === v) dubSet(e.message === 'Failed to fetch' ? OFFLINE : e.message, null, 'Tekrar dene'); return; }
+  if (dubS.v !== v) return;
+  dubS.st = st;
+  if (st.state === 'done'){
+    if (!dubS.cues){ try { dubS.cues = await (await fetch(dubUrl('/jobs/' + v.id + '/cues.json'))).json(); } catch(e){} }
+    if (st.dub){
+      if (dubS.want && !dubS.on) dubStart();
+      else dubSet(dubS.on ? 'Türkçe seslendirme açık' : 'Türkçe seslendirme hazır', null, dubS.on ? 'Orijinal ses' : 'Türkçe seslendir');
+    } else dubSet('Türkçe altyazı hazır.', null, false);
+  } else if (st.state === 'queued' || st.state === 'working'){
+    const eta = st.duration ? ' · video ' + fmtDur(Math.round(st.duration)) : '';
+    dubSet((st.step || 'Hazırlanıyor') + eta + (dubS.want ? ' · hazır olunca kendiliğinden başlar' : ''), st.progress || 0, false);
+    clearTimeout(dubS.poll); dubS.poll = setTimeout(() => dubRefresh(), 2500);
+  } else if (st.state === 'error'){
+    dubSet('Hazırlanamadı: ' + (st.error || 'bilinmeyen hata'), null, 'Tekrar dene');
+  } else {
+    dubSet('Seslendirme ve altyazı bilgisayarında hazırlanır. Kısa videolar 1–2 dakikada hazır olur.', null, 'Türkçe seslendir');
+  }
+}
+async function dubRequest(want){
+  const v = dubS.v; if (!v) return;
+  if (want) dubS.want = true;
+  dubSet('İstek gönderiliyor…', 0, false);
+  try { dubS.st = await dubApi('/jobs/' + v.id, 'POST'); }
+  catch(e){ dubSet(e.message === 'Failed to fetch' ? OFFLINE : e.message, null, 'Tekrar dene'); return; }
+  dubRefresh();
+}
+function dubStart(){
+  const v = dubS.v; if (!v) return;
+  if (!dubS.audio){ dubS.audio = new Audio(dubUrl('/jobs/' + v.id + '/dub.mp3')); dubS.audio.preload = 'auto'; }
+  dubS.on = true; dubS.ours = true; dubS.want = false;
+  try { dubS.p.unloadModule('captions'); dubS.p.setVolume(12); if (dubS.p.getPlayerState() !== 1) dubS.p.playVideo(); } catch(e){}
+  $('#pFull').hidden = false;
+  dubSet('Türkçe seslendirme açık', null, 'Orijinal ses');
+}
+function dubStop(){
+  dubS.on = false;
+  if (dubS.audio) dubS.audio.pause();
+  try { dubS.p.setVolume(100); } catch(e){}
+  dubSet('Orijinal ses açık. Türkçe altyazı sürüyor.', null, 'Türkçe seslendir');
+}
+function dubTick(){
+  const p = dubS.p; if (!p || !p.getCurrentTime) return;
+  let t, st; try { t = p.getCurrentTime(); st = p.getPlayerState(); } catch(e){ return; }
+  if (dubS.ours && dubS.cues){
+    const c = dubS.cues; let i = dubS.idx;
+    if (!c[i] || c[i].s > t) i = 0;
+    while (i < c.length - 1 && c[i + 1].s <= t) i++;
+    dubS.idx = i;
+    const cue = c[i] && c[i].s <= t && t < c[i].e + 0.4 ? c[i].t : '';
+    const box = $('#subs');
+    if (box && box._t !== cue){ box._t = cue; box.innerHTML = cue ? '<span>' + esc(cue) + '</span>' : ''; }
+  }
+  const a = dubS.audio;
+  if (dubS.on && a){
+    try { a.playbackRate = p.getPlaybackRate() || 1; } catch(e){}
+    if (st === 1){
+      if (Math.abs(a.currentTime - t) > 0.35) a.currentTime = t;
+      if (a.paused) a.play().catch(() => {});
+    } else if (!a.paused) a.pause();
+  }
+}
+function dubClose(){
+  clearInterval(dubS.timer); clearTimeout(dubS.poll);
+  if (dubS.audio){ dubS.audio.pause(); dubS.audio.removeAttribute('src'); }
+  Object.assign(dubS, {v: null, p: null, cues: null, audio: null, on: false, want: false, ours: false, st: null, idx: 0});
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+$('#pDubBtn').onclick = () => {
+  if (dubS.on) return dubStop();
+  const st = dubS.st;
+  if (st && st.state === 'done' && st.dub) return dubStart();
+  if (!st || st.state === 'error' || st.state === 'none') return dubRequest(true);
+  dubRefresh();
+};
+$('#pFull').onclick = async () => {
+  const fr = $('#frame');
+  try { await fr.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch(e){} } catch(e){ toast('Tam ekran bu cihazda açılamadı'); }
+};
+async function dubTestConn(){
+  const el = $('#dubState');
+  if (!DUB || !DUB.u){ el.textContent = 'Kurulu değil. Aşağıdaki komutu bilgisayarında bir kez çalıştır.'; el.className = 'sub'; return; }
+  el.textContent = 'Bağlantı deneniyor…'; el.className = 'sub';
+  try {
+    const j = await (await fetch(DUB.u.replace(/\/+$/, '') + '/health?t=' + encodeURIComponent(DUB.t), {cache: 'no-store'})).json();
+    if (j.auth){ el.textContent = '✓ Bağlı. Bilgisayarındaki servis çalışıyor (sürüm ' + j.version + ').'; el.className = 'sub ok'; }
+    else { el.textContent = 'Servise ulaşıldı ama anahtar tutmuyor.'; el.className = 'sub'; }
+  } catch(e){ el.textContent = OFFLINE; el.className = 'sub'; }
+}
 function toggleLater(v){
   const i = later.findIndex(x => x.id === v.id);
   if (i >= 0){ later.splice(i,1); toast('Sonra izle listesinden çıkarıldı'); }
-  else { later.unshift({id:v.id,title:v.title,ch:v.ch,chId:v.chId,pub:v.pub,thumb:v.thumb}); toast('Sonra izle listesine eklendi'); }
+  else {
+    later.unshift({id:v.id,title:v.title,ch:v.ch,chId:v.chId,pub:v.pub,thumb:v.thumb});
+    const d = details[v.id] || {};
+    if (DUB && DUB.u && !(d.lang||'').startsWith('tr')){
+      fetch(dubUrl('/jobs/' + v.id), {method: 'POST'}).then(() => toast('Sonra izle listesine eklendi · Türkçe seslendirme hazırlanıyor')).catch(() => toast('Sonra izle listesine eklendi'));
+    } else toast('Sonra izle listesine eklendi');
+  }
   saveLists(); renderChips();
 }
 function openMenu(v){
@@ -639,7 +808,8 @@ function openSettings(){
   $('#sDays').value = String(S.days); $('#sSort').value = S.sort; $('#sLang').value = S.lang; $('#sRegion').value = S.region;
   $('#sShorts').checked = S.noShorts; $('#sHideSeen').checked = S.hideSeen;
   $('#sQuota').textContent = 'Bugün kullanılan kota (tahmini): ' + quotaUsed().toLocaleString('tr') + ' / 10.000 birim · Bir tam yenileme ≈ ' + (S.topics.length*100 + S.channels.length + 2) + ' birim';
-  renderSettingsLists();
+  $('#sDubUrl').value = (DUB && DUB.u) || ''; $('#sDubTok').value = (DUB && DUB.t) || '';
+  renderSettingsLists(); dubTestConn();
   $('#settings').hidden = false; $('#settings').scrollTop = 0;
 }
 function renderSettingsLists(){
@@ -654,6 +824,8 @@ function readSettings(){
   S.days = +$('#sDays').value; S.sort = $('#sSort').value; S.lang = $('#sLang').value; S.region = $('#sRegion').value;
   S.noShorts = $('#sShorts').checked; S.hideSeen = $('#sHideSeen').checked;
   saveS();
+  const du = $('#sDubUrl').value.trim(), dt = $('#sDubTok').value.trim();
+  DUB = du ? {u: /^https?:/.test(du) ? du : 'https://' + du, t: dt} : null; store.set('dub', DUB);
 }
 
 /* ---------- olaylar ---------- */
@@ -679,6 +851,7 @@ $('#bSearch').onclick = () => { $('#mainBar').hidden = true; $('#searchBar').hid
 $('#bSearchBack').onclick = () => { $('#searchBar').hidden = true; $('#mainBar').hidden = false; if (view === 'search'){ view = 'all'; render(); } };
 $('#searchBar').addEventListener('submit', e => { e.preventDefault(); const q = $('#q').value.trim(); if (q){ $('#q').blur(); runSearch(q); } });
 
+$('#sDubTest').onclick = () => { readSettings(); dubTestConn(); };
 $('#sKeyShow').onclick = () => { const i = $('#sKey'); i.type = i.type === 'password' ? 'text' : 'password'; };
 $('#chForm').addEventListener('submit', async e => {
   e.preventDefault(); const v = $('#chIn').value.trim(); if (!v) return;
@@ -725,7 +898,7 @@ $('#sQR').onclick = () => {
   readSettings();
   if (!KEY){ toast('Önce API anahtarını yapıştır'); return; }
   const s2 = Object.assign({}, S, {channels: S.channels.map(c => ({id:c.id, title:c.title, uploads:c.uploads}))});
-  const data = btoa(unescape(encodeURIComponent(JSON.stringify({k: KEY, s: s2}))));
+  const data = btoa(unescape(encodeURIComponent(JSON.stringify({k: KEY, s: s2, d: DUB || undefined}))));
   const url = location.origin + location.pathname + '#k=' + data;
   const box = $('#qrBox'); box.innerHTML = ''; box.hidden = false;
   const draw = () => new QRCode(box, {text: url, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.L});
@@ -742,7 +915,8 @@ if (location.hash.startsWith('#k=')){
     const j = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
     if (j.k){ KEY = cleanKey(j.k); store.set('key', KEY); }
     if (j.s){ S = Object.assign({}, DEF, j.s); saveS(); }
-    setTimeout(() => toast('Anahtar ve tercihler yüklendi'), 300);
+    if (j.d && j.d.u){ DUB = j.d; store.set('dub', DUB); }
+    setTimeout(() => toast(j.k || j.s ? 'Anahtar ve tercihler yüklendi' : 'Türkçe seslendirme servisi bağlandı'), 300);
   } catch(e){ setTimeout(() => toast('QR verisi okunamadı'), 300); }
   history.replaceState(null, '', location.pathname);
 }
