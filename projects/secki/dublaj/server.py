@@ -26,7 +26,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
 HOME = Path(os.environ.get("SECKI_HOME", Path.home() / ".secki-dublaj"))
 JOBS = HOME / "jobs"
@@ -118,78 +118,51 @@ def parse_json3_data(data):
     return [c for c in out if c["e"] - c["s"] > 0.05]
 
 
-def http_get(url):
-    import urllib.request
-    req = urllib.request.Request(url, headers={
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
-        "Accept-Language": "tr,en;q=0.8"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return r.read()
-
-
-def track_url(entries):
-    if not entries:
+def ytdlp_sub(vid, key, auto, work):
+    for f in work.glob("sub*"):
+        f.unlink()
+    run([YTDLP, "--no-warnings", "--skip-download", "--write-auto-subs" if auto else "--write-subs",
+         "--sub-langs", key, "--sub-format", "json3", "-o", str(work / "sub.%(ext)s"),
+         f"https://www.youtube.com/watch?v={vid}"], timeout=180)
+    f = next(iter(work.glob("sub*.json3")), None)
+    if not f:
         return None
-    e = next((x for x in entries if x.get("ext") == "json3"), entries[0])
-    return e.get("url")
-
-
-def translated_subs(vid, info):
-    """YouTube'un kendi çeviri altyapısı: kaynak altyazının adresine tlang=tr eklenir."""
-    subs = {k: v for k, v in (info.get("subtitles") or {}).items() if k != "live_chat"}
-    auto = info.get("automatic_captions") or {}
-    lang = (info.get("language") or "").lower()[:2]
-    cands = []
-    cands += [subs[k] for k in subs if lang and k.lower().startswith(lang)]
-    cands += [subs[k] for k in subs if not (lang and k.lower().startswith(lang))]
-    cands += [auto[k] for k in auto if k.endswith("-orig")]
-    cands += [auto[k] for k in auto if not k.endswith("-orig")]
-    for entries in cands[:4]:
-        url = track_url(entries)
-        if not url:
-            continue
-        u = re.sub(r"([?&])(fmt|tlang)=[^&]*&?", r"\1", url).rstrip("&?")
-        u += ("&" if "?" in u else "?") + "fmt=json3&tlang=tr"
-        try:
-            body = http_get(u)
-            if not body.strip():
-                continue
-            cues = parse_json3_data(json.loads(body))
-            if cues:
-                return cues
-        except Exception as e:
-            log(vid, "çeviri altyazısı alınamadı:", e)
-    return None
+    cues = parse_json3(f)
+    f.unlink()
+    return cues or None
 
 
 def youtube_turkish_subs(vid, info, work):
-    """Önce elle yazılmış Türkçe, sonra YouTube'un otomatik Türkçesi."""
-    subs = info.get("subtitles") or {}
+    """1) Türkçe altyazı varsa onu al. 2) Yoksa videonun kendi altyazısını al, Türkçeye çevir."""
+    subs = {k: v for k, v in (info.get("subtitles") or {}).items() if k != "live_chat"}
     auto = info.get("automatic_captions") or {}
-    log(vid, "altyazılar:", list(subs)[:8], "otomatik:", "tr" in auto, len(auto))
-    write_status(vid, capinfo={"manual": list(subs)[:8], "auto_tr": "tr" in auto, "auto_n": len(auto)})
-    manual = next((k for k in subs if k.lower().startswith("tr")), None)
-    autok = next((k for k in auto if k.lower() == "tr" or k.lower().startswith("tr-")), None)
-    for kind, key in (("manual", manual), ("auto", autok)):
-        if not key:
-            continue
-        flag = "--write-subs" if kind == "manual" else "--write-auto-subs"
+    log(vid, "altyazılar:", list(subs)[:8], "otomatik:", list(auto)[:8])
+    write_status(vid, capinfo={"manual": list(subs)[:8], "auto": list(auto)[:8]})
+    lang = (info.get("language") or "").lower()[:2]
+    tr_m = [k for k in subs if k.lower().startswith("tr")]
+    tr_a = [k for k in auto if k.lower() == "tr" or k.lower().startswith("tr-")]
+    for key, is_auto, src in [(k, False, "youtube-tr") for k in tr_m] + [(k, True, "youtube-tr-auto") for k in tr_a[:1]]:
         try:
-            run([YTDLP, "--no-warnings", "--skip-download", flag, "--sub-langs", key,
-                 "--sub-format", "json3", "-o", str(work / "sub.%(ext)s"),
-                 f"https://www.youtube.com/watch?v={vid}"], timeout=180)
+            cues = ytdlp_sub(vid, key, is_auto, work)
+            if cues:
+                return cues, src
+        except Exception as e:
+            log(vid, "altyazı indirilemedi:", e)
+    cands = [(k, False) for k in subs if lang and k.lower().startswith(lang)]
+    cands += [(k, False) for k in subs if (k, False) not in cands]
+    cands += [(k, True) for k in auto if k.endswith("-orig")]
+    cands += [(k, True) for k in auto if (k, True) not in cands and not k.lower().startswith("tr")][:1]
+    for key, is_auto in cands[:3]:
+        try:
+            cues = ytdlp_sub(vid, key, is_auto, work)
         except Exception as e:
             log(vid, "altyazı indirilemedi:", e)
             continue
-        f = next(iter(work.glob("sub*.json3")), None)
-        if f:
-            cues = parse_json3(f)
-            f.unlink()
-            if cues:
-                return cues, "youtube-" + kind
-    cues = translated_subs(vid, info)
-    if cues:
-        return cues, "youtube-translate"
+        if cues:
+            write_status(vid, step="Türkçeye çevriliyor", progress=0.3)
+            for c, t in zip(cues, translate([c["t"] for c in cues])):
+                c["t"] = t
+            return cues, "youtube-" + key + "+ceviri"
     return None, None
 
 
@@ -235,36 +208,50 @@ def get_model(vid):
     return _model
 
 
+def gtx(text):
+    import urllib.parse
+    import urllib.request
+    body = urllib.parse.urlencode({"q": text}).encode()
+    req = urllib.request.Request(
+        "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t",
+        data=body, headers={"User-Agent": "Mozilla/5.0", "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        data = json.loads(r.read().decode("utf-8"))
+    return "".join(part[0] for part in data[0] if part and part[0])
+
+
 def translate(texts):
-    from deep_translator import GoogleTranslator
-    tr = GoogleTranslator(source="auto", target="tr")
-    out, batch, size = [], [], 0
+    """Google Çeviri; satırlar toplu çevrilir, sayı tutmazsa tek tek."""
+    out, batch, size, fails = [], [], 0, 0
 
     def flush():
-        nonlocal batch, size
+        nonlocal batch, size, fails
         if not batch:
             return
-        joined = "\n".join(batch)
         try:
-            res = tr.translate(joined).split("\n")
+            res = gtx("\n".join(batch)).split("\n")
             if len(res) != len(batch):
                 raise ValueError("satır sayısı tutmadı")
         except Exception:
             res = []
             for t in batch:
                 try:
-                    res.append(tr.translate(t) or t)
-                except Exception:
+                    res.append(gtx(t))
+                except Exception as e:
+                    fails += 1
+                    log("çeviri hatası:", e)
                     res.append(t)
         out.extend(r.strip() for r in res)
         batch, size = [], 0
 
     for t in texts:
-        if size + len(t) > 4000:
+        if size + len(t) > 3500:
             flush()
         batch.append(t.replace("\n", " "))
         size += len(t) + 1
     flush()
+    if texts and fails > len(texts) / 2:
+        raise RuntimeError("Google Çeviri'ye ulaşılamadı; çeviri yapılamadı.")
     return out
 
 
@@ -391,8 +378,8 @@ def worker():
         log("bitti", vid, f"{time.time() - t0:.0f} sn")
 
 
-def enqueue(vid):
-    st = read_status(vid)
+def enqueue(vid, force=False):
+    st = None if force else read_status(vid)
     if st and st.get("state") in ("queued", "working"):
         return st
     if st and st.get("state") == "done" and (jdir(vid) / "cues.json").exists():
@@ -465,7 +452,7 @@ class H(BaseHTTPRequestHandler):
             vid = parts[1]
             if len(parts) == 2:
                 if method == "POST":
-                    return self.send_json(enqueue(vid))
+                    return self.send_json(enqueue(vid, force=(qs.get("force") or [""])[0] == "1"))
                 return self.send_json(read_status(vid) or {"id": vid, "state": "none"})
             if parts[2] == "cues.json":
                 return self.send_file(jdir(vid) / "cues.json", "application/json; charset=utf-8")
