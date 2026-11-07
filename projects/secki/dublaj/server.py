@@ -26,7 +26,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
+CUES_VER = 2  # altyazı üretimi değişince artar; eski altyazılar yeniden üretilir
 DUB_VER = 2  # seslendirme yöntemi değişince artar; eski seslendirmeler yeniden üretilir
 MAX_TEMPO = 1.2
 UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
@@ -389,7 +390,7 @@ def process(vid):
         old = read_status(vid) or {}
         cues, source = None, None
         cf = jdir(vid) / "cues.json"
-        if old.get("subs") and cf.exists():
+        if old.get("subs") and cf.exists() and old.get("cues_ver", 1) >= CUES_VER:
             cues, source = json.loads(cf.read_text()), old.get("source")
         if not cues:
             cues, source = youtube_turkish_subs(vid, info, work)
@@ -398,7 +399,7 @@ def process(vid):
         if not cues:
             raise RuntimeError("Videoda yazıya dökülecek konuşma bulunamadı.")
         (jdir(vid) / "cues.json").write_text(json.dumps(cues, ensure_ascii=False))
-        write_status(vid, subs=True, source=source, cues=len(cues), progress=0.64)
+        write_status(vid, subs=True, source=source, cues=len(cues), cues_ver=CUES_VER, progress=0.64)
         if lang.startswith("tr"):
             write_status(vid, state="done", dub=False, step="Video zaten Türkçe", progress=1)
             return
@@ -428,7 +429,8 @@ def worker():
 
 
 def outdated(st):
-    return bool(st.get("dub")) and st.get("dub_ver", 1) < DUB_VER
+    return ((bool(st.get("dub")) and st.get("dub_ver", 1) < DUB_VER)
+            or (bool(st.get("subs")) and st.get("cues_ver", 1) < CUES_VER))
 
 
 def enqueue(vid, force=False):
