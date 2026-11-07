@@ -272,7 +272,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
 <script>
 (() => {
 'use strict';
-const VERSION = '2026-11-07-10';
+const VERSION = '2026-11-07-11';
 const $ = s => document.querySelector(s);
 const API = 'https://www.googleapis.com/youtube/v3/';
 const NS = 'secki.';
@@ -915,14 +915,32 @@ $('#sClear').onclick = e => {
 };
 document.addEventListener('keydown', e => { if (e.key === 'Escape'){ if (!$('#player').hidden) closePlayer(); else if (!$('#menu').hidden) $('#menu').hidden = true; } });
 
-$('#sQR').onclick = () => {
+// QR'a sığması için: yalnızca varsayılandan farklı ayarlar, kanallar yalnızca kimlik, sonra sıkıştırma
+const b64u = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64u = str => Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+async function pack(obj){
+  const data = new TextEncoder().encode(JSON.stringify(obj));
+  if (!window.CompressionStream) return 'j' + b64u(data);
+  const buf = await new Response(new Blob([data]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer();
+  return 'd' + b64u(new Uint8Array(buf));
+}
+async function unpack(str){
+  const bytes = unb64u(str.slice(1));
+  if (str[0] === 'j') return JSON.parse(new TextDecoder().decode(bytes));
+  const txt = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  return JSON.parse(txt);
+}
+$('#sQR').onclick = async () => {
   readSettings();
   if (!KEY){ toast('Önce API anahtarını yapıştır'); return; }
-  const s2 = Object.assign({}, S, {channels: S.channels.map(c => ({id:c.id, title:c.title, uploads:c.uploads}))});
-  const data = btoa(unescape(encodeURIComponent(JSON.stringify({k: KEY, s: s2, d: DUB || undefined}))));
-  const url = location.origin + location.pathname + '#k=' + data;
+  const s2 = {};
+  for (const k in S){ if (k !== 'channels' && JSON.stringify(S[k]) !== JSON.stringify(DEF[k])) s2[k] = S[k]; }
+  s2.blockCh = (S.blockCh || []).map(b => b.id);
+  s2.channels = S.channels.map(c => c.id);
+  const url = location.origin + location.pathname + '#z=' + await pack({k: KEY, s: s2, d: DUB || undefined});
   const box = $('#qrBox'); box.innerHTML = ''; box.hidden = false;
-  const draw = () => new QRCode(box, {text: url, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.L});
+  const size = Math.min(340, box.parentElement.clientWidth - 24);
+  const draw = () => new QRCode(box, {text: url, width: size, height: size, correctLevel: QRCode.CorrectLevel.L});
   if (window.QRCode) return draw();
   const sc = document.createElement('script');
   sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
@@ -931,16 +949,48 @@ $('#sQR').onclick = () => {
 };
 
 /* ---------- QR ile gelen aktarım ---------- */
+function applyImport(j){
+  if (j.k){ KEY = cleanKey(j.k); store.set('key', KEY); }
+  if (j.d && j.d.u){ DUB = j.d; store.set('dub', DUB); }
+}
 if (location.hash.startsWith('#k=')){
   try {
     const j = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
-    if (j.k){ KEY = cleanKey(j.k); store.set('key', KEY); }
+    applyImport(j);
     if (j.s){ S = Object.assign({}, DEF, j.s); saveS(); }
-    if (j.d && j.d.u){ DUB = j.d; store.set('dub', DUB); }
     setTimeout(() => toast(j.k || j.s ? 'Anahtar ve tercihler yüklendi' : 'Türkçe seslendirme servisi bağlandı'), 300);
   } catch(e){ setTimeout(() => toast('QR verisi okunamadı'), 300); }
   history.replaceState(null, '', location.pathname);
+} else if (location.hash.startsWith('#z=')){
+  const raw = location.hash.slice(3);
+  history.replaceState(null, '', location.pathname);
+  (async () => {
+    try {
+      const j = await unpack(raw);
+      applyImport(j);
+      if (j.s){
+        const ns = Object.assign({}, DEF, j.s);
+        const ids = (j.s.channels || []).filter(x => typeof x === 'string');
+        ns.channels = ids.map(id => ({id, title: (S.channels.find(c => c.id === id) || {}).title || '', uploads: id.replace(/^UC/, 'UU')}));
+        ns.blockCh = (j.s.blockCh || []).map(b => typeof b === 'string' ? (S.blockCh.find(x => x.id === b) || {id: b, title: b}) : b);
+        // kanal adlarını ve resimlerini getir
+        for (let i = 0; i < ids.length && KEY; i += 50){
+          try {
+            const r = await api('channels', {part: 'snippet', id: ids.slice(i, i + 50).join(','), maxResults: 50}, 1);
+            for (const it of r.items || []){
+              const c = ns.channels.find(c => c.id === it.id);
+              if (c){ c.title = it.snippet.title; c.thumb = (it.snippet.thumbnails.default || {}).url; }
+            }
+          } catch(e){}
+        }
+        S = ns; saveS();
+      }
+      store.set('importNote', true);
+      location.replace(location.pathname);
+    } catch(e){ toast('QR verisi okunamadı'); }
+  })();
 }
+if (store.get('importNote', false)){ store.set('importNote', false); setTimeout(() => toast('Anahtar ve tercihler yüklendi'), 300); }
 
 /* ---------- yeni sürüm kontrolü ---------- */
 async function checkUpdate(){
