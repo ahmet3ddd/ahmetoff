@@ -26,7 +26,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
 HOME = Path(os.environ.get("SECKI_HOME", Path.home() / ".secki-dublaj"))
 JOBS = HOME / "jobs"
@@ -516,7 +516,7 @@ class H(BaseHTTPRequestHandler):
         self.cors()
         self.send_header("Content-Type", ctype)
         self.send_header("Accept-Ranges", "bytes")
-        self.send_header("Cache-Control", "private, max-age=86400")
+        self.send_header("Cache-Control", "no-cache")
         self.send_header("Content-Length", str(end - start + 1))
         self.end_headers()
         if self.command == "HEAD":

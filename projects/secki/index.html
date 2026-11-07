@@ -269,7 +269,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
 <script>
 (() => {
 'use strict';
-const VERSION = '2026-11-07-6';
+const VERSION = '2026-11-07-7';
 const $ = s => document.querySelector(s);
 const API = 'https://www.googleapis.com/youtube/v3/';
 const NS = 'secki.';
@@ -656,7 +656,7 @@ async function dubRefresh(first){
   if (dubS.v !== v) return;
   dubS.st = st;
   if (st.state === 'done'){
-    if (!dubS.cues){ try { dubS.cues = await (await fetch(dubUrl('/jobs/' + v.id + '/cues.json'))).json(); } catch(e){} }
+    if (!dubS.cues){ try { dubS.cues = await (await fetch(dubUrl('/jobs/' + v.id + '/cues.json?u=' + Math.round(st.updated || 0)), {cache: 'no-store'})).json(); } catch(e){} }
     if (st.dub){
       if (dubS.want && !dubS.on) dubStart();
       else dubSet(dubS.on ? 'Türkçe seslendirme açık' : 'Türkçe seslendirme hazır', null, dubS.on ? 'Orijinal ses' : 'Türkçe seslendir');
@@ -681,7 +681,7 @@ async function dubRequest(want){
 }
 function dubStart(){
   const v = dubS.v; if (!v) return;
-  if (!dubS.audio){ dubS.audio = new Audio(dubUrl('/jobs/' + v.id + '/dub.mp3')); dubS.audio.preload = 'auto'; }
+  if (!dubS.audio){ dubS.audio = new Audio(dubUrl('/jobs/' + v.id + '/dub.mp3?u=' + Math.round((dubS.st && dubS.st.updated) || 0))); dubS.audio.preload = 'auto'; }
   dubS.on = true; dubS.ours = true; dubS.want = false;
   try { dubS.p.unloadModule('captions'); dubS.p.setVolume(12); if (dubS.p.getPlayerState() !== 1) dubS.p.playVideo(); } catch(e){}
   $('#pFull').hidden = false;
