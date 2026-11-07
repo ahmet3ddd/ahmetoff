@@ -183,6 +183,13 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
     </div>
 
     <div class="sec">
+      <h2>Telefona aktar</h2>
+      <p>Bilgisayarda anahtarı ve tercihleri girdikten sonra QR kodu göster, telefonun kamerasıyla okut. Telefonda sayfa açılır, anahtar ve tercihler kendiliğinden yerleşir.</p>
+      <button class="btn pri" id="sQR" type="button">QR kodu göster</button>
+      <div id="qrBox" hidden style="margin-top:12px;background:#fff;padding:12px;border-radius:10px;width:max-content;max-width:100%"></div>
+    </div>
+
+    <div class="sec">
       <h2>Takip ettiğim kanallar</h2>
       <p>Kanal adresi, @kullanıcıadı ya da UC… kimliği yapıştır. Kanal başına yenileme 1 birim.</p>
       <form class="field" id="chForm"><input id="chIn" placeholder="@kanaladi veya youtube.com/@…" autocomplete="off"><button class="btn pri">Ekle</button></form>
@@ -667,6 +674,32 @@ $('#sClear').onclick = e => {
   cache = {}; details = {}; seen = new Set(); saveCache(); saveLists(); e.target.textContent = 'Önbelleği ve geçmişi sil'; toast('Önbellek ve izleme geçmişi silindi');
 };
 document.addEventListener('keydown', e => { if (e.key === 'Escape'){ if (!$('#player').hidden) closePlayer(); else if (!$('#menu').hidden) $('#menu').hidden = true; } });
+
+$('#sQR').onclick = () => {
+  readSettings();
+  if (!KEY){ toast('Önce API anahtarını yapıştır'); return; }
+  const s2 = Object.assign({}, S, {channels: S.channels.map(c => ({id:c.id, title:c.title, uploads:c.uploads}))});
+  const data = btoa(unescape(encodeURIComponent(JSON.stringify({k: KEY, s: s2}))));
+  const url = location.origin + location.pathname + '#k=' + data;
+  const box = $('#qrBox'); box.innerHTML = ''; box.hidden = false;
+  const draw = () => new QRCode(box, {text: url, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.L});
+  if (window.QRCode) return draw();
+  const sc = document.createElement('script');
+  sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  sc.onload = draw; sc.onerror = () => toast('QR aracı yüklenemedi. İnternet bağlantını kontrol et.');
+  document.head.appendChild(sc);
+};
+
+/* ---------- QR ile gelen aktarım ---------- */
+if (location.hash.startsWith('#k=')){
+  try {
+    const j = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
+    if (j.k){ KEY = j.k; store.set('key', KEY); }
+    if (j.s){ S = Object.assign({}, DEF, j.s); saveS(); }
+    setTimeout(() => toast('Anahtar ve tercihler yüklendi'), 300);
+  } catch(e){ setTimeout(() => toast('QR verisi okunamadı'), 300); }
+  history.replaceState(null, '', location.pathname);
+}
 
 /* ---------- başlat ---------- */
 // önbellekten anında göster, sonra arka planda tazele
