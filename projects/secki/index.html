@@ -240,6 +240,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
 <script>
 (() => {
 'use strict';
+const VERSION = '2026-11-07-4';
 const $ = s => document.querySelector(s);
 const API = 'https://www.googleapis.com/youtube/v3/';
 const NS = 'secki.';
@@ -532,7 +533,7 @@ function openPlayer(v){
     $('#pTip').hidden = isTR;
     if (!isTR) loadYT().then(() => {
       if (!window.YT || !YT.Player || !f.isConnected) return;
-      new YT.Player(f, {events: {onReady: e => forceTR(e.target), onApiChange: e => forceTR(e.target, true)}});
+      window.__seckiPlayer = new YT.Player(f, {events: {onReady: e => forceTR(e.target), onApiChange: e => forceTR(e.target, true)}});
     });
   } else {
     $('#pNote').textContent = d.emb === false ? 'Bu videonun sahibi başka sitelerde oynatılmasını kapatmış. YouTube’da açabilirsin.' : 'Dosyadan açılan sayfada gömülü oynatıcı çalışmaz. YouTube’da aç düğmesi videoyu uygulamada başlatır.';
@@ -742,6 +743,15 @@ if (location.hash.startsWith('#k=')){
   } catch(e){ setTimeout(() => toast('QR verisi okunamadı'), 300); }
   history.replaceState(null, '', location.pathname);
 }
+
+/* ---------- yeni sürüm kontrolü ---------- */
+(async () => {
+  try {
+    const r = await fetch(location.pathname + '?v=' + Date.now(), {cache: 'no-store'});
+    const m = /const VERSION = '([^']+)'/.exec(await r.text());
+    if (m && m[1] !== VERSION) location.replace(location.pathname + '?v=' + m[1]);
+  } catch(e){}
+})();
 
 /* ---------- başlat ---------- */
 // önbellekten anında göster, sonra arka planda tazele
