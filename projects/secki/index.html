@@ -254,7 +254,8 @@ const DEF = {
   days: 7, lang: 'tr', region: 'TR', sort: 'mix', hideSeen: false
 };
 let S = Object.assign({}, DEF, store.get('settings', {}));
-let KEY = store.get('key', '');
+const cleanKey = k => { k = String(k||''); const m = /AIza[0-9A-Za-z_\-]{35}/.exec(k); return m ? m[0] : k.replace(/^\s*keyString:\s*/i,'').replace(/[\s'"]/g,''); };
+let KEY = cleanKey(store.get('key', ''));
 let seen = new Set(store.get('seen', []));
 let hidden = new Set(store.get('hidden', []));
 let later = store.get('later', []);
@@ -602,7 +603,7 @@ function renderSettingsLists(){
   $('#blockTags').innerHTML = S.blockCh.map((b,i) => `<span class="tg">${esc(b.title)}<button type="button" data-rmbl="${i}" aria-label="Engeli kaldır">✕</button></span>`).join('') || '<span class="sub">Yok.</span>';
 }
 function readSettings(){
-  KEY = $('#sKey').value.trim(); store.set('key', KEY);
+  KEY = cleanKey($('#sKey').value); store.set('key', KEY);
   S.block = $('#sBlock').value.split(',').map(s => s.trim()).filter(Boolean);
   S.minMin = Math.max(0, +$('#sMin').value || 0); S.maxMin = Math.max(0, +$('#sMax').value || 0);
   S.days = +$('#sDays').value; S.sort = $('#sSort').value; S.lang = $('#sLang').value; S.region = $('#sRegion').value;
@@ -636,7 +637,7 @@ $('#searchBar').addEventListener('submit', e => { e.preventDefault(); const q = 
 $('#sKeyShow').onclick = () => { const i = $('#sKey'); i.type = i.type === 'password' ? 'text' : 'password'; };
 $('#chForm').addEventListener('submit', async e => {
   e.preventDefault(); const v = $('#chIn').value.trim(); if (!v) return;
-  KEY = $('#sKey').value.trim() || KEY; store.set('key', KEY);
+  KEY = cleanKey($('#sKey').value) || KEY; store.set('key', KEY);
   const btn = e.target.querySelector('button'); btn.disabled = true; btn.textContent = '…';
   try { await addChannel(v); $('#chIn').value = ''; renderSettingsLists(); toast('Kanal eklendi'); }
   catch(err){ toast(err.message); }
@@ -694,7 +695,7 @@ $('#sQR').onclick = () => {
 if (location.hash.startsWith('#k=')){
   try {
     const j = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
-    if (j.k){ KEY = j.k; store.set('key', KEY); }
+    if (j.k){ KEY = cleanKey(j.k); store.set('key', KEY); }
     if (j.s){ S = Object.assign({}, DEF, j.s); saveS(); }
     setTimeout(() => toast('Anahtar ve tercihler yüklendi'), 300);
   } catch(e){ setTimeout(() => toast('QR verisi okunamadı'), 300); }
