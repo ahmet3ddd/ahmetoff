@@ -26,7 +26,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 UPDATE_URL = "https://ahmetoff.com/ahmetoff/projects/secki/dublaj/server.py"
 HOME = Path(os.environ.get("SECKI_HOME", Path.home() / ".secki-dublaj"))
 JOBS = HOME / "jobs"
@@ -90,7 +90,10 @@ def video_info(vid):
 
 
 def parse_json3(path):
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return parse_json3_data(json.loads(Path(path).read_text(encoding="utf-8")))
+
+
+def parse_json3_data(data):
     cues = []
     for ev in data.get("events", []):
         segs = ev.get("segs")
@@ -113,6 +116,50 @@ def parse_json3(path):
             out[-1]["e"] = c["s"]
         out.append(c)
     return [c for c in out if c["e"] - c["s"] > 0.05]
+
+
+def http_get(url):
+    import urllib.request
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+        "Accept-Language": "tr,en;q=0.8"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return r.read()
+
+
+def track_url(entries):
+    if not entries:
+        return None
+    e = next((x for x in entries if x.get("ext") == "json3"), entries[0])
+    return e.get("url")
+
+
+def translated_subs(vid, info):
+    """YouTube'un kendi çeviri altyapısı: kaynak altyazının adresine tlang=tr eklenir."""
+    subs = {k: v for k, v in (info.get("subtitles") or {}).items() if k != "live_chat"}
+    auto = info.get("automatic_captions") or {}
+    lang = (info.get("language") or "").lower()[:2]
+    cands = []
+    cands += [subs[k] for k in subs if lang and k.lower().startswith(lang)]
+    cands += [subs[k] for k in subs if not (lang and k.lower().startswith(lang))]
+    cands += [auto[k] for k in auto if k.endswith("-orig")]
+    cands += [auto[k] for k in auto if not k.endswith("-orig")]
+    for entries in cands[:4]:
+        url = track_url(entries)
+        if not url:
+            continue
+        u = re.sub(r"([?&])(fmt|tlang)=[^&]*&?", r"\1", url).rstrip("&?")
+        u += ("&" if "?" in u else "?") + "fmt=json3&tlang=tr"
+        try:
+            body = http_get(u)
+            if not body.strip():
+                continue
+            cues = parse_json3_data(json.loads(body))
+            if cues:
+                return cues
+        except Exception as e:
+            log(vid, "çeviri altyazısı alınamadı:", e)
+    return None
 
 
 def youtube_turkish_subs(vid, info, work):
@@ -140,6 +187,9 @@ def youtube_turkish_subs(vid, info, work):
             f.unlink()
             if cues:
                 return cues, "youtube-" + kind
+    cues = translated_subs(vid, info)
+    if cues:
+        return cues, "youtube-translate"
     return None, None
 
 
@@ -181,10 +231,7 @@ def get_model(vid):
     if _model is None:
         write_status(vid, step="Konuşma tanıma modeli hazırlanıyor (ilk seferde indirilir)", progress=0.15)
         from faster_whisper import WhisperModel
-        try:
-            _model = WhisperModel(WHISPER_MODEL, device="auto", compute_type="int8")
-        except Exception:
-            _model = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
+        _model = WhisperModel(WHISPER_MODEL, device=os.environ.get("SECKI_DEVICE", "cpu"), compute_type="int8")
     return _model
 
 
@@ -411,6 +458,9 @@ class H(BaseHTTPRequestHandler):
             return self.send_json({"ok": True, "version": VERSION, "auth": self.authed(qs), "queue": q.qsize()})
         if not self.authed(qs):
             return self.send_json({"error": "Token geçersiz."}, 401)
+        if parts == ["update"] and method == "POST":
+            update_now.set()
+            return self.send_json({"ok": True})
         if len(parts) >= 2 and parts[0] == "jobs" and VID_RE.match(parts[1]):
             vid = parts[1]
             if len(parts) == 2:
@@ -481,6 +531,9 @@ class H(BaseHTTPRequestHandler):
 busy = threading.Event()
 
 
+update_now = threading.Event()
+
+
 def self_update_loop():
     import urllib.request
     me = Path(__file__).resolve()
@@ -498,7 +551,8 @@ def self_update_loop():
                 os.execv(sys.executable, [sys.executable, str(me)])
         except Exception as e:
             log("güncelleme denetimi başarısız:", e)
-        time.sleep(3 * 3600)
+        update_now.wait(15 * 60)
+        update_now.clear()
 
 
 def main():
