@@ -155,6 +155,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
         <button class="btn" id="pClose">Kapat</button>
       </div>
       <div class="notice" id="pNote" hidden></div>
+      <div class="sub" id="pTip" hidden>Türkçe altyazı kendiliğinden açılır. Açılmazsa oynatıcıda ⚙ → Altyazılar → Otomatik çevir → Türkçe. Videonun Türkçe seslendirmesi varsa ⚙ → Ses parçası menüsünde çıkar.</div>
     </div>
   </div>
 </div>
@@ -359,7 +360,8 @@ async function fillDetails(list){
     const j = await api('videos', {part:'contentDetails,statistics,status,snippet', id: need.slice(i,i+50).join(',')}, 1);
     for (const it of j.items||[]){
       details[it.id] = {t: Date.now(), d: isoSec(it.contentDetails.duration), v: it.statistics.viewCount,
-        emb: it.status.embeddable !== false, live: it.snippet.liveBroadcastContent !== 'none'};
+        emb: it.status.embeddable !== false, live: it.snippet.liveBroadcastContent !== 'none',
+        lang: lc(it.snippet.defaultAudioLanguage || it.snippet.defaultLanguage || ''), cap: it.contentDetails.caption === 'true'};
     }
   }
 }
@@ -465,7 +467,7 @@ function cardHTML(v, demo){
     <button class="thumb" data-act="play" aria-label="Oynat: ${esc(v.title)}">
       ${v.thumb ? `<img src="${esc(v.thumb)}" alt="" loading="lazy">` : `<span class="ph" style="background:linear-gradient(135deg,hsl(${hue(v.title)} 35% 30%),hsl(${(hue(v.title)+60)%360} 40% 22%))">${esc(v.ch)}</span>`}
       ${d.live ? '<span class="dur" style="background:#c62">CANLI</span>' : (d.d ? `<span class="dur">${fmtDur(d.d)}</span>` : '')}
-      ${demo ? '<span class="tag">Örnek</span>' : ''}
+      ${demo ? '<span class="tag">Örnek</span>' : (d.lang && d.lang.startsWith('tr') ? '<span class="tag">Türkçe</span>' : '')}
     </button>
     <div class="meta">
       <div class="av" style="background:hsl(${hue(v.ch||'')} 40% 40%)">${av}</div>
@@ -522,15 +524,39 @@ function openPlayer(v){
   $('#pNote').hidden = canEmbed;
   if (canEmbed){
     const f = document.createElement('iframe');
-    f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.id) + '?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+    f.src = 'https://www.youtube.com/embed/' + encodeURIComponent(v.id) + '?autoplay=1&rel=0&playsinline=1&enablejsapi=1&cc_load_policy=1&cc_lang_pref=tr&hl=tr&origin=' + encodeURIComponent(location.origin);
     f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
     f.referrerPolicy = 'strict-origin-when-cross-origin'; f.title = v.title;
     fr.appendChild(f);
+    const isTR = (d.lang||'').startsWith('tr');
+    $('#pTip').hidden = isTR;
+    if (!isTR) loadYT().then(() => {
+      if (!window.YT || !YT.Player || !f.isConnected) return;
+      new YT.Player(f, {events: {onReady: e => forceTR(e.target), onApiChange: e => forceTR(e.target, true)}});
+    });
   } else {
     $('#pNote').textContent = d.emb === false ? 'Bu videonun sahibi başka sitelerde oynatılmasını kapatmış. YouTube’da açabilirsin.' : 'Dosyadan açılan sayfada gömülü oynatıcı çalışmaz. YouTube’da aç düğmesi videoyu uygulamada başlatır.';
   }
   $('#player').hidden = false;
   const el = document.querySelector(`.card[data-id="${CSS.escape(v.id)}"]`); if (el) el.classList.add('seen');
+}
+function loadYT(){
+  if (window.YT && YT.Player) return Promise.resolve();
+  if (loadYT.p) return loadYT.p;
+  loadYT.p = new Promise(res => {
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); res(); };
+    const sc = document.createElement('script'); sc.src = 'https://www.youtube.com/iframe_api'; sc.onerror = () => res();
+    document.head.appendChild(sc);
+    setTimeout(res, 8000);
+  });
+  return loadYT.p;
+}
+// Türkçe altyazıyı seç; yoksa YouTube'un otomatik çevirisiyle Türkçe'ye çevir
+function forceTR(p, once){
+  if (!p._trUntil) p._trUntil = Date.now() + 10000;
+  const go = () => { if (Date.now() > p._trUntil) return; try { p.loadModule('captions'); p.setOption('captions', 'track', {languageCode: 'tr'}); } catch(e){} };
+  go(); if (!once) [1000, 2500, 5000].forEach(t => setTimeout(go, t));
 }
 function closePlayer(){ $('#player').hidden = true; $('#frame').innerHTML = ''; cur = null; }
 function toggleLater(v){
