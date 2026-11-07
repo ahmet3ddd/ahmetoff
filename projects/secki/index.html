@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#14161c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Seçki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Mobil video akışı: yapışkan üst çubuk + çip şeridi, tek sütun kartlar, alttan açılan oynatıcı ve ayar sayfası */
+:root{
+  --bg:#14161c; --surface:#1d2029; --raised:#262a35; --line:#2f3442;
+  --fg:#eceef4; --muted:#9aa1b2; --accent:#f2b134; --accent-ink:#1b1505; --danger:#ff7a6b;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Figtree","Segoe UI",Roboto,system-ui,sans-serif;
+  --r:12px; color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root{
+  --bg:#f6f5f2; --surface:#ffffff; --raised:#ecebe6; --line:#dddbd3;
+  --fg:#17181c; --muted:#5f636e; --accent:#c9850f; --accent-ink:#fff; --danger:#c8402f; color-scheme:light}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 var(--f-body);-webkit-tap-highlight-color:transparent}
+body{padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+img{max-width:100%;display:block}
+[hidden]{display:none!important}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* üst çubuk */
+header{position:sticky;top:0;z-index:20;background:var(--bg);padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:8px;height:56px}
+.logo{font:800 22px/1 var(--f-display);letter-spacing:-.02em;display:flex;align-items:center;gap:7px;margin-right:auto;white-space:nowrap}
+.logo i{width:24px;height:18px;border-radius:6px;background:var(--accent);position:relative;flex:none}
+.logo i::after{content:"";position:absolute;left:9px;top:4px;border-left:8px solid var(--accent-ink);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.ib{width:40px;height:40px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;flex:none}
+.ib:active{background:var(--raised)}
+.ib svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.search{display:flex;align-items:center;gap:6px;height:56px}
+.search input{flex:1;min-width:0;height:40px;border-radius:20px;border:1px solid var(--line);background:var(--surface);padding:0 16px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-block:8px 10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:0;border-radius:8px;padding:7px 12px;background:var(--raised);font-weight:600;font-size:14px;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.chip small{opacity:.6;font-weight:500;margin-left:4px}
+
+/* akış */
+main{padding-block:12px 40px}
+.notice{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:14px;color:var(--muted)}
+.notice b{color:var(--fg)}
+.notice.err{border-color:var(--danger)}
+.notice button{margin-top:8px}
+.feed{display:grid;gap:22px;grid-template-columns:1fr}
+@media (min-width:720px){.feed{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1100px){.feed{grid-template-columns:repeat(3,1fr)}}
+.card{min-width:0}
+.card.seen{opacity:.55}
+.thumb{position:relative;display:block;width:100%;padding:0;border:0;border-radius:var(--r);overflow:hidden;aspect-ratio:16/9;background:var(--raised);max-width:100%}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .ph{position:absolute;inset:0;display:grid;place-items:center;font:800 15px var(--f-display);color:var(--muted)}
+.dur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.8);color:#fff;font-size:12px;font-weight:600;padding:2px 5px;border-radius:4px;font-variant-numeric:tabular-nums}
+.tag{position:absolute;left:6px;top:6px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+.meta{display:flex;gap:10px;padding-top:10px;align-items:flex-start}
+.av{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.txt{flex:1;min-width:0}
+.ttl{font-weight:600;font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0 0 3px;cursor:pointer}
+.sub{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.why{display:inline-block;font-size:11.5px;color:var(--accent);margin-top:2px}
+.more{margin:-6px -8px 0 0}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+.skel .thumb{animation:pulse 1.2s infinite ease-in-out}
+@keyframes pulse{50%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){.skel .thumb{animation:none}}
+
+/* sayfa / sheet */
+.sheet{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.panel{background:var(--surface);width:100%;max-width:720px;border-radius:16px 16px 0 0;max-height:92vh;overflow:auto;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+.player .frame{aspect-ratio:16/9;background:#000;width:100%;max-width:100%}
+.player iframe{width:100%;height:100%;border:0;display:block}
+.player .info{padding-block:12px 4px}
+.player h2{font-size:17px;margin:0 0 4px;line-height:1.3}
+.row{display:flex;gap:8px;flex-wrap:wrap;padding-block:12px}
+.btn{border:0;border-radius:20px;padding:9px 15px;background:var(--raised);font-weight:600;font-size:14px;text-decoration:none;color:var(--fg);display:inline-flex;align-items:center;gap:6px}
+.btn.pri{background:var(--accent);color:var(--accent-ink)}
+.btn.warn{color:var(--danger)}
+.menu .item{display:block;width:100%;text-align:left;border:0;background:transparent;padding:14px 4px;font-size:15px;border-bottom:1px solid var(--line)}
+.menu .item:last-child{border-bottom:0}
+.menu h3{font-size:14px;color:var(--muted);font-weight:600;margin:14px 0 2px;overflow-wrap:anywhere}
+
+/* ayarlar */
+.settings{position:fixed;inset:0;z-index:40;background:var(--bg);overflow:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:max(30px,env(safe-area-inset-bottom,0px))}
+.settings .bar{border-bottom:1px solid var(--line)}
+.settings h1{font:800 20px var(--f-display);margin:0;margin-right:auto}
+.sec{padding-block:18px;border-bottom:1px solid var(--line)}
+.sec h2{font:700 13px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+.sec p{margin:0 0 10px;color:var(--muted);font-size:14px;max-width:62ch}
+.sec ol{margin:0 0 10px;padding-left:20px;color:var(--muted);font-size:14px}
+.field{display:flex;gap:8px;margin-bottom:10px}
+.field input,.inp,select,textarea{flex:1;min-width:0;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:0 12px;width:100%}
+textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+.list{display:flex;flex-direction:column;gap:6px}
+.li{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 6px 8px 10px}
+.li .txt{font-weight:600;overflow-wrap:anywhere}
+.li .sub{font-weight:400}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tg{display:inline-flex;align-items:center;gap:4px;background:var(--raised);border-radius:16px;padding:5px 6px 5px 12px;font-size:14px;font-weight:600}
+.tg button{border:0;background:transparent;width:22px;height:22px;border-radius:50%;line-height:1;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:8px}
+.sw input{width:22px;height:22px;accent-color:var(--accent);flex:none}
+.quota{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="wrap">
+    <div class="bar" id="mainBar">
+      <div class="logo"><i></i>Seçki</div>
+      <button class="ib" id="bSearch" aria-label="Ara"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+      <button class="ib" id="bRefresh" aria-label="Yenile"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+      <button class="ib" id="bSettings" aria-label="Ayarlar"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
+    </div>
+    <form class="search" id="searchBar" hidden>
+      <button type="button" class="ib" id="bSearchBack" aria-label="Geri"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <input id="q" type="search" placeholder="YouTube'da ara (filtrelerin uygulanır)" enterkeyhint="search" autocomplete="off">
+    </form>
+    <nav class="chips" id="chips" aria-label="Görünüm"></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="notes"></div>
+  <div class="feed" id="feed"></div>
+</main>
+
+<!-- oynatıcı -->
+<div class="sheet" id="player" hidden>
+  <div class="panel player">
+    <div class="frame" id="frame"></div>
+    <div class="wrap info">
+      <h2 id="pTitle"></h2>
+      <div class="sub" id="pSub"></div>
+      <div class="row">
+        <a class="btn pri" id="pOpen" href="#" target="_blank" rel="noopener">YouTube'da aç</a>
+        <button class="btn" id="pLater">Sonra izle</button>
+        <button class="btn" id="pClose">Kapat</button>
+      </div>
+      <div class="notice" id="pNote" hidden></div>
+    </div>
+  </div>
+</div>
+
+<!-- kart menüsü -->
+<div class="sheet" id="menu" hidden>
+  <div class="panel menu"><div class="wrap" id="menuBody"></div></div>
+</div>
+
+<!-- ayarlar -->
+<section class="settings" id="settings" hidden>
+  <div class="wrap">
+    <div class="bar"><h1>Tercihler</h1><button class="btn pri" id="sDone">Kaydet ve yenile</button></div>
+
+    <div class="sec">
+      <h2>API anahtarı</h2>
+      <p>Akış, kendi YouTube Data API anahtarınla çalışır. Ücretsiz; günde 10.000 birim kotası var.</p>
+      <ol>
+        <li>console.cloud.google.com adresinde yeni proje aç</li>
+        <li>"YouTube Data API v3"ü etkinleştir</li>
+        <li>Kimlik bilgileri → API anahtarı oluştur</li>
+        <li>Anahtarı bu API ve bu sayfanın adresiyle kısıtla</li>
+      </ol>
+      <div class="field"><input id="sKey" type="password" placeholder="AIza…" autocomplete="off"><button class="btn" id="sKeyShow" type="button">Göster</button></div>
+      <div class="sub quota" id="sQuota"></div>
+    </div>
+
+    <div class="sec">
+      <h2>Takip ettiğim kanallar</h2>
+      <p>Kanal adresi, @kullanıcıadı ya da UC… kimliği yapıştır. Kanal başına yenileme 1 birim.</p>
+      <form class="field" id="chForm"><input id="chIn" placeholder="@kanaladi veya youtube.com/@…" autocomplete="off"><button class="btn pri">Ekle</button></form>
+      <div class="list" id="chList"></div>
+    </div>
+
+    <div class="sec">
+      <h2>İlgi konuları</h2>
+      <p>Her konu YouTube aramasıyla akışa video getirir. Arama 100 birim; sonuçlar 6 saat saklanır.</p>
+      <div class="tags" id="topicTags"></div>
+      <form class="field" id="tpForm"><input id="tpIn" placeholder="ör. iç mimari detay" autocomplete="off"><button class="btn pri">Ekle</button></form>
+    </div>
+
+    <div class="sec">
+      <h2>Süzgeçler</h2>
+      <label class="lbl" for="sBlock">Başlıkta geçerse gizle (virgülle ayır)</label>
+      <textarea id="sBlock" rows="2" style="min-height:60px;font-family:var(--f-body);font-size:14px"></textarea>
+      <div class="grid2" style="margin-top:10px">
+        <div><label class="lbl" for="sMin">En kısa (dk)</label><input class="inp" id="sMin" type="number" min="0" inputmode="numeric"></div>
+        <div><label class="lbl" for="sMax">En uzun (dk, 0 = sınırsız)</label><input class="inp" id="sMax" type="number" min="0" inputmode="numeric"></div>
+        <div><label class="lbl" for="sDays">Konu aramalarında yaş</label>
+          <select id="sDays"><option value="3">Son 3 gün</option><option value="7">Son 1 hafta</option><option value="30">Son 1 ay</option><option value="365">Son 1 yıl</option><option value="0">Hepsi</option></select></div>
+        <div><label class="lbl" for="sSort">Sıralama</label>
+          <select id="sSort"><option value="mix">Karışık (yeni + ilgi)</option><option value="new">En yeni</option><option value="views">En çok izlenen</option></select></div>
+        <div><label class="lbl" for="sLang">Arama dili</label>
+          <select id="sLang"><option value="tr">Türkçe</option><option value="en">İngilizce</option><option value="">Fark etmez</option></select></div>
+        <div><label class="lbl" for="sRegion">Bölge</label>
+          <select id="sRegion"><option value="TR">Türkiye</option><option value="US">ABD</option><option value="GB">Birleşik Krallık</option><option value="DE">Almanya</option></select></div>
+      </div>
+      <label class="sw"><span>Shorts videolarını gizle</span><input type="checkbox" id="sShorts"></label>
+      <label class="sw"><span>İzlediklerimi gizle</span><input type="checkbox" id="sHideSeen"></label>
+      <div class="lbl" style="margin-top:8px">Engellenen kanallar</div>
+      <div class="tags" id="blockTags"></div>
+    </div>
+
+    <div class="sec">
+      <h2>Yedek</h2>
+      <p>Tercihlerin yalnız bu tarayıcıda durur. Başka cihaza taşımak için kopyala, orada yapıştırıp içe aktar. API anahtarı yedeğe dahil değil.</p>
+      <textarea id="sBackup" spellcheck="false"></textarea>
+      <div class="row"><button class="btn" id="sExport" type="button">Yedeği göster ve kopyala</button><button class="btn" id="sImport" type="button">İçe aktar</button><button class="btn warn" id="sClear" type="button">Önbelleği ve geçmişi sil</button></div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const API = 'https://www.googleapis.com/youtube/v3/';
+const NS = 'secki.';
+
+/* ---------- depolama ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(NS+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(NS+k, JSON.stringify(v)); }catch(e){} }
+};
+const DEF = {
+  channels: [], topics: ['iç mimari detay', '3D yazıcı', 'mukarnas'],
+  block: ['tepki', 'reaction'], blockCh: [], minMin: 0, maxMin: 0, noShorts: true,
+  days: 7, lang: 'tr', region: 'TR', sort: 'mix', hideSeen: false
+};
+let S = Object.assign({}, DEF, store.get('settings', {}));
+let KEY = store.get('key', '');
+let seen = new Set(store.get('seen', []));
+let hidden = new Set(store.get('hidden', []));
+let later = store.get('later', []);
+let cache = store.get('cache', {});
+let details = store.get('details', {});
+let quota = store.get('quota', {day:'', used:0});
+
+const saveS = () => store.set('settings', S);
+const saveLists = () => { store.set('seen', [...seen].slice(-3000)); store.set('hidden', [...hidden].slice(-3000)); store.set('later', later); };
+const saveCache = () => {
+  // eski kayıtları buda
+  const now = Date.now();
+  for (const k in cache) if (now - cache[k].t > 2*864e5) delete cache[k];
+  const ids = Object.keys(details); if (ids.length > 4000) ids.slice(0, ids.length-4000).forEach(i => delete details[i]);
+  store.set('cache', cache); store.set('details', details);
+};
+
+/* ---------- kota ---------- */
+function ptDay(){ return new Date().toLocaleDateString('en-CA', {timeZone:'America/Los_Angeles'}); }
+function addQuota(n){ const d = ptDay(); if (quota.day !== d) quota = {day:d, used:0}; quota.used += n; store.set('quota', quota); }
+function quotaUsed(){ return quota.day === ptDay() ? quota.used : 0; }
+
+/* ---------- API ---------- */
+async function api(path, params, cost){
+  const p = new URLSearchParams(Object.assign({}, params, {key: KEY}));
+  let r, j;
+  try { r = await fetch(API + path + '?' + p); j = await r.json(); }
+  catch(e){ throw new Error('Bağlantı kurulamadı. İnternetini kontrol et.'); }
+  addQuota(cost);
+  if (j.error){
+    const reason = j.error.errors && j.error.errors[0] && j.error.errors[0].reason;
+    if (reason === 'quotaExceeded') throw new Error('Günlük API kotası doldu. Yarın sabah (TR saatiyle 10–11 arası) sıfırlanır; o zamana kadar önbellekteki videolar gösterilir.');
+    if (reason === 'keyInvalid' || /API key not valid/i.test(j.error.message)) throw new Error('API anahtarı geçersiz. Tercihler’den kontrol et.');
+    if (reason === 'accessNotConfigured') throw new Error('Projede "YouTube Data API v3" etkin değil. Google Cloud Console’dan etkinleştir.');
+    throw new Error(j.error.message || 'YouTube isteği reddetti.');
+  }
+  return j;
+}
+async function cached(key, ttlMs, fn){
+  const c = cache[key];
+  if (c && Date.now() - c.t < ttlMs) return c.v;
+  try { const v = await fn(); cache[key] = {t: Date.now(), v}; return v; }
+  catch(e){ if (c) { e.stale = c.v; } throw e; }
+}
+
+/* ---------- yardımcılar ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function decode(s){ const t = document.createElement('textarea'); t.innerHTML = s; return t.value; }
+function isoSec(d){ const m = /P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(d||''); if(!m) return 0; return (+m[1]||0)*86400+(+m[2]||0)*3600+(+m[3]||0)*60+(+m[4]||0); }
+function fmtDur(s){ if(!s) return ''; const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h? h+':'+String(m).padStart(2,'0') : m)+':'+String(x).padStart(2,'0'); }
+function fmtViews(n){ if(n==null) return ''; n=+n; if(n>=1e9) return (n/1e9).toFixed(1).replace('.0','').replace('.',',')+' Mr'; if(n>=1e6) return (n/1e6).toFixed(1).replace('.0','').replace('.',',')+' Mn'; if(n>=1e3) return Math.round(n/1e3)+' B'; return String(n); }
+function ago(iso){ const s=(Date.now()-new Date(iso))/1000; if(s<3600) return Math.max(1,Math.round(s/60))+' dakika önce'; if(s<86400) return Math.round(s/3600)+' saat önce'; if(s<86400*7) return Math.round(s/86400)+' gün önce'; if(s<86400*30) return Math.round(s/604800)+' hafta önce'; if(s<86400*365) return Math.round(s/2592000)+' ay önce'; return Math.round(s/31536000)+' yıl önce'; }
+function hue(s){ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))%360; return h; }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>t.hidden=true,2200); }
+function lc(s){ return String(s||'').toLocaleLowerCase('tr'); }
+
+/* ---------- akış oluşturma ---------- */
+let items = [];          // son birleştirilmiş liste
+let view = 'all';        // all | ch | later | t:<konu> | search
+let searchQ = '';
+let searchItems = [];
+let loading = false;
+
+function addItem(map, v, src){
+  if (!v.id) return;
+  const e = map.get(v.id) || Object.assign({src: []}, v);
+  if (!e.src.includes(src)) e.src.push(src);
+  map.set(v.id, e);
+}
+
+async function fetchChannel(ch){
+  return cached('pl:'+ch.uploads, 60*60e3, async () => {
+    const j = await api('playlistItems', {part:'snippet,contentDetails', playlistId: ch.uploads, maxResults: 15}, 1);
+    return (j.items||[]).map(it => ({
+      id: it.contentDetails.videoId,
+      title: decode(it.snippet.title),
+      ch: it.snippet.channelTitle || ch.title,
+      chId: ch.id,
+      pub: it.contentDetails.videoPublishedAt || it.snippet.publishedAt,
+      thumb: (it.snippet.thumbnails.medium||it.snippet.thumbnails.default||{}).url
+    })).filter(v => v.title !== 'Private video' && v.title !== 'Deleted video');
+  });
+}
+async function fetchSearch(q, order){
+  const p = {part:'snippet', type:'video', q, maxResults: 25, order: order||'relevance', regionCode: S.region, safeSearch:'none'};
+  if (S.lang) p.relevanceLanguage = S.lang;
+  if (S.days > 0) p.publishedAfter = new Date(Date.now() - S.days*864e5).toISOString().replace(/\.\d+Z$/,'Z');
+  if (S.minMin >= 20) p.videoDuration = 'long'; else if (S.maxMin && S.maxMin <= 4) p.videoDuration = 'short';
+  const key = 'q:'+[q,order,S.days,S.lang,S.region,p.videoDuration||''].join('|');
+  return cached(key, 6*3600e3, async () => {
+    const j = await api('search', p, 100);
+    return (j.items||[]).map(it => ({
+      id: it.id.videoId, title: decode(it.snippet.title), ch: decode(it.snippet.channelTitle), chId: it.snippet.channelId,
+      pub: it.snippet.publishedAt, thumb: (it.snippet.thumbnails.medium||it.snippet.thumbnails.default||{}).url
+    }));
+  });
+}
+async function fillDetails(list){
+  const need = [...new Set(list.map(v => v.id))].filter(id => !details[id] || Date.now()-details[id].t > 12*3600e3);
+  for (let i = 0; i < need.length; i += 50){
+    const j = await api('videos', {part:'contentDetails,statistics,status,snippet', id: need.slice(i,i+50).join(',')}, 1);
+    for (const it of j.items||[]){
+      details[it.id] = {t: Date.now(), d: isoSec(it.contentDetails.duration), v: it.statistics.viewCount,
+        emb: it.status.embeddable !== false, live: it.snippet.liveBroadcastContent !== 'none'};
+    }
+  }
+}
+
+function passes(v){
+  const d = details[v.id] || {};
+  if (hidden.has(v.id)) return false;
+  if (S.blockCh.some(b => b.id === v.chId)) return false;
+  const t = lc(v.title);
+  if (S.block.some(w => w && t.includes(lc(w)))) return false;
+  if (d.d){
+    if (S.noShorts && (d.d <= 60 || (d.d <= 180 && /#shorts?\b/i.test(v.title)))) return false;
+    if (S.minMin && d.d < S.minMin*60) return false;
+    if (S.maxMin && d.d > S.maxMin*60) return false;
+  } else if (S.noShorts && /#shorts?\b/i.test(v.title)) return false;
+  if (S.hideSeen && seen.has(v.id) && view !== 'later') return false;
+  return true;
+}
+function score(v){
+  const h = (Date.now() - new Date(v.pub)) / 3600e3;
+  const rec = 1 / (1 + h/36);
+  const fromCh = v.src.includes('ch');
+  const topics = v.src.filter(s => s.startsWith('t:')).length;
+  return rec * (fromCh ? 1.25 : 0.8) * (1 + 0.35*Math.max(0, topics-1)) + (fromCh && topics ? 0.15 : 0);
+}
+function sortList(list){
+  const l = list.slice();
+  if (S.sort === 'new') l.sort((a,b) => new Date(b.pub) - new Date(a.pub));
+  else if (S.sort === 'views') l.sort((a,b) => (+(details[b.id]||{}).v||0) - (+(details[a.id]||{}).v||0));
+  else l.sort((a,b) => score(b) - score(a));
+  return l;
+}
+
+async function loadFeed(force){
+  if (!KEY){ renderDemo(); return; }
+  if (loading) return; loading = true;
+  if (force){ for (const k in cache) if (k.startsWith('pl:')) cache[k].t = 0; }
+  notes([]); if (!items.length) renderSkeleton();
+  const map = new Map(), errs = [];
+  const jobs = [
+    ...S.channels.map(ch => fetchChannel(ch).then(l => l.forEach(v => addItem(map, v, 'ch'))).catch(e => { errs.push(ch.title+': '+e.message); (e.stale||[]).forEach(v => addItem(map, v, 'ch')); })),
+    ...S.topics.map(t => fetchSearch(t).then(l => l.forEach(v => addItem(map, v, 't:'+t))).catch(e => { errs.push('"'+t+'": '+e.message); (e.stale||[]).forEach(v => addItem(map, v, 't:'+t)); }))
+  ];
+  await Promise.all(jobs);
+  try { await fillDetails([...map.values()]); } catch(e){ errs.push(e.message); }
+  saveCache();
+  items = [...map.values()];
+  loading = false;
+  notes(dedupe(errs));
+  render();
+}
+function dedupe(a){ const seenMsg = new Set(); return a.filter(m => { const k = m.replace(/^[^:]*: /,''); if (seenMsg.has(k)) return false; seenMsg.add(k); return true; }); }
+
+async function runSearch(q){
+  if (!KEY){ toast('Önce API anahtarını ekle'); openSettings(); return; }
+  searchQ = q; view = 'search'; renderChips(); renderSkeleton(); notes([]);
+  try {
+    const l = await fetchSearch(q, 'relevance');
+    await fillDetails(l); saveCache();
+    searchItems = l.map(v => Object.assign({src:['s']}, v));
+  } catch(e){ searchItems = (e.stale||[]).map(v => Object.assign({src:['s']}, v)); notes([e.message]); }
+  render();
+}
+
+/* ---------- çizim ---------- */
+function notes(list){
+  const n = $('#notes'); n.innerHTML = '';
+  for (const m of list){ const d = document.createElement('div'); d.className = 'notice err'; d.textContent = m; n.appendChild(d); }
+  if (location.protocol === 'file:' && !store.get('fileNoteSeen', false)){
+    const d = document.createElement('div'); d.className = 'notice';
+    d.innerHTML = '<b>Dosyadan açtın.</b> Akış çalışır ama YouTube, dosyadan açılan sayfalarda gömülü oynatıcıya izin vermiyor; videolar YouTube uygulamasında açılır. Sayfayı bir adrese koyarsan (ör. GitHub Pages) oynatıcı burada çalışır.<br><button class="btn" type="button">Anladım</button>';
+    d.querySelector('button').onclick = () => { store.set('fileNoteSeen', true); d.remove(); };
+    n.appendChild(d);
+  }
+}
+function renderChips(){
+  const c = $('#chips'); const opts = [['all','Tümü'],['ch','Kanallarım']];
+  S.topics.forEach(t => opts.push(['t:'+t, t]));
+  opts.push(['later','Sonra izle', later.length]);
+  if (view === 'search') opts.unshift(['search','"'+searchQ+'"']);
+  c.innerHTML = opts.map(([k,l,n]) => `<button class="chip" data-v="${esc(k)}" aria-pressed="${view===k}">${esc(l)}${n?`<small>${n}</small>`:''}</button>`).join('');
+}
+function currentList(){
+  if (view === 'later') return later.map(v => Object.assign({src:['l']}, v)).filter(v => !hidden.has(v.id));
+  if (view === 'search') return searchItems.filter(passes);
+  let l = items;
+  if (view === 'ch') l = l.filter(v => v.src.includes('ch'));
+  else if (view.startsWith('t:')) l = l.filter(v => v.src.includes(view));
+  return sortList(l.filter(passes));
+}
+function whyText(v){
+  if (v.src.includes('ch')) return 'Takip ettiğin kanal';
+  const t = v.src.filter(s => s.startsWith('t:')).map(s => s.slice(2));
+  return t.length ? 'Konu: ' + t.join(', ') : '';
+}
+function cardHTML(v, demo){
+  const d = details[v.id] || {};
+  const chObj = S.channels.find(c => c.id === v.chId);
+  const av = chObj && chObj.thumb ? `<img src="${esc(chObj.thumb)}" alt="" loading="lazy">` : esc((v.ch||'?').trim().charAt(0).toLocaleUpperCase('tr'));
+  const sub = [v.ch, d.v ? fmtViews(d.v)+' görüntüleme' : '', v.pub ? ago(v.pub) : ''].filter(Boolean).join(' · ');
+  const why = view === 'all' ? whyText(v) : '';
+  return `<article class="card${seen.has(v.id)?' seen':''}" data-id="${esc(v.id)}">
+    <button class="thumb" data-act="play" aria-label="Oynat: ${esc(v.title)}">
+      ${v.thumb ? `<img src="${esc(v.thumb)}" alt="" loading="lazy">` : `<span class="ph" style="background:linear-gradient(135deg,hsl(${hue(v.title)} 35% 30%),hsl(${(hue(v.title)+60)%360} 40% 22%))">${esc(v.ch)}</span>`}
+      ${d.live ? '<span class="dur" style="background:#c62">CANLI</span>' : (d.d ? `<span class="dur">${fmtDur(d.d)}</span>` : '')}
+      ${demo ? '<span class="tag">Örnek</span>' : ''}
+    </button>
+    <div class="meta">
+      <div class="av" style="background:hsl(${hue(v.ch||'')} 40% 40%)">${av}</div>
+      <div class="txt"><h3 class="ttl" data-act="play">${esc(v.title)}</h3><div class="sub">${esc(sub)}</div>${why?`<span class="why">${esc(why)}</span>`:''}</div>
+      ${demo ? '' : `<button class="ib more" data-act="menu" aria-label="Seçenekler"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></button>`}
+    </div></article>`;
+}
+function render(){
+  renderChips();
+  const l = currentList();
+  const f = $('#feed');
+  if (!l.length){
+    const msg = view === 'later' ? 'Sonra izle listen boş. Bir videonun ⋮ menüsünden ekleyebilirsin.'
+      : (!S.channels.length && !S.topics.length) ? 'Henüz kanal ya da konu eklemedin. Tercihler’den başla.'
+      : 'Süzgeçlerine uyan video kalmadı. Süre ya da tarih sınırlarını gevşetmeyi dene.';
+    f.innerHTML = `<div class="empty">${esc(msg)}</div>`; return;
+  }
+  f.innerHTML = l.slice(0, 120).map(v => cardHTML(v)).join('');
+  f._list = l;
+}
+function renderSkeleton(){
+  $('#feed').innerHTML = Array.from({length:4}, () => `<div class="card skel"><div class="thumb"></div><div class="meta"><div class="av" style="background:var(--raised)"></div><div class="txt"><div style="height:14px;background:var(--raised);border-radius:4px;width:85%;margin-bottom:8px"></div><div style="height:12px;background:var(--raised);border-radius:4px;width:55%"></div></div></div></div>`).join('');
+}
+function renderDemo(){
+  renderChips();
+  const n = $('#notes'); n.innerHTML = '';
+  const d = document.createElement('div'); d.className = 'notice';
+  d.innerHTML = '<b>Akışın boş.</b> Aşağıdakiler örnek. Kendi API anahtarını ekleyince takip ettiğin kanallar ve konuların burada listelenir.<br><button class="btn pri" type="button">Anahtarı ekle</button>';
+  d.querySelector('button').onclick = openSettings; n.appendChild(d);
+  const now = Date.now();
+  const demo = [
+    ['Banyo tadilatında metraj nasıl çıkarılır','Usta Defteri',2,1460,'PT18M22S'],
+    ['Mukarnas geometrisi: hücreden kubbeye','Geometri Atölyesi',26,8800,'PT41M5S'],
+    ['PETG mi PLA mı? 3D baskıda dayanım testi','Katman Katman',50,23100,'PT12M48S'],
+    ['Küçük salonlarda ışık planı','İç Mekân Notları',80,5400,'PT22M10S']
+  ].map(([t,c,h,vw,du],i) => { const id='demo'+i; details[id]={d:isoSec(du),v:vw}; return {id,title:t,ch:c,chId:'x'+i,pub:new Date(now-h*3600e3).toISOString(),src:['t:'+S.topics[0]]}; });
+  $('#feed').innerHTML = demo.map(v => cardHTML(v, true)).join('');
+  $('#feed')._list = [];
+}
+
+/* ---------- oynatıcı & menü ---------- */
+let cur = null;
+function findVideo(id){ return ($('#feed')._list||[]).find(v => v.id === id) || later.find(v => v.id === id); }
+function openPlayer(v){
+  cur = v; seen.add(v.id); saveLists();
+  const d = details[v.id] || {};
+  const url = 'https://www.youtube.com/watch?v=' + encodeURIComponent(v.id);
+  $('#pTitle').textContent = v.title;
+  $('#pSub').textContent = [v.ch, d.v ? fmtViews(d.v)+' görüntüleme' : '', ago(v.pub)].filter(Boolean).join(' · ');
+  $('#pOpen').href = url;
+  $('#pLater').textContent = later.some(x => x.id === v.id) ? 'Listeden çıkar' : 'Sonra izle';
+  const canEmbed = location.protocol.startsWith('http') && d.emb !== false;
+  const fr = $('#frame'); fr.innerHTML = ''; fr.hidden = !canEmbed;
+  $('#pNote').hidden = canEmbed;
+  if (canEmbed){
+    const f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.id) + '?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin'; f.title = v.title;
+    fr.appendChild(f);
+  } else {
+    $('#pNote').textContent = d.emb === false ? 'Bu videonun sahibi başka sitelerde oynatılmasını kapatmış. YouTube’da açabilirsin.' : 'Dosyadan açılan sayfada gömülü oynatıcı çalışmaz. YouTube’da aç düğmesi videoyu uygulamada başlatır.';
+  }
+  $('#player').hidden = false;
+  const el = document.querySelector(`.card[data-id="${CSS.escape(v.id)}"]`); if (el) el.classList.add('seen');
+}
+function closePlayer(){ $('#player').hidden = true; $('#frame').innerHTML = ''; cur = null; }
+function toggleLater(v){
+  const i = later.findIndex(x => x.id === v.id);
+  if (i >= 0){ later.splice(i,1); toast('Sonra izle listesinden çıkarıldı'); }
+  else { later.unshift({id:v.id,title:v.title,ch:v.ch,chId:v.chId,pub:v.pub,thumb:v.thumb}); toast('Sonra izle listesine eklendi'); }
+  saveLists(); renderChips();
+}
+function openMenu(v){
+  const followed = S.channels.some(c => c.id === v.chId);
+  const inLater = later.some(x => x.id === v.id);
+  $('#menuBody').innerHTML = `<h3>${esc(v.title)}</h3>
+    <button class="item" data-m="later">${inLater ? 'Sonra izle listesinden çıkar' : 'Sonra izle'}</button>
+    <button class="item" data-m="seen">${seen.has(v.id) ? 'İzlenmedi olarak işaretle' : 'İzledim olarak işaretle'}</button>
+    <button class="item" data-m="hide">Bu videoyu gizle</button>
+    ${followed ? '' : `<button class="item" data-m="follow">“${esc(v.ch)}” kanalını takip et</button>`}
+    <button class="item" data-m="block" style="color:var(--danger)">“${esc(v.ch)}” kanalını bir daha gösterme</button>
+    <button class="item" data-m="close">Vazgeç</button>`;
+  $('#menu')._v = v; $('#menu').hidden = false;
+}
+async function menuAction(m, v){
+  $('#menu').hidden = true;
+  if (m === 'later') toggleLater(v);
+  else if (m === 'seen'){ seen.has(v.id) ? seen.delete(v.id) : seen.add(v.id); saveLists(); }
+  else if (m === 'hide'){ hidden.add(v.id); saveLists(); toast('Video gizlendi'); }
+  else if (m === 'block'){ if (!S.blockCh.some(b => b.id === v.chId)) S.blockCh.push({id:v.chId, title:v.ch}); S.channels = S.channels.filter(c => c.id !== v.chId); saveS(); toast('Kanal engellendi'); }
+  else if (m === 'follow'){ try { await addChannel(v.chId); toast('Kanal takibe alındı'); loadFeed(); } catch(e){ toast(e.message); } return; }
+  if (m !== 'close') render();
+}
+
+/* ---------- kanal çözümleme ---------- */
+function parseChannel(s){
+  s = s.trim();
+  let m = /(UC[\w-]{22})/.exec(s); if (m) return {id: m[1]};
+  m = /youtube\.com\/(?:c\/|user\/)?@?([\w.\-À-ɏ]+)/i.exec(s);
+  if (m && /youtube\.com\/@/i.test(s)) return {handle: '@'+m[1]};
+  if (m && /\/user\//i.test(s)) return {user: m[1]};
+  if (s.startsWith('@')) return {handle: s.split(/[\/?\s]/)[0]};
+  if (/^[\w.\-]+$/.test(s)) return {handle: '@'+s};
+  return null;
+}
+async function addChannel(input){
+  if (!KEY) throw new Error('Önce API anahtarını gir.');
+  const p = parseChannel(input); if (!p) throw new Error('Bu adresi kanal olarak tanıyamadım.');
+  const q = {part:'snippet,contentDetails'};
+  if (p.id) q.id = p.id; else if (p.handle) q.forHandle = p.handle; else q.forUsername = p.user;
+  const j = await api('channels', q, 1);
+  const it = (j.items||[])[0]; if (!it) throw new Error('Kanal bulunamadı.');
+  if (S.channels.some(c => c.id === it.id)) throw new Error('Bu kanal zaten listede.');
+  S.channels.push({id: it.id, title: it.snippet.title, thumb: (it.snippet.thumbnails.default||{}).url,
+    uploads: it.contentDetails.relatedPlaylists.uploads || it.id.replace(/^UC/, 'UU')});
+  S.blockCh = S.blockCh.filter(b => b.id !== it.id);
+  saveS();
+}
+
+/* ---------- ayarlar ---------- */
+function openSettings(){
+  $('#sKey').value = KEY;
+  $('#sBlock').value = S.block.join(', ');
+  $('#sMin').value = S.minMin || 0; $('#sMax').value = S.maxMin || 0;
+  $('#sDays').value = String(S.days); $('#sSort').value = S.sort; $('#sLang').value = S.lang; $('#sRegion').value = S.region;
+  $('#sShorts').checked = S.noShorts; $('#sHideSeen').checked = S.hideSeen;
+  $('#sQuota').textContent = 'Bugün kullanılan kota (tahmini): ' + quotaUsed().toLocaleString('tr') + ' / 10.000 birim · Bir tam yenileme ≈ ' + (S.topics.length*100 + S.channels.length + 2) + ' birim';
+  renderSettingsLists();
+  $('#settings').hidden = false; $('#settings').scrollTop = 0;
+}
+function renderSettingsLists(){
+  $('#chList').innerHTML = S.channels.length ? S.channels.map(c => `<div class="li"><div class="av" style="width:32px;height:32px;background:hsl(${hue(c.title)} 40% 40%)">${c.thumb?`<img src="${esc(c.thumb)}" alt="">`:esc(c.title.charAt(0))}</div><div class="txt">${esc(c.title)}</div><button class="ib" data-rmch="${esc(c.id)}" aria-label="${esc(c.title)} kanalını çıkar">✕</button></div>`).join('') : '<div class="sub">Henüz kanal yok.</div>';
+  $('#topicTags').innerHTML = S.topics.map((t,i) => `<span class="tg">${esc(t)}<button type="button" data-rmtp="${i}" aria-label="${esc(t)} konusunu çıkar">✕</button></span>`).join('') || '<span class="sub">Henüz konu yok.</span>';
+  $('#blockTags').innerHTML = S.blockCh.map((b,i) => `<span class="tg">${esc(b.title)}<button type="button" data-rmbl="${i}" aria-label="Engeli kaldır">✕</button></span>`).join('') || '<span class="sub">Yok.</span>';
+}
+function readSettings(){
+  KEY = $('#sKey').value.trim(); store.set('key', KEY);
+  S.block = $('#sBlock').value.split(',').map(s => s.trim()).filter(Boolean);
+  S.minMin = Math.max(0, +$('#sMin').value || 0); S.maxMin = Math.max(0, +$('#sMax').value || 0);
+  S.days = +$('#sDays').value; S.sort = $('#sSort').value; S.lang = $('#sLang').value; S.region = $('#sRegion').value;
+  S.noShorts = $('#sShorts').checked; S.hideSeen = $('#sHideSeen').checked;
+  saveS();
+}
+
+/* ---------- olaylar ---------- */
+$('#chips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  view = b.dataset.v; KEY ? render() : renderDemo(); window.scrollTo({top:0});
+});
+$('#feed').addEventListener('click', e => {
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const id = a.closest('.card').dataset.id;
+  if (id.startsWith('demo')){ toast('Bu bir örnek. Anahtarını ekleyince gerçek videolar gelir.'); return; }
+  const v = findVideo(id); if (!v) return;
+  a.dataset.act === 'play' ? openPlayer(v) : openMenu(v);
+});
+$('#menuBody').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) menuAction(b.dataset.m, $('#menu')._v); });
+$('#menu').addEventListener('click', e => { if (e.target.id === 'menu') $('#menu').hidden = true; });
+$('#player').addEventListener('click', e => { if (e.target.id === 'player') closePlayer(); });
+$('#pClose').onclick = closePlayer;
+$('#pLater').onclick = () => { if (cur){ toggleLater(cur); $('#pLater').textContent = later.some(x => x.id === cur.id) ? 'Listeden çıkar' : 'Sonra izle'; } };
+$('#bRefresh').onclick = () => { if (view === 'search') view = 'all'; loadFeed(true); toast('Yenileniyor…'); };
+$('#bSettings').onclick = openSettings;
+$('#bSearch').onclick = () => { $('#mainBar').hidden = true; $('#searchBar').hidden = false; $('#q').focus(); };
+$('#bSearchBack').onclick = () => { $('#searchBar').hidden = true; $('#mainBar').hidden = false; if (view === 'search'){ view = 'all'; render(); } };
+$('#searchBar').addEventListener('submit', e => { e.preventDefault(); const q = $('#q').value.trim(); if (q){ $('#q').blur(); runSearch(q); } });
+
+$('#sKeyShow').onclick = () => { const i = $('#sKey'); i.type = i.type === 'password' ? 'text' : 'password'; };
+$('#chForm').addEventListener('submit', async e => {
+  e.preventDefault(); const v = $('#chIn').value.trim(); if (!v) return;
+  KEY = $('#sKey').value.trim() || KEY; store.set('key', KEY);
+  const btn = e.target.querySelector('button'); btn.disabled = true; btn.textContent = '…';
+  try { await addChannel(v); $('#chIn').value = ''; renderSettingsLists(); toast('Kanal eklendi'); }
+  catch(err){ toast(err.message); }
+  btn.disabled = false; btn.textContent = 'Ekle';
+});
+$('#tpForm').addEventListener('submit', e => {
+  e.preventDefault(); const v = $('#tpIn').value.trim(); if (!v) return;
+  if (!S.topics.some(t => lc(t) === lc(v))) S.topics.push(v);
+  $('#tpIn').value = ''; saveS(); renderSettingsLists();
+});
+$('#settings').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.rmch){ S.channels = S.channels.filter(c => c.id !== t.dataset.rmch); saveS(); renderSettingsLists(); }
+  else if (t.dataset.rmtp != null){ S.topics.splice(+t.dataset.rmtp, 1); saveS(); renderSettingsLists(); }
+  else if (t.dataset.rmbl != null){ S.blockCh.splice(+t.dataset.rmbl, 1); saveS(); renderSettingsLists(); }
+});
+$('#sDone').onclick = () => { readSettings(); $('#settings').hidden = true; if (view.startsWith('t:') && !S.topics.includes(view.slice(2))) view = 'all'; loadFeed(); };
+$('#sExport').onclick = async () => {
+  readSettings();
+  const txt = JSON.stringify({secki: 1, settings: S, later, hidden: [...hidden]});
+  const ta = $('#sBackup'); ta.value = txt;
+  try { await navigator.clipboard.writeText(txt); toast('Yedek kopyalandı'); } catch(e){ ta.select(); toast('Metni seçip kopyala'); }
+};
+$('#sImport').onclick = () => {
+  try {
+    const j = JSON.parse($('#sBackup').value);
+    if (!j || !j.settings) throw 0;
+    S = Object.assign({}, DEF, j.settings); later = j.later || later; hidden = new Set(j.hidden || []);
+    saveS(); saveLists(); openSettings(); toast('Tercihler içe aktarıldı');
+  } catch(e){ toast('Yedek metni okunamadı. Tamamını yapıştırdığından emin ol.'); }
+};
+let clearArm = 0;
+$('#sClear').onclick = e => {
+  if (Date.now() - clearArm > 3000){ clearArm = Date.now(); e.target.textContent = 'Emin misin? Tekrar dokun'; setTimeout(() => e.target.textContent = 'Önbelleği ve geçmişi sil', 3000); return; }
+  cache = {}; details = {}; seen = new Set(); saveCache(); saveLists(); e.target.textContent = 'Önbelleği ve geçmişi sil'; toast('Önbellek ve izleme geçmişi silindi');
+};
+document.addEventListener('keydown', e => { if (e.key === 'Escape'){ if (!$('#player').hidden) closePlayer(); else if (!$('#menu').hidden) $('#menu').hidden = true; } });
+
+/* ---------- başlat ---------- */
+// önbellekten anında göster, sonra arka planda tazele
+if (KEY){
+  const map = new Map();
+  for (const ch of S.channels){ const c = cache['pl:'+ch.uploads]; if (c) c.v.forEach(v => addItem(map, v, 'ch')); }
+  items = [...map.values()];
+  if (items.length) render();
+  loadFeed();
+} else renderDemo();
+})();
+</script>
+</body>
+</html>
