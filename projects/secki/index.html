@@ -240,7 +240,7 @@ textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical;font-size
 <script>
 (() => {
 'use strict';
-const VERSION = '2026-11-07-4';
+const VERSION = '2026-11-07-5';
 const $ = s => document.querySelector(s);
 const API = 'https://www.googleapis.com/youtube/v3/';
 const NS = 'secki.';
@@ -533,7 +533,7 @@ function openPlayer(v){
     $('#pTip').hidden = isTR;
     if (!isTR) loadYT().then(() => {
       if (!window.YT || !YT.Player || !f.isConnected) return;
-      window.__seckiPlayer = new YT.Player(f, {events: {onReady: e => forceTR(e.target), onApiChange: e => forceTR(e.target, true)}});
+      window.__seckiPlayer = new YT.Player(f, {events: {onReady: e => { e.target._vlang = d.lang || ''; forceTR(e.target); }}});
     });
   } else {
     $('#pNote').textContent = d.emb === false ? 'Bu videonun sahibi başka sitelerde oynatılmasını kapatmış. YouTube’da açabilirsin.' : 'Dosyadan açılan sayfada gömülü oynatıcı çalışmaz. YouTube’da aç düğmesi videoyu uygulamada başlatır.';
@@ -553,26 +553,29 @@ function loadYT(){
   });
   return loadYT.p;
 }
-// Türkçe altyazıyı seç; yoksa YouTube'un otomatik çevirisiyle Türkçe'ye çevir
-function forceTR(p, once){
-  if (!p._trUntil) p._trUntil = Date.now() + 15000;
-  const go = () => {
-    if (p._trDone || Date.now() > p._trUntil) return;
+// Türkçe altyazıyı seç; yoksa YouTube'un otomatik çevirisiyle Türkçeye çevir
+// Sıra önemli: altyazı modülü yüklenir, önce kaynak altyazı açılır, sonra çeviri uygulanır.
+function forceTR(p, fromApiChange){
+  if (p._trStarted) return;
+  const vlang = p._vlang || '';
+  const attempt = (n) => {
     try {
       p.loadModule('captions');
       const list = p.getOption('captions', 'tracklist') || [];
-      if (!list.length) return;
+      if (!list.length){ if (n < 15) setTimeout(() => attempt(n + 1), 700); return; }
+      p._trStarted = true;
       const tr = list.find(t => /^tr/i.test(t.languageCode || ''));
-      if (tr) p.setOption('captions', 'track', tr);
-      else {
-        // Türkçe yoksa: insan yazımı altyazıyı (yoksa otomatiği) YouTube çevirisiyle Türkçeye çevir
-        const base = list.find(t => t.kind !== 'asr') || list[0];
-        p.setOption('captions', 'track', Object.assign({}, base, {translationLanguage: {languageCode: 'tr', languageName: 'Türkçe'}}));
-      }
-      p._trDone = true;
-    } catch(e){}
+      if (tr){ p.setOption('captions', 'track', tr); return; }
+      const pick = list.find(t => vlang && (t.languageCode || '').toLowerCase().startsWith(vlang.slice(0, 2)) && t.kind !== 'asr')
+        || list.find(t => t.is_default) || list.find(t => /^en/i.test(t.languageCode || '') && t.kind !== 'asr')
+        || list.find(t => t.kind !== 'asr') || list[0];
+      p.setOption('captions', 'track', pick);
+      const tl = (p.getOption('captions', 'translationLanguages') || []).find(l => l.languageCode === 'tr') || {languageCode: 'tr', languageName: 'Türkçe'};
+      const apply = () => { try { p.setOption('captions', 'track', Object.assign({}, pick, {translationLanguage: tl})); } catch(e){} };
+      setTimeout(apply, 1200); setTimeout(apply, 3500);
+    } catch(e){ if (n < 15) setTimeout(() => attempt(n + 1), 700); }
   };
-  go(); if (!once) [600, 1500, 3000, 5000, 8000, 12000].forEach(t => setTimeout(go, t));
+  attempt(0);
 }
 function closePlayer(){ $('#player').hidden = true; $('#frame').innerHTML = ''; cur = null; }
 function toggleLater(v){
